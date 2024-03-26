@@ -1,3 +1,5 @@
 .DS_STORE
 *.pyc
 logs*
+*.log
+__pycache__
