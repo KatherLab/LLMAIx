@@ -134,7 +134,7 @@ def extract_from_report(
         
     skipped = 0
 
-    for i, report in enumerate(df.report):
+    for i, (report, id) in enumerate(zip(df.report, df.id)):
         print("parsing report: ", i)
         if is_empty_string_nan_or_none(report):
             print("SKIPPING EMPTY REPORT!")
@@ -159,6 +159,7 @@ def extract_from_report(
             if report not in results:
                 results[report] = {}
             results[report][symptom] = summary
+            results[report]["id"] = id
 
         print(f"Report {i} completed.")
         update_progress(job_id=job_id, progress=(i+1 - skipped, len(df) - skipped, True))
@@ -186,7 +187,7 @@ def postprocess_grammar(result, grammar):
             raise Exception("Failed to parse LLM output. Did you set --n_predict too low or is the input too long?")
         
         # Construct a dictionary containing the report and extracted information
-        extracted_info = {'report': report}
+        extracted_info = {'report': report, 'id': info['id']}
         for key, value in info_dict.items():
             extracted_info[key] = value
         
@@ -196,21 +197,56 @@ def postprocess_grammar(result, grammar):
     # Convert the list of dictionaries into a DataFrame
     df = pd.DataFrame(extracted_data)
 
-    # Reorder the columns to have 'report' as the first column
-    columns = ['report'] + [col for col in df.columns if col != 'report']
-    df = df[columns]
+    df['base_id'] = df['id'].str.split('_').str[0]
 
-    personal_info_list = df.drop(columns=["report"]).values.flatten().tolist()
+    # Group by base_id and aggregate reports and other columns into lists
+    aggregated_df = df.groupby('base_id').agg(lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()
+    # print(aggregated_df)
 
-    df["report_masked"] = df["report"].apply(lambda x: replace_personal_info(x, personal_info_list))
+    # breakpoint()
 
-    return df
+    aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report"]) for item in list], axis=1)
+
+    aggregated_df['masked_report'] = df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0]))
+
+    aggregated_df.drop(columns=['id'], inplace=True)
+    aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
+
+    # breakpoint()
+
+    # # Reorder the columns to have 'report' as the first column
+    # columns = ['report', 'id'] + [col for col in df.columns if col != 'report' or col != 'id']
+    # df = df[columns]
+
+    # # list with the variables from the grammar excluding those the model did not predict anything for.
+    # personal_info_list = list(filter(lambda x: x != '', df.drop(columns=["report", "id"]).values.flatten().tolist()))
+
+    # breakpoint()
+    # df["report_masked"] = df["report"].apply(lambda x: replace_personal_info(x, personal_info_list))
+
+    return aggregated_df
 
 from thefuzz import process
 
+def is_empty_string_nan_or_none(variable):
+        if variable is None:
+            return True
+        elif isinstance(variable, str) and variable.strip() == "":
+            return True
+        elif isinstance(variable, float) and math.isnan(variable):
+            return True
+        else:
+            return False
+
 def replace_personal_info(text, personal_info_list):
+    # remove redundant items
+    personal_info_list = list(set(personal_info_list))
+    personal_info_list = [item for item in personal_info_list if item != ""]
     masked_text = text
     for info in personal_info_list:
+        if is_empty_string_nan_or_none(info):
+            print("SKIPPING EMPTY INFO!")
+            continue
         # Get a list of best matches for the current personal information from the text
         best_matches = process.extract(info, text.split())
         best_score = best_matches[0][1]

@@ -14,6 +14,7 @@ from PIL import Image
 from docx import Document
 from odf import text, teletype
 from odf.opendocument import load
+import uuid
 from . import input_processing
 from .. import socketio
 
@@ -128,13 +129,35 @@ def download():
         return redirect(url_for('input_processing.main'))
     elif job.done():
         try:
-            result_df = job.result()
+            df = job.result()
         except Exception as e:
             flash("Preprocessing failed / did not output anything useful!", "danger")
             return redirect(url_for('input_processing.main'))
 
+        # split report into chunks of 3000 chars
+        max_length = 3000
+
+        # Add an 'id' column and generate unique IDs for every row
+        df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
+
+        # Split rows containing more than max_length letters
+        split_rows = []
+        for index, row in df.iterrows():
+            if len(row['report']) > max_length:
+                num_splits = (len(row['report']) + max_length - 1) // max_length
+                for i in range(num_splits):
+                    split_row = row.copy()
+                    split_row['report'] = row['report'][i * max_length: (i + 1) * max_length]
+                    split_row['id'] = f'{row["id"]}_{i}'
+                    split_rows.append(split_row)
+            else:
+                split_rows.append(row)
+
+        # Create a new DataFrame with the split rows
+        df_split = pd.DataFrame(split_rows)
+
         result_io = io.BytesIO()
-        result_df.to_csv(result_io, index=False)
+        df_split.to_csv(result_io, index=False)
         result_io.seek(0)
         return send_file(
             result_io,
@@ -177,7 +200,7 @@ def main():
             file_paths=file_paths
         )
 
-        update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
+        # update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
 
         flash('Upload Successful!', "success")
         return redirect(url_for('input_processing.main'))

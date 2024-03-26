@@ -107,3 +107,4 @@ ws ::= ([ \t\n])?
 
 - IDs in csv
 - Schätzung / automatisches Split bei zu vielen Token
+- PDF schwärzen
