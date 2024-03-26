@@ -8,7 +8,7 @@
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3 mb-3">
-            <legend>Input raw reports</legend>
+            <legend>Select Raw Reports (pdf, png, jpg, jpeg, docx, odf, txt)</legend>
 
             <div class="row">
                 <div class="form-group col-md-10">
@@ -68,7 +68,6 @@
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     socket.on('progress_update', function(data) {
-        alert('Job ' + data.job_id + ' progress: ' + data.progress);
         var job_id = data.job_id;
         var progress = data.progress;
         var totalSteps = data.total;
@@ -77,12 +76,11 @@
         var progressBar = document.getElementById('progress-' + job_id);
         if (progressBar) {
             progressBar.style.width = (progress / totalSteps) * 100 + '%';
-            progressBar.innerText = (Math.floor(progress / (totalSteps / 100)) + 1) + '/' + totalSteps;
+            progressBar.innerText = progress + ' / ' + totalSteps;
         }
     });
 
     socket.on('progress_complete', function(data) {
-        alert('Job ' + data.job_id + ' complete');
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
 

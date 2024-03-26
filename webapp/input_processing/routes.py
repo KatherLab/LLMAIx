@@ -71,7 +71,9 @@ def preprocess_input(job_id, file_paths):
 
                 # Run OCRmyPDF
                 ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
-                subprocess.run(['ocrmypdf', '--force-ocr', file_path, ocr_output_path])
+
+                subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+
                 with pdfplumber.open(ocr_output_path) as ocr_pdf:
                     ocr_text = ''
                     for page in ocr_pdf.pages:
@@ -95,7 +97,7 @@ def preprocess_input(job_id, file_paths):
             else:
                 print(f"Unsupported file format: {file_path}")
         except Exception as e:
-            print(f"Error processing file {file_path}: {e}")
+            print(f"Error processing file {file_path} (might also be that tesseract etc is not installed / found): {e}")
             update_progress(job_id=job_id, progress=(i, len(file_paths), False))
             os.remove(file_path)
             return
@@ -166,6 +168,8 @@ def main():
                 file.save(file_path)
                 file_paths.append(file_path)
 
+        update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
+
         global jobs
         jobs[job_id] = executor.submit(
             preprocess_input,
@@ -173,7 +177,7 @@ def main():
             file_paths=file_paths
         )
 
-        update_progress(job_id=job_id, progress=(0, len(form.files.data)))
+        update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
 
         flash('Upload Successful!', "success")
         return redirect(url_for('input_processing.main'))

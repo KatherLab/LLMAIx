@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     # disable debug TODO
     # app.run(debug=True, use_reloader=True, port=5005)
-    socketio.run(app, debug=True, use_reloader=True, port=5005)
+    socketio.run(app, debug=True, use_reloader=True, port=args.port)
 
 
     

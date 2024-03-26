@@ -86,6 +86,13 @@ def extract_from_report(
         current_model = model_name
         time.sleep(5)
 
+    try:
+        os.environ.pop("HTTP_PROXY", None)
+        os.environ.pop("HTTPS_PROXY", None)
+    except KeyError:
+        print("No proxy set")
+        pass
+
     for _ in range(16):
         # wait until server is running
         try:
@@ -96,8 +103,7 @@ def extract_from_report(
             break
         except requests.exceptions.ConnectionError:
             time.sleep(10)
-    
-    
+
     try:
         requests.post(
             url="http://localhost:8080/completion",
@@ -106,6 +112,8 @@ def extract_from_report(
     except requests.exceptions.ConnectionError:
         socketio.emit('load_failed')
         return
+    
+    print("Server running")
     
     new_model = False
     socketio.emit('load_complete')
@@ -144,7 +152,7 @@ def extract_from_report(
                     "temperature": temperature,
                     "grammar": grammar,
                 },
-                timeout=60 * 20,
+                timeout=20 * 60,
             )
 
             summary = result.json()
@@ -172,7 +180,10 @@ def postprocess_grammar(result, grammar):
         content = info.get(first_key, {}).get('content', '')
         
         # Parse the content string into a dictionary
-        info_dict = ast.literal_eval(content)
+        try:
+            info_dict = ast.literal_eval(content)
+        except:
+            raise Exception("Failed to parse LLM output. Did you set --n_predict too low or is the input too long?")
         
         # Construct a dictionary containing the report and extracted information
         extracted_info = {'report': report}
@@ -310,7 +321,12 @@ def llm_download():
     job = llm_jobs[job_id]
 
     if job.done():
-        result_df = job.result()
+        try:
+            result_df = job.result()
+        except Exception as e:
+            flash(str(e), "danger")
+            return redirect(url_for('llm_processing.llm_results'))
+        
         result_io = io.BytesIO()
         result_df.to_csv(result_io, index=False)
         result_io.seek(0)
