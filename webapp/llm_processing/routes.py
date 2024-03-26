@@ -201,28 +201,13 @@ def postprocess_grammar(result, grammar):
 
     # Group by base_id and aggregate reports and other columns into lists
     aggregated_df = df.groupby('base_id').agg(lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()
-    # print(aggregated_df)
-
-    # breakpoint()
 
     aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report"]) for item in list], axis=1)
 
-    aggregated_df['masked_report'] = df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0]))
+    aggregated_df['masked_report'] = aggregated_df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0]))
 
     aggregated_df.drop(columns=['id'], inplace=True)
     aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
-
-    # breakpoint()
-
-    # # Reorder the columns to have 'report' as the first column
-    # columns = ['report', 'id'] + [col for col in df.columns if col != 'report' or col != 'id']
-    # df = df[columns]
-
-    # # list with the variables from the grammar excluding those the model did not predict anything for.
-    # personal_info_list = list(filter(lambda x: x != '', df.drop(columns=["report", "id"]).values.flatten().tolist()))
-
-    # breakpoint()
-    # df["report_masked"] = df["report"].apply(lambda x: replace_personal_info(x, personal_info_list))
 
     return aggregated_df
 
@@ -252,7 +237,8 @@ def replace_personal_info(text, personal_info_list):
         best_matches = process.extract(info, text.split())
         best_score = best_matches[0][1]
         for match, score in best_matches:
-            if score == best_score:
+            if score == best_score and score >= 90:
+                print("MATCH", match, " with score ", score, " for ", info)
                 # Replace best matches with asterisks (*) of the same length as the personal information
                 masked_text = masked_text.replace(match, '*' * len(match))
 
@@ -365,7 +351,6 @@ def llm_download():
             flash(str(e), "danger")
             return redirect(url_for('llm_processing.llm_results'))
         
-        breakpoint()
         result_io = io.BytesIO()
         result_df.to_csv(result_io, index=False)
         result_io.seek(0)
