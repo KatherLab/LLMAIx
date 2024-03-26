@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="content-section">
+    <h1>LLM Processing</h1>
+
+    <form action="" method="post" enctype="multipart/form-data">
+
+        {{ form.hidden_tag() }}
+
+        <fieldset class="form-control p-3">
+            <legend>Input csv or excel for information retrieval</legend>
+            
+            <div class="row">
+                <div class="form-group col-md-12">
+        
+                    {% if form.file.errors %}
+                    {{ form.file(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.file.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.file(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+
+            </div>
+        </fieldset>
+
+
+        <fieldset class="form-control p-3">
+            <legend>LLaMA Settings</legend>
+            
+            <div class="row">
+                <div class="form-group col-md-12">
+                    {{ form.prompt.label(class="form-control-label") }}
+        
+                    {% if form.prompt.errors %}
+                    {{ form.prompt(class="form-control form-control-lg is-invalid", rows="10") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.prompt.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.prompt(class="form-control form-control-lg", rows="10") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-12">
+                    {{ form.variables.label(class="form-control-label") }}
+        
+                    {% if form.variables.errors %}
+                    {{ form.variables(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.variables.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.variables(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-6">
+                    {{ form.temperature.label(class="form-control-label") }}
+        
+                    {% if form.temperature.errors %}
+                    {{ form.temperature(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.temperature.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.temperature(class="form-control form-control-lg", min=0, max=1) }}
+                    {% endif %}
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form.model.label(class="form-control-label") }}
+        
+                    {% if form.model.errors %}
+                    {{ form.model(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.model.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.model(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-12">
+                    {{ form.grammar.label(class="form-control-label") }}
+    
+                    {% if form.grammar.errors %}
+                    {{ form.grammar(class="form-control form-control-lg is-invalid", rows="10") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.grammar.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.grammar(class="form-control form-control-lg", rows="10") }}
+                    {% endif %}
+                </div>
+            </div>
+            
+        </fieldset>
+
+        <div class="row">
+            <div class="form-group col-md-12">
+                <!--{% if form.submit.errors %}
+                {{ form.submit(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.submit.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.submit(class="form-control form-control-lg", id="submit-form") }}
+                {% endif %}-->
+                <button type="submit" name="submit-form" class="form-control form-control-lg btn btn-secondary">Run Pipeline</button>
+            </div>
+        </div>
+
+    </form>
+
+
+
+</div>
+
+{% endblock %}

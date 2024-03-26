@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    .loading-circle {
+        border: 4px solid #f3f3f3; /* Light grey */
+        border-top: 4px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 2s linear infinite;
+        margin: 20px auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .visible {
+        display: block;
+    }
+</style>
+
+<div class="content-section">
+    <h1>LLM Progress & Results</h1>
+
+    {% if not model_loaded %}
+    <div id="loading-circle" class="container text-center">
+        <p>Loading Model ...</p>
+        <div class="loading-circle"></div>
+    </div>
+    {% else %}
+    <div id="loading-circle" class="container text-center hidden">
+        <p>Loading Model ...</p>
+        <div class="loading-circle"></div>
+    </div>
+    {% endif %}
+
+    <div class="hidden" id="load_complete">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Model loaded successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+    </div>
+
+    <div class="hidden" id="load_failed">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+    </div>
+
+    {% for job_id, progress_tuple in llm_progress.items() %}
+    <div class="container p-2 mb-3">
+        <h3>Job {{ job_id }}</h3>
+        <div class="row">
+            <div class="col-md-11">
+
+                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
+                    {% if progress_tuple[2] %}
+                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-success" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</div>
+                    {% else %}
+                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-danger" style="width: 100%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-1">
+                {% if progress_tuple[0] == progress_tuple[1] %}
+                    <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-success">Download</a>
+                {% elif progress_tuple[2] %}
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
+                {% else %}
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('llm_progress_update', function(data) {
+        var job_id = data.job_id;
+        var progress = data.progress;
+        var totalSteps = data.total;
+
+        // Update progress bar for the corresponding job
+        var progressBar = document.getElementById('progress-' + job_id);
+        if (progressBar) {
+            progressBar.style.width = (progress / totalSteps) * 100 + '%';
+            progressBar.innerText = progress + ' / ' + totalSteps;
+        }
+    });
+
+    socket.on('llm_progress_complete', function(data) {
+
+        var job_id = data.job_id;
+        var progressBar = document.getElementById('progress-' + job_id);
+
+        // Enable download button
+        var downloadLink = document.getElementById('download-' + job_id);
+        downloadLink.href = '/llm_download?job=' + job_id;
+        downloadLink.classList.remove('disabled');
+        downloadLink.removeAttribute('disabled');
+    });
+
+    socket.on('llm_progress_failed', function(data) {
+
+        alert('Job ' + data.job_id + ' failed');
+
+        var job_id = data.job_id;
+        var progressBar = document.getElementById('progress-' + job_id);
+         
+        // Make progress bar red and state failure
+        progressBar.className = 'progress-bar bg-danger';
+        progressBar.innerText = 'Failed';
+        progressBar.style.width = '100%';
+
+        var downloadLink = document.getElementById('download-' + job_id);
+        downloadLink.classList.add('disabled');
+        downloadLink.setAttribute('disabled', 'disabled');
+        downloadLink.className = 'btn btn-danger disabled';
+
+    });
+
+    socket.on('load_failed', function(){
+            document.getElementById('load_failed').classList.remove('hidden');
+            alert('Loading the model failed!')
+        });
+
+    socket.on('load_complete', function() {
+        document.getElementById('loading-circle').classList.add('hidden');
+        document.getElementById('load_complete').classList.remove('hidden');
+    });
+
+
+
+</script>
+
+{% endblock content %}

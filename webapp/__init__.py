@@ -1,18 +1,18 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO
 
 
-db = SQLAlchemy(session_options={
-    'expire_on_commit': False
-})
-
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
 
-    db.init_app(app)
+    app.secret_key = 'jf894puwt8ahg9piofdmhv78943oewmhrtfsud98pmhor3e8r9pi'
 
-    from webapp.input_processing.routes import input_processing
+    from .input_processing import input_processing
+    from .llm_processing import llm_processing
     app.register_blueprint(input_processing)
+    app.register_blueprint(llm_processing)
 
+    socketio.init_app(app)
     return app

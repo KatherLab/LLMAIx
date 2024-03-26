@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="content-section">
+    <h1>Upload your Documents!</h1>
+
+    <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <fieldset class="form-control p-3 mb-3">
+            <legend>Input raw reports</legend>
+
+            <div class="row">
+                <div class="form-group col-md-10">
+        
+                    {% if form.files.errors %}
+                    {{ form.files(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.files.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.files(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group col-md-2">        
+                    <button type="submit" name="submit-form" class="form-control form-control-lg btn btn-secondary">Preprocess Files</button>
+
+                </div>
+            </div>
+        </fieldset>
+    </form>
+
+    <h1>Job Progress</h1>
+    {% for job_id, progress_tuple in progress.items() %}
+    <div class="container p-2 mb-3">
+        <h3>Job {{ job_id }}</h3>
+        <div class="row">
+            <div class="col-md-11">
+
+                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
+                    {% if progress_tuple[2] %}
+                    <div class="progress-bar overflow-visible bg-success" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</div>
+                    {% else %}
+                    <div class="progress-bar overflow-visible bg-danger" style="width: 100%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-1">
+                {% if progress_tuple[0] == progress_tuple[1] %}
+                    <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-success">Download</a>
+                {% elif progress_tuple[2] %}
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
+                {% else %}
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('progress_update', function(data) {
+        alert('Job ' + data.job_id + ' progress: ' + data.progress);
+        var job_id = data.job_id;
+        var progress = data.progress;
+        var totalSteps = data.total;
+
+        // Update progress bar for the corresponding job
+        var progressBar = document.getElementById('progress-' + job_id);
+        if (progressBar) {
+            progressBar.style.width = (progress / totalSteps) * 100 + '%';
+            progressBar.innerText = (Math.floor(progress / (totalSteps / 100)) + 1) + '/' + totalSteps;
+        }
+    });
+
+    socket.on('progress_complete', function(data) {
+        alert('Job ' + data.job_id + ' complete');
+        var job_id = data.job_id;
+        var progressBar = document.getElementById('progress-' + job_id);
+
+        // Enable download button
+        var downloadLink = document.getElementById('download-' + job_id);
+        downloadLink.href = '/download?job=' + job_id;
+        downloadLink.classList.remove('disabled');
+        downloadLink.removeAttribute('disabled');
+    });
+
+    socket.on('progress_failed', function(data) {
+
+        var job_id = data.job_id;
+        var progressBar = document.getElementById('progress-' + job_id);
+         
+        // Make progress bar red and state failure
+        progressBar.className = 'progress-bar bg-danger';
+        progressBar.innerText = 'Failed';
+        progressBar.style.width = '100%';
+
+        var downloadLink = document.getElementById('download-' + job_id);
+        downloadLink.classList.add('disabled');
+        downloadLink.setAttribute('disabled', 'disabled');
+        downloadLink.className = 'btn btn-danger disabled';
+
+    });
+
+
+
+</script>
+
+{% endblock content %}
