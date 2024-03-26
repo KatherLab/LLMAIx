@@ -102,3 +102,8 @@ number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
 # Optional space: by convention, applied in this grammar after literal chars when allowed
 ws ::= ([ \t\n])?
 ```
+
+## TODO
+
+- IDs in csv
+- Schätzung / automatisches Split bei zu vielen Token
