@@ -184,7 +184,7 @@ def postprocess_grammar(result, grammar):
         try:
             info_dict = ast.literal_eval(content)
         except:
-            raise Exception("Failed to parse LLM output. Did you set --n_predict too low or is the input too long?")
+            raise Exception("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little.")
         
         # Construct a dictionary containing the report and extracted information
         extracted_info = {'report': report, 'id': info['id']}
@@ -243,6 +243,7 @@ def replace_personal_info(text, personal_info_list):
     personal_info_list = list(set(personal_info_list))
     personal_info_list = [item for item in personal_info_list if item != ""]
     masked_text = text
+
     for info in personal_info_list:
         if is_empty_string_nan_or_none(info):
             print("SKIPPING EMPTY INFO!")
@@ -254,6 +255,7 @@ def replace_personal_info(text, personal_info_list):
             if score == best_score:
                 # Replace best matches with asterisks (*) of the same length as the personal information
                 masked_text = masked_text.replace(match, '*' * len(match))
+
     return masked_text
 
 @llm_processing.route("/llm", methods=['GET', 'POST'])
@@ -363,6 +365,7 @@ def llm_download():
             flash(str(e), "danger")
             return redirect(url_for('llm_processing.llm_results'))
         
+        breakpoint()
         result_io = io.BytesIO()
         result_df.to_csv(result_io, index=False)
         result_io.seek(0)
@@ -370,7 +373,7 @@ def llm_download():
             result_io,
             mimetype="text/csv",
             as_attachment=True,
-            download_name=f"report-{job_id}.csv",
+            download_name=f"lllm-output-{job_id}.csv",
         )
     else:
         flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty!", "danger")

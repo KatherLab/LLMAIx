@@ -71,9 +71,20 @@ def preprocess_input(job_id, file_paths):
                     file_path = pdf_output_path
 
                 # Run OCRmyPDF
-                ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
+                contains_text = False
+                with pdfplumber.open(file_path) as pdf:
+                    for page in pdf.pages:
+                        if len(page.extract_text()) > 0:
+                            contains_text = True
+                            break
+                
+                if not contains_text:
+                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
 
-                subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                    subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+
+                else:
+                    ocr_output_path = file_path
 
                 with pdfplumber.open(ocr_output_path) as ocr_pdf:
                     ocr_text = ''
@@ -163,7 +174,7 @@ def download():
             result_io,
             mimetype="text/csv",
             as_attachment=True,
-            download_name=f"report-{job_id}.csv",
+            download_name=f"preprocessed-{job_id}.csv",
         )
     else:
         flash(f"Job {job}: An unknown error occurred!", "danger")
