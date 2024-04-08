@@ -204,7 +204,7 @@ def postprocess_grammar(result):
 
     aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report"]) for item in list], axis=1)
 
-    aggregated_df['masked_report'] = df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0]))
+    aggregated_df['masked_report'] = aggregated_df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0]))
 
     aggregated_df.drop(columns=['id'], inplace=True)
     aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
@@ -354,7 +354,6 @@ def llm_download():
             flash(str(e), "danger")
             return redirect(url_for('llm_processing.llm_results'))
         
-        #breakpoint()
         result_io = io.BytesIO()
         result_df.to_csv(result_io, index=False)
         result_io.seek(0)
