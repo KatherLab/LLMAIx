@@ -26,7 +26,7 @@ Run:
 
 |Parameter|Description|Example|
 |---|---|---|
-|--model_dir|Directory with downloaded model files which can be processed by llama.cpp|/path/to/models|
+|--model_path|Directory with downloaded model files which can be processed by llama.cpp|/path/to/models|
 |--n_predict|How many tokens to predict. Will crash if too little. Default: 2048|200|
 |--server_path|Path of llama cpp executable (on Windows: server.exe).|/path/to/llamacpp/executable/server|
 |--port|Port on which this web app should be started on. Default: 5001|5001|
@@ -108,3 +108,4 @@ ws ::= ([ \t\n])?
 - IDs in csv
 - Schätzung / automatisches Split bei zu vielen Token
 - PDF schwärzen
+- replace_personal_info anpassen (linked #TODO)

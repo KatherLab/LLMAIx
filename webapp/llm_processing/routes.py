@@ -166,9 +166,9 @@ def extract_from_report(
 
     socketio.emit('llm_progress_complete', {'job_id': job_id,'total_steps': len(df) - skipped})
 
-    return postprocess_grammar(results, symptoms)
+    return postprocess_grammar(results)
 
-def postprocess_grammar(result, grammar):
+def postprocess_grammar(result):
 
     extracted_data = []
 
@@ -183,8 +183,8 @@ def postprocess_grammar(result, grammar):
         # Parse the content string into a dictionary
         try:
             info_dict = ast.literal_eval(content)
-        except:
-            raise Exception("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little.")
+        except Exception as e:
+            raise Exception(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})") from e
         
         # Construct a dictionary containing the report and extracted information
         extracted_info = {'report': report, 'id': info['id']}
@@ -201,9 +201,6 @@ def postprocess_grammar(result, grammar):
 
     # Group by base_id and aggregate reports and other columns into lists
     aggregated_df = df.groupby('base_id').agg(lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()
-    # print(aggregated_df)
-
-    # breakpoint()
 
     aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report"]) for item in list], axis=1)
 
@@ -212,21 +209,9 @@ def postprocess_grammar(result, grammar):
     aggregated_df.drop(columns=['id'], inplace=True)
     aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
 
-    # breakpoint()
-
-    # # Reorder the columns to have 'report' as the first column
-    # columns = ['report', 'id'] + [col for col in df.columns if col != 'report' or col != 'id']
-    # df = df[columns]
-
-    # # list with the variables from the grammar excluding those the model did not predict anything for.
-    # personal_info_list = list(filter(lambda x: x != '', df.drop(columns=["report", "id"]).values.flatten().tolist()))
-
-    # breakpoint()
-    # df["report_masked"] = df["report"].apply(lambda x: replace_personal_info(x, personal_info_list))
-
     return aggregated_df
 
-from thefuzz import process
+from thefuzz import process, fuzz
 
 def is_empty_string_nan_or_none(variable):
         if variable is None:
@@ -237,8 +222,11 @@ def is_empty_string_nan_or_none(variable):
             return True
         else:
             return False
+        
 
-def replace_personal_info(text, personal_info_list):
+import re
+
+def replace_personal_info(text: str, personal_info_list: dict[str, str]) -> str:
     # remove redundant items
     personal_info_list = list(set(personal_info_list))
     personal_info_list = [item for item in personal_info_list if item != ""]
@@ -253,8 +241,9 @@ def replace_personal_info(text, personal_info_list):
         best_score = best_matches[0][1]
         for match, score in best_matches:
             if score == best_score:
-                # Replace best matches with asterisks (*) of the same length as the personal information
-                masked_text = masked_text.replace(match, '*' * len(match))
+                print(f"match: {match}, score: {score}")
+                # Replace best matches with asterisks (*)
+                masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
 
     return masked_text
 
@@ -365,7 +354,7 @@ def llm_download():
             flash(str(e), "danger")
             return redirect(url_for('llm_processing.llm_results'))
         
-        breakpoint()
+        #breakpoint()
         result_io = io.BytesIO()
         result_df.to_csv(result_io, index=False)
         result_io.seek(0)
@@ -373,7 +362,7 @@ def llm_download():
             result_io,
             mimetype="text/csv",
             as_attachment=True,
-            download_name=f"lllm-output-{job_id}.csv",
+            download_name=f"llm-output-{job_id}.csv",
         )
     else:
         flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty!", "danger")

@@ -28,7 +28,7 @@
     - `pip install ocrmypdf --proxy=http://ukd-proxy:80`
 
     - set PATH to include both tesseract and ghostscript: `set PATH=D:\Path\to\tesseract\;D:\Path\to\gs\bin;%PATH%`
-    You need to do this every time you restart the computer! Only run this command once!
+    You need to do this every time you logout / restart the computer! Only run this command once!
 
 10. `cd LLMAnonymizer`
 
