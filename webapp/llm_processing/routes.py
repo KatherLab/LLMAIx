@@ -184,6 +184,7 @@ def postprocess_grammar(result):
         try:
             info_dict = ast.literal_eval(content)
         except Exception as e:
+            breakpoint()
             raise Exception(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})") from e
         
         # Construct a dictionary containing the report and extracted information
@@ -216,7 +217,7 @@ from thefuzz import process, fuzz
 def is_empty_string_nan_or_none(variable):
         if variable is None:
             return True
-        elif isinstance(variable, str) and variable.strip() == "":
+        elif isinstance(variable, str) and ( variable.strip() == "" or variable.isspace() or variable == "?"):
             return True
         elif isinstance(variable, float) and math.isnan(variable):
             return True
@@ -232,6 +233,14 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str]) -> str:
     personal_info_list = [item for item in personal_info_list if item != ""]
     masked_text = text
 
+    # Replace remaining personal information with asterisks (*)
+    for info in personal_info_list:
+        if is_empty_string_nan_or_none(info):
+            print("SKIPPING EMPTY INFO!")
+            continue
+        masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
+
+
     for info in personal_info_list:
         if is_empty_string_nan_or_none(info):
             print("SKIPPING EMPTY INFO!")
@@ -240,12 +249,14 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str]) -> str:
         best_matches = process.extract(info, text.split())
         best_score = best_matches[0][1]
         for match, score in best_matches:
-            if score == best_score:
+            if score == best_score and score >= 90:
                 print(f"match: {match}, score: {score}")
                 # Replace best matches with asterisks (*)
                 masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
 
+    
     return masked_text
+    
 
 @llm_processing.route("/llm", methods=['GET', 'POST'])
 def main():

@@ -93,7 +93,9 @@ class LLMPipelineForm(FlaskForm):
         self.model.choices = [
             ("sauerkrautlm-7b-v1.Q5_K_M.gguf", "LLaMA 2 7b chat sauerkraut"),
             ("sauerkrautlm-70b-v1.Q5_K_M.gguf", "LLaMA 2 70b chat sauerkraut"),
-            ("sauerkrautlm-13b-v1.Q5_K_M.gguf", "LLaMA 2 13b chat sauerkraut")
+            ("sauerkrautlm-13b-v1.Q5_K_M.gguf", "LLaMA 2 13b chat sauerkraut"),
+            ("mistral-7b-instruct-v0.1.Q5_K_M.gguf", "Mistral 7b"),
+            ("mixtral-8x7b-v0.1.Q5_K_M.gguf", "Mistral 8x7b"),
         ]
         if model_path:
             self.model.validators = [FileExistsValidator(message='File does not exist.', path=model_path)]
