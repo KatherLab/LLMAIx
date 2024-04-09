@@ -12,6 +12,8 @@ Features:
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance
 
 
+![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
+
 ## Examples
 
 An example of a doctoral report in various formats can be found in the examples directory.
