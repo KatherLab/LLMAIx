@@ -106,7 +106,7 @@ class LLMPipelineForm(FlaskForm):
 
     file = FileField("File", validators=[
         FileRequired(),  
-        FileAllowed(['csv', 'xlms'], 'Only .csv and .xlms files allowed!')
+        FileAllowed(['zip', 'csv', 'xlms'], 'Only .zip, .csv and .xlms files allowed!')
     ])
     grammar = TextAreaField("Grammar:", validators=[], default=default_grammer)
     prompt = TextAreaField("Prompt:", validators=[], default=default_prompt)

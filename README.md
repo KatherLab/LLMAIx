@@ -107,5 +107,8 @@ ws ::= ([ \t\n])?
 
 - IDs in csv
 - Schätzung / automatisches Split bei zu vielen Token
-- PDF schwärzen
+- PDF schwärzen (side-by-side display)
 - replace_personal_info anpassen (linked #TODO)
+- raw LLM output download
+- settings for postprocessing
+- add metadata file to zip

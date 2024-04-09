@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Report Redaction Viewer</h2>
+    <h3>Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
+    <div class="navigation-buttons">
+        {% if previous_id %}
+            <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=previous_id) }}" class="btn btn-secondary float-left">Previous Report</a>
+        {% endif %}
+        {% if next_id %}
+            <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=next_id) }}" class="btn btn-secondary float-right">Next Report</a>
+        {% endif %}
+        <div class="clearfix"></div>
+    </div>
+    <div class="pdf-container">
+        <div class="pdf-viewer">
+            <h3>Original Document</h3>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileoriginal', id=report_id) }}" height="800px" frameborder="0"></iframe>
+        </div>
+        <div class="pdf-viewer">
+            <h3>Redacted Document</h3>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0"></iframe>
+        </div>
+    </div>
+    <div class="personal-info-list">
+        <h3>Personal Information</h3>
+        <div class="btn-group" role="group" aria-label="Personal Information">
+            {% for info in personal_info_list %}
+                <button type="button" class="btn btn-secondary" disabled>{{ info }}</button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .pdf-container {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .pdf-viewer {
+        width: 48%; /* Adjust width to accommodate spacing */
+        padding: 10px; /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer iframe {
+        width: 100%;
+    }
+
+    .navigation-buttons {
+        margin-bottom: 20px;
+    }
+
+    .clearfix {
+        clear: both;
+    }
+
+    .float-left {
+        float: left;
+    }
+
+    .float-right {
+        float: right;
+    }
+    .report-number {
+        display: inline-block;
+        margin: 0 10px;
+    }
+    .personal-info-list {
+        margin-top: 20px;
+        margin-bottom: 50px;
+    }
+</style>
+{% endblock %}

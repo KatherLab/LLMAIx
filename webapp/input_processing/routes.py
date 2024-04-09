@@ -15,6 +15,8 @@ from docx import Document
 from odf import text, teletype
 from odf.opendocument import load
 import uuid
+import zipfile
+from io import BytesIO
 from . import input_processing
 from .. import socketio
 
@@ -90,7 +92,7 @@ def preprocess_input(job_id, file_paths):
                     ocr_text = ''
                     for page in ocr_pdf.pages:
                         ocr_text += page.extract_text()
-                merged_data.append(pd.DataFrame({'report': [ocr_text]}))
+                merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path}))
 
             elif file_path.endswith('.txt'):
                 with open(file_path, 'r') as f:
@@ -113,8 +115,6 @@ def preprocess_input(job_id, file_paths):
             update_progress(job_id=job_id, progress=(i, len(file_paths), False))
             os.remove(file_path)
             return
-
-        os.remove(file_path)
 
         update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
 
@@ -151,6 +151,23 @@ def download():
         # Add an 'id' column and generate unique IDs for every row
         df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
 
+        # Function to add files to a zip file
+        def add_files_to_zip(zipf, files, ids):
+            for file, file_id in zip(files, ids):
+                zipf.write(file, f"{file_id}.{os.path.basename(file).split('.')[-1]}")
+                os.remove(file)
+
+        # Add dataframe as CSV to zip
+        def add_dataframe_to_zip(zipf, df):
+            csv_filename = f'preprocessed_{job_id}.csv'
+            df.drop(columns=['filepath'], inplace=True)
+            df.to_csv(csv_filename, index=False)
+            zipf.write(csv_filename)
+
+        files_to_zip = df['filepath'].tolist()
+        ids = df['id'].tolist()
+
+
         # Split rows containing more than max_length letters
         split_rows = []
         for index, row in df.iterrows():
@@ -167,14 +184,31 @@ def download():
         # Create a new DataFrame with the split rows
         df_split = pd.DataFrame(split_rows)
 
-        result_io = io.BytesIO()
-        df_split.to_csv(result_io, index=False)
-        result_io.seek(0)
+        print("Files to zip:", files_to_zip)
+
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zipf:
+            add_files_to_zip(zipf, files_to_zip, ids)
+            add_dataframe_to_zip(zipf, df_split)
+
+        zip_buffer.seek(0)
+
+
+        # result_io = io.BytesIO()
+        # df_split.to_csv(result_io, index=False)
+        # result_io.seek(0)
+        # return send_file(
+        #     result_io,
+        #     mimetype="text/csv",
+        #     as_attachment=True,
+        #     download_name=f"preprocessed-{job_id}.csv",
+        # )
+
         return send_file(
-            result_io,
-            mimetype="text/csv",
+            zip_buffer,
+            mimetype="application/zip",
             as_attachment=True,
-            download_name=f"preprocessed-{job_id}.csv",
+            download_name=f"preprocessed-{job_id}.zip",
         )
     else:
         flash(f"Job {job}: An unknown error occurred!", "danger")
@@ -200,6 +234,7 @@ def main():
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(temp_dir, filename)
                 file.save(file_path)
+                print("File saved:", file_path)
                 file_paths.append(file_path)
 
         update_progress(job_id=job_id, progress=(0, len(form.files.data), True))

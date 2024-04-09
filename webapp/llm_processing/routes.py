@@ -1,7 +1,9 @@
+import shutil
+import tempfile
+import zipfile
 from . import llm_processing
 from .. import socketio
 from flask import render_template, current_app, flash, request, redirect, send_file, url_for
-from flask_socketio import emit
 from .forms import LLMPipelineForm
 import requests
 import pandas as pd
@@ -17,6 +19,8 @@ from concurrent import futures
 import subprocess
 import io
 import math
+from .utils import read_preprocessed_csv_from_zip, replace_personal_info
+from io import BytesIO
 
 server_connection: Optional[subprocess.Popen[Any]] = None
 current_model = None
@@ -56,7 +60,8 @@ def extract_from_report(
         ctx_size: int,
         n_gpu_layers: int,
         n_predict: int,
-        job_id: int
+        job_id: int,
+        zip_file_path: str
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -156,39 +161,50 @@ def extract_from_report(
             )
 
             summary = result.json()
-            if report not in results:
-                results[report] = {}
-            results[report][symptom] = summary
-            results[report]["id"] = id
+            if id not in results:
+                results[id] = {}
+            
+            results[id]['report'] = report
+            results[id]['symptom'] = symptom
+            results[id]['summary'] = summary
 
         print(f"Report {i} completed.")
         update_progress(job_id=job_id, progress=(i+1 - skipped, len(df) - skipped, True))
 
     socketio.emit('llm_progress_complete', {'job_id': job_id,'total_steps': len(df) - skipped})
 
-    return postprocess_grammar(results)
+    return postprocess_grammar(results), zip_file_path
+
+
+
+
 
 def postprocess_grammar(result):
 
     extracted_data = []
 
+    error_count = 0
+
     # Iterate over each report and its associated data
-    for report, info in result.items():
+    for i, (id, info) in enumerate(result.items()):
         # Get the first key in the dictionary (here assumed to be the relevant field)
-        first_key = next(iter(info))
         
         # Extract the content of the first field
-        content = info.get(first_key, {}).get('content', '')
+        content = info['summary']['content']
         
         # Parse the content string into a dictionary
         try:
             info_dict = ast.literal_eval(content)
         except Exception as e:
-            breakpoint()
-            raise Exception(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})") from e
+            print(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
+            print(f"Will ignore the error for report {i} and continue.")
+            info_dict = {}
+            error_count += 1
+
+            # raise Exception(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})") from e
         
         # Construct a dictionary containing the report and extracted information
-        extracted_info = {'report': report, 'id': info['id']}
+        extracted_info = {'report': info['report'], 'id': id}
         for key, value in info_dict.items():
             extracted_info[key] = value
         
@@ -210,53 +226,7 @@ def postprocess_grammar(result):
     aggregated_df.drop(columns=['id'], inplace=True)
     aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
 
-    return aggregated_df
-
-from thefuzz import process, fuzz
-
-def is_empty_string_nan_or_none(variable):
-        if variable is None:
-            return True
-        elif isinstance(variable, str) and ( variable.strip() == "" or variable.isspace() or variable == "?"):
-            return True
-        elif isinstance(variable, float) and math.isnan(variable):
-            return True
-        else:
-            return False
-        
-
-import re
-
-def replace_personal_info(text: str, personal_info_list: dict[str, str]) -> str:
-    # remove redundant items
-    personal_info_list = list(set(personal_info_list))
-    personal_info_list = [item for item in personal_info_list if item != ""]
-    masked_text = text
-
-    # Replace remaining personal information with asterisks (*)
-    for info in personal_info_list:
-        if is_empty_string_nan_or_none(info):
-            print("SKIPPING EMPTY INFO!")
-            continue
-        masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
-
-
-    for info in personal_info_list:
-        if is_empty_string_nan_or_none(info):
-            print("SKIPPING EMPTY INFO!")
-            continue
-        # Get a list of best matches for the current personal information from the text
-        best_matches = process.extract(info, text.split())
-        best_score = best_matches[0][1]
-        for match, score in best_matches:
-            if score == best_score and score >= 90:
-                print(f"match: {match}, score: {score}")
-                # Replace best matches with asterisks (*)
-                masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
-
-    
-    return masked_text
-    
+    return aggregated_df, error_count 
 
 @llm_processing.route("/llm", methods=['GET', 'POST'])
 def main():
@@ -276,7 +246,7 @@ def main():
                 print(e)
                 print("The error message indicates that the number of fields in line 3 of the CSV file is not as expected. This means that the CSV file is not properly formatted and needs to be fixed. Usually, this is caused by a line break in a field. The file will be fixed and then read again.")
                 # fix the file
-                fixed_file = io.BytesIO()
+                fixed_file = BytesIO()
                 read_and_save_csv(file, fixed_file)
                 fixed_file.seek(0)
                 df = pd.read_csv(fixed_file)
@@ -292,6 +262,47 @@ def main():
                 # fix the file
                 flash("Excel file is not properly formatted!", "danger")
                 return render_template("llm_processing.html", form=form)
+        
+        elif file.filename.endswith('.zip'):
+
+            zip_buffer = BytesIO()
+            file.save(zip_buffer)
+            zip_buffer.seek(0)
+
+            temp_dir = tempfile.mkdtemp()
+            
+            # Save the uploaded file to the temporary directory
+            zip_file_path = os.path.join(temp_dir, file.filename)
+            with open(zip_file_path, 'wb') as f:
+                f.write(zip_buffer.getvalue())
+                print("Zip file saved:", zip_file_path)
+
+            # Verify the integrity of the saved file (optional)
+            if os.path.exists(zip_file_path):
+                saved_file_size = os.path.getsize(zip_file_path)
+                print(f"Saved file size: {saved_file_size} bytes")
+
+                # Check if the saved file is a valid ZIP file
+                try:
+                    with zipfile.ZipFile(zip_file_path, 'r') as test_zip:
+                        test_zip.testzip()
+                    print("File is a valid ZIP file")
+                except zipfile.BadZipFile:
+                    print("File is not a valid ZIP file")
+
+            else:
+                print("File not found:", zip_file_path)
+
+            # Now you can proceed to read the contents of the ZIP file
+            df = read_preprocessed_csv_from_zip(zip_file_path)
+
+            if df is None:
+                flash("Zip file seems to be malformed or in a not supported format! Is there a csv file in it?", "danger")
+                return render_template("llm_processing.html", form=form)
+
+        else:
+            flash("File format not supported!", "danger")
+            return render_template("llm_processing.html", form=form)
 
         variables = [var.strip() for var in form.variables.data.split(",")]
         job_id = secrets.token_urlsafe()
@@ -315,7 +326,8 @@ def main():
         #     n_predict=current_app.config['N_PREDICT'],
         #     ctx_size=current_app.config['CTX_SIZE'],
         #     n_gpu_layers=current_app.config['N_GPU_LAYERS'],
-        #     job_id=job_id
+        #     job_id=job_id, 
+        #     zip_file_path=zip_file_path or None
         # )
 
         update_progress(job_id=job_id, progress=(0, len(df), True))
@@ -333,7 +345,8 @@ def main():
             n_predict=current_app.config['N_PREDICT'],
             ctx_size=current_app.config['CTX_SIZE'],
             n_gpu_layers=current_app.config['N_GPU_LAYERS'],
-            job_id=job_id
+            job_id=job_id,
+            zip_file_path=zip_file_path or None
         )
 
         print("Started job successfully!")
@@ -360,20 +373,82 @@ def llm_download():
 
     if job.done():
         try:
-            result_df = job.result()
+            (result_df, error_count), zip_file_path = job.result()
         except Exception as e:
             flash(str(e), "danger")
             return redirect(url_for('llm_processing.llm_results'))
         
-        result_io = io.BytesIO()
-        result_df.to_csv(result_io, index=False)
-        result_io.seek(0)
+        if not zip_file_path or not os.path.exists(zip_file_path):
+            print("Download only the csv.")
+            result_io = BytesIO()
+            result_df.to_csv(result_io, index=False)
+            result_io.seek(0)
+            return send_file(
+                result_io,
+                mimetype="text/csv",
+                as_attachment=True,
+                download_name=f"llm-output-{job_id}.csv",
+            )
+        
+        with zipfile.ZipFile(zip_file_path, "r") as existing_zip:
+            # Create an in-memory BytesIO object to hold the updated ZIP file
+            updated_zip_buffer = io.BytesIO()
+            
+            # Create a new ZIP file
+            with zipfile.ZipFile(updated_zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as updated_zip:
+                # Add all existing files from the original ZIP
+                for existing_file in existing_zip.filelist:
+                    updated_zip.writestr(existing_file.filename, existing_zip.read(existing_file.filename))
+                
+                # Add the DataFrame as a CSV file to the ZIP
+                csv_buffer = io.StringIO()
+                result_df.to_csv(csv_buffer, index=False)
+                updated_zip.writestr(f"llm-output-{job_id}.csv", csv_buffer.getvalue())
+
+        # Reset the BytesIO object to the beginning
+        updated_zip_buffer.seek(0)
+
+        
+        # # Unfortunately, everything has to extracted by now. I failed to add the csv to a zipfile directly.
+
+        # updated_zip_buffer = BytesIO()
+
+        # with tempfile.TemporaryDirectory() as temp_dir:
+        #     # Extract files from the existing ZIP file
+        #     breakpoint()
+        #     shutil.unpack_archive(zip_file_path, temp_dir, "zip")
+
+        #     # Create an in-memory BytesIO object to hold the updated ZIP file
+        #     updated_zip_buffer = BytesIO()
+
+        #     # Create a new ZIP file
+        #     with zipfile.ZipFile(updated_zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as updated_zip:
+        #         # Add the extracted files to the new ZIP
+        #         for root, dirs, files in os.walk(temp_dir):
+        #             for file in files:
+        #                 file_path = os.path.join(root, file)
+        #                 arcname = os.path.relpath(file_path, temp_dir)
+        #                 updated_zip.write(file_path, arcname=arcname)
+
+        #         # Add the DataFrame as a CSV file to the ZIP
+        #         csv_buffer = io.StringIO()
+        #         result_df.to_csv(csv_buffer, index=False)
+        #         updated_zip.writestr(f"llm-output-{job_id}.csv", csv_buffer.getvalue())
+
+
+
+        # # Reset the BytesIO object to the beginning
+        # updated_zip_buffer.seek(0)
+
+
+        # Send the updated ZIP file
         return send_file(
-            result_io,
-            mimetype="text/csv",
+            updated_zip_buffer,
+            mimetype="application/zip",
             as_attachment=True,
-            download_name=f"llm-output-{job_id}.csv",
+            download_name=f"llm-output-{job_id}.zip"
         )
+
     else:
         flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty!", "danger")
         return redirect(url_for('llm_processing.llm_results'))
