@@ -61,7 +61,8 @@ def extract_from_report(
         n_gpu_layers: int,
         n_predict: int,
         job_id: int,
-        zip_file_path: str
+        zip_file_path: str,
+        llamacpp_port: int
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -85,6 +86,8 @@ def extract_from_report(
                 str(ctx_size),
                 "--n-gpu-layers",
                 str(n_gpu_layers),
+                "--port",
+                str(llamacpp_port)
                 # "--verbose",
             ],
         )
@@ -102,7 +105,7 @@ def extract_from_report(
         # wait until server is running
         try:
             requests.post(
-                url="http://localhost:8080/completion",
+                url=f"http://localhost:{llamacpp_port}/completion",
                 json={"prompt": "foo", "n_predict": 1}
             )
             break
@@ -111,7 +114,7 @@ def extract_from_report(
 
     try:
         requests.post(
-            url="http://localhost:8080/completion",
+            url="http://localhost:{llamacpp_port}/completion",
             json={"prompt": "foo", "n_predict": 1}
         )
     except requests.exceptions.ConnectionError:
@@ -148,7 +151,7 @@ def extract_from_report(
             continue
         for symptom in symptoms:
             result = requests.post(
-                url="http://localhost:8080/completion",
+                url="http://localhost:{llamacpp_port}/completion",
                 json={
                     "prompt": prompt.format(
                         symptom=symptom, report="".join(report)
@@ -346,7 +349,8 @@ def main():
             ctx_size=current_app.config['CTX_SIZE'],
             n_gpu_layers=current_app.config['N_GPU_LAYERS'],
             job_id=job_id,
-            zip_file_path=zip_file_path or None
+            zip_file_path=zip_file_path or None,
+            llamacpp_port=current_app.config['LLAMACPP_PORT']
         )
 
         print("Started job successfully!")

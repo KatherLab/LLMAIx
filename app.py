@@ -23,6 +23,7 @@ if __name__ == '__main__':
     parser.add_argument("--ctx_size", type=int, default=2048)
     parser.add_argument("--n_gpu_layers", type=int, default=100)
     parser.add_argument("--n_predict", type=int, default=2048)
+    parser.add_argument("--llamacpp_port", type=int, default=2929)
 
     args = parser.parse_args()
 
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     app.config['CTX_SIZE'] = args.ctx_size
     app.config['N_GPU_LAYERS'] = args.n_gpu_layers
     app.config['N_PREDICT'] = args.n_predict
+    app.config['LLAMACPP_PORT'] = args.llamacpp_port
 
     # disable debug TODO
     # app.run(debug=True, use_reloader=True, port=5005)

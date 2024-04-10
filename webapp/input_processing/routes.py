@@ -159,10 +159,17 @@ def download():
 
         # Add dataframe as CSV to zip
         def add_dataframe_to_zip(zipf, df):
-            csv_filename = f'preprocessed_{job_id}.csv'
-            df.drop(columns=['filepath'], inplace=True)
-            df.to_csv(csv_filename, index=False)
-            zipf.write(csv_filename)
+            # Create a temporary directory
+            with tempfile.TemporaryDirectory() as temp_dir:
+                csv_filename = f'preprocessed_{job_id}.csv'
+                csv_filepath = os.path.join(temp_dir, csv_filename)
+                
+                # Drop unnecessary columns and save the dataframe to a CSV file
+                df.drop(columns=['filepath'], inplace=True)
+                df.to_csv(csv_filepath, index=False)
+                
+                # Write the CSV file to the zip archive
+                zipf.write(csv_filepath, arcname=csv_filename)
 
         files_to_zip = df['filepath'].tolist()
         ids = df['id'].tolist()
