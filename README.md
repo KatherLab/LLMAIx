@@ -114,3 +114,5 @@ ws ::= ([ \t\n])?
 - raw LLM output download
 - settings for postprocessing
 - add metadata file to zip
+- fix error when old csv are used for llm
+- report error in viewer warning

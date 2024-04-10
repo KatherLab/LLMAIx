@@ -19,7 +19,7 @@ def convert_personal_info_list(personal_info_list) -> None:
     
     return personal_info_list_output
 
-def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None) -> io.BytesIO | None:
+def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None, fuzzy_matches: list[tuple[str, int]] = []) -> io.BytesIO | None:
     """
     Anonymizes the specified text in a PDF by covering it with black rectangles and removes the underlying text.
 
@@ -54,7 +54,24 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                 # Redact each instance of the text
                 for inst in text_instances:
                     page.add_redact_annot(inst, fill=(0, 0, 0))
-                    page.apply_redactions()
+                    # page.apply_redactions()
+
+        # Add the fuzzy matches
+        if fuzzy_matches:
+            print("Add fuzzy matches: ", fuzzy_matches)
+            for text, score in fuzzy_matches:
+                text_instances = page.search_for(text)
+
+                # Redact each instance of the text
+                for inst in text_instances:
+                    page.add_redact_annot(inst, fill=(0, 0, 0))
+                    # page.apply_redactions()
+
+        # Save the modified page
+        # try:
+        #     pdf_document[page_number] = page
+        # except Exception as e:
+        #     print(e)
 
     # Save the modified PDF or return as BytesIO
     if output_pdf_path is None:
@@ -88,6 +105,7 @@ def is_empty_string_nan_or_none(variable) -> bool:
 
 import re
 from thefuzz import process
+from thefuzz.fuzz import QRatio, WRatio
 
 def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuzzy_matching: bool = False, fuzzy_matching_threshold: int = 90) -> str:
     """
@@ -147,3 +165,34 @@ def read_preprocessed_csv_from_zip(zip_file: str) -> pd.DataFrame | None:
                     df = pd.read_csv(csvfile)
                 return df
     return None
+
+def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int = 90, scorer = "WRatio") -> list[str]:
+    fuzzy_matches = []
+    def meets_split_criteria(substring):
+        # Split if substring has at least 3 characters or at least 4 digits
+        return len(substring) >= 3 or (len(re.findall(r'\d', substring)) >= 4)
+    
+    if scorer == "QRatio":
+        scorer = QRatio
+    elif scorer == "WRatio":
+        scorer = WRatio
+    else:
+        raise ValueError("Invalid scorer. Must be 'QRatio' or 'WRatio'")
+
+    for info in personal_info_list:
+        if is_empty_string_nan_or_none(info):
+            continue
+
+        for substring in re.findall(r'\b\w+\b', info):  # Using regex to split by word boundaries
+            if meets_split_criteria(substring):
+                # Get a list of best matches for the current personal information from the text
+                best_matches = process.extract(substring, text.split(), scorer=scorer)
+                best_score = best_matches[0][1]
+                for match, score in best_matches:
+                    if score == best_score and score >= threshold:
+                        print(f"match: {match}, score: {score}")
+                        fuzzy_matches.append((match, score))
+
+            
+        
+    return list(set(fuzzy_matches))  # remove duplicates

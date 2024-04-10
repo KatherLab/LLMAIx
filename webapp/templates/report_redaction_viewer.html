@@ -31,6 +31,15 @@
             {% endfor %}
         </div>
     </div>
+    {% if enable_fuzzy %}
+    <div class="personal-info-list">
+        <h3>Fuzzy Matches</h3>
+        <div class="btn-group" id="fuzzy-matches-group" role="group" aria-label="Fuzzy Matches">
+                
+        </div>
+    </div>
+    
+    {% endif %}
 </div>
 
 
@@ -75,4 +84,36 @@
         margin-bottom: 50px;
     }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+    socket.on('reportredaction_done', function(data) {
+        var fuzzyMatches = data.fuzzy_matches;
+    
+        // Get the button group element by its id
+        var buttonGroup = document.getElementById('fuzzy-matches-group');
+    
+        // Clear existing buttons
+        buttonGroup.innerHTML = '';
+    
+        // Add buttons for each fuzzy match
+        fuzzyMatches.forEach(function(match) {
+            var matchString = match[0];
+            var score = match[1];
+            var buttonText = matchString + ' (Score: ' + score + ')';
+    
+            // Create a button element
+            var button = document.createElement('button');
+            button.setAttribute('type', 'button');
+            button.setAttribute('class', 'btn btn-secondary');
+            button.setAttribute('disabled', 'disabled');
+            button.innerText = buttonText;
+    
+            // Append the button to the button group
+            buttonGroup.appendChild(button);
+        });
+    });
+</script>
 {% endblock %}

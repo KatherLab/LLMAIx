@@ -2,13 +2,23 @@
 import base64
 import os
 import tempfile
-
-from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list
+import time
+from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list, find_fuzzy_matches
 from webapp.report_redaction.utils import find_llm_output_csv
 from . import report_redaction
 from flask import abort, render_template, request, redirect, send_file, url_for, current_app, session, flash
 from .forms import ReportRedactionForm
 from io import BytesIO
+from .. import socketio
+
+@socketio.on('connect')
+def handle_connect():
+    print("Client Connected")
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("Client Disconnected")
 @report_redaction.route("/reportredaction", methods=['GET', 'POST'])
 def main():
     form = ReportRedactionForm()
@@ -42,6 +52,8 @@ def main():
         # Optionally, save other form data to session variables
         session['enable_fuzzy'] = form.enable_fuzzy.data
         session['threshold'] = form.threshold.data
+        session['exclude_single_chars'] = form.exclude_single_chars.data
+        session['scorer'] = form.scorer.data
 
         # First report id
 
@@ -88,7 +100,7 @@ def report_redaction_viewer(report_id):
     previous_id = df.at[current_index - 1, 'id'] if current_index > 0 else None
     next_id = df.at[current_index + 1, 'id'] if current_index < len(df) - 1 else None
 
-    return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list)
+    return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90))
 
 
 @report_redaction.route("/reportredactionfileoriginal/<string:id>")
@@ -124,22 +136,37 @@ def reportredactionfileredacted(id):
     if not os.path.isfile(filename):
         abort(404)
 
-    if not os.path.isfile(filename.replace(".pdf", "_redacted.pdf")):
+    # if not os.path.isfile(filename.replace(".pdf", "_redacted.pdf")):
 
-        df = find_llm_output_csv(pdf_file_zip)
-        if df is None or len(df) == 0:
-            flash('No CSV file found in the uploaded file!', 'danger')
-            return redirect(request.url)
+    df = find_llm_output_csv(pdf_file_zip)
+    if df is None or len(df) == 0:
+        flash('No CSV file found in the uploaded file!', 'danger')
+        return redirect(request.url)
 
-        # Check if the current report ID exists in the DataFrame
-        if id not in df['id'].values:
-            flash(f'Report ID {id} not found!', 'danger')
-            return redirect(request.url)
+    # Check if the current report ID exists in the DataFrame
+    if id not in df['id'].values:
+        flash(f'Report ID {id} not found!', 'danger')
+        return redirect(request.url)
 
-        # Get personal_info_list from df where id=id
-        personal_info_list = df.loc[df['id'] == id, 'personal_info_list'].iloc[0]
+    # Get personal_info_list from df where id=id
+    personal_info_list = df.loc[df['id'] == id, 'personal_info_list'].iloc[0]
 
-        anonymize_pdf(filename, convert_personal_info_list(personal_info_list), filename.replace(".pdf", "_redacted.pdf"))
+    personal_info_list = convert_personal_info_list(personal_info_list)
+
+    if session.get('exclude_single_chars', False):
+        personal_info_list = [item for item in personal_info_list if len(item) > 1]
+
+    if session.get('enable_fuzzy', False):
+        fuzzy_matches = find_fuzzy_matches(df.loc[df['id'] == id, 'report'].iloc[0], personal_info_list, threshold=int(session.get('threshold', 90)), scorer=session.get('scorer', 'WRatio'))
+    else:
+        fuzzy_matches = []
+
+    anonymize_pdf(filename, personal_info_list, filename.replace(".pdf", "_redacted.pdf"), fuzzy_matches)
+
+    time.sleep(1)
+
+    socketio.emit('reportredaction_done', {'enable_fuzzy': session.get('enable_fuzzy', False), 'threshold': session.get('threshold', 90), 'fuzzy_matches': fuzzy_matches})
+
 
     # Redaction is yet to be implemented TODO
 

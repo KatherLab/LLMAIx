@@ -16,4 +16,8 @@ class ReportRedactionForm(FlaskForm):
     enable_fuzzy = BooleanField("Enable fuzzy matching")
     threshold = IntegerField("Threshold (0-100):", validators=[validators.NumberRange(0,100)], default=90)
 
+    scorer = SelectField("Fuzzy Matching Method:", choices=[('QRatio', 'QRatio'), ('WRatio', 'WRatio')])
+
+    exclude_single_chars = BooleanField("Exclude single characters")
+
     submit = SubmitField("Report Redaction")
