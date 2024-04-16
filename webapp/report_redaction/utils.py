@@ -136,14 +136,17 @@ class InceptionAnnotationParser:
         text = ""
         for page in pdf:
             for word_block in page.get_text("dict")["blocks"]:
-                for line in word_block['lines']:
-                    for span in line['spans']:
-                        word = span['text']
-                        # print("W: '" + word + "'")
-                        text += word
+                if 'lines' in word_block:
+                    for line in word_block['lines']:
+                        for span in line['spans']:
+                            word = span['text']
+                            # print("W: '" + word + "'")
+                            text += word
 
-                        char_count += len(word) 
-                        # print("W: '" + word + "'" + " char_count: " + str(char_count))
+                            char_count += len(word) 
+                            # print("W: '" + word + "'" + " char_count: " + str(char_count))
+                else:
+                    print("No text in word block - ignore")
 
         return text
     

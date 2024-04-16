@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument("--server_path", type=str, default=r"D:\LLM-Pipeline\llama-b2453-bin-win-cublas-cu12.2.0-x64/server.exe")
     parser.add_argument("--port", type=int, default=5001, help="On which port the Web App should be available.")
     parser.add_argument("--ctx_size", type=int, default=2048)
-    parser.add_argument("--n_gpu_layers", type=int, default=100)
+    parser.add_argument("--n_gpu_layers", type=int, default=80)
     parser.add_argument("--n_predict", type=int, default=2048)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
 

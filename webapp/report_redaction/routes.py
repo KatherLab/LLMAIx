@@ -332,10 +332,13 @@ def generated_dollartext_stringlist(filename, information_list, use_fuzzy_matchi
         text = ""
         for page in pdf:
             for word_block in page.get_text("dict")["blocks"]:
-                for line in word_block['lines']:
-                    for span in line['spans']:
-                        word = span['text']
-                        text += word
+                if 'lines' in word_block:
+                    for line in word_block['lines']:
+                        for span in line['spans']:
+                            word = span['text']
+                            text += word
+                else:
+                    print("No text in word block - ignore")
 
         return replace_personal_info(text, information_list, use_fuzzy_matching=use_fuzzy_matching, generate_dollarstring=True)
 
