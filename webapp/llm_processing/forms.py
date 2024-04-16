@@ -111,7 +111,7 @@ class LLMPipelineForm(FlaskForm):
     grammar = TextAreaField("Grammar:", validators=[], default=default_grammer)
     prompt = TextAreaField("Prompt:", validators=[], default=default_prompt)
     variables = StringField("Variables (separated by commas):", validators=[], default="Patienteninfos")
-    temperature = FloatField("Temperature:", validators=[validators.NumberRange(0,1)], default=0.7)
+    temperature = FloatField("Temperature:", validators=[validators.NumberRange(0,1)], default=0.1)
     model = SelectField("Model:", choices=[("sauerkrautlm-7b-v1.Q5_K_M.gguf", "LLaMA 2 7b chat sauerkraut"), ("sauerkrautlm-70b-v1.Q5_K_M.gguf", "LLaMA 2 70b chat sauerkraut"), ("sauerkrautlm-13b-v1.Q5_K_M.gguf", "LLaMA 2 13b chat sauerkraut")], validators=[])
 
     submit = SubmitField("Run Pipeline")

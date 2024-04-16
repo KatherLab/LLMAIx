@@ -107,7 +107,7 @@ import re
 from thefuzz import process
 from thefuzz.fuzz import QRatio, WRatio
 
-def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuzzy_matching: bool = False, fuzzy_matching_threshold: int = 90) -> str:
+def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuzzy_matching: bool = False, fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■") -> str:
     """
     Replace personal information in the given text with asterisks.
 
@@ -125,11 +125,16 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuz
     personal_info_list = [item for item in personal_info_list if item != ""]
     masked_text = text
 
+    assert len(replacement_char) == 1, "replacement_char must be a single character"
+
     # Replace remaining personal information with asterisks (*)
     for info in personal_info_list:
         if is_empty_string_nan_or_none(info):
             continue
-        masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
+        if not generate_dollarstring:
+            masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
+        else:
+            masked_text = re.sub(f"\\b{re.escape(info)}\\b", replacement_char * len(info), masked_text)
 
 
     if use_fuzzy_matching:
@@ -141,9 +146,11 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuz
             best_score = best_matches[0][1]
             for match, score in best_matches:
                 if score == best_score and score >= fuzzy_matching_threshold:
-                    print(f"match: {match}, score: {score}")
                     # Replace best matches with asterisks (*)
-                    masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
+                    if not generate_dollarstring:
+                        masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
+                    else:
+                        masked_text = re.sub(f"\\b{re.escape(match)}\\b", replacement_char * len(match), masked_text)
 
                 
     return masked_text

@@ -10,7 +10,7 @@ Features:
 - Performs OCR if necessary
 - Extracts person-related information from the reports using a llama model
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance
-
+- Compare and calculate metrics using annotated pdf files ([Inception](https://inception-project.github.io/))
 
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
 
@@ -116,3 +116,6 @@ ws ::= ([ \t\n])?
 - add metadata file to zip
 - fix error when old csv are used for llm
 - report error in viewer warning
+- support UIMA CAS JSON 0.4.0
+- dockerize
+- put original filename in csv

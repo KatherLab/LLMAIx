@@ -29,6 +29,27 @@
             </div>
         </fieldset>
 
+        <fieldset class="form-control p-3">
+            <legend>Optional: Annotation zip file</legend>
+            
+            <div class="row">
+                <div class="form-group col-md-12">
+        
+                    {% if form.annotation_file.errors %}
+                    {{ form.annotation_file(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.annotation_file.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.annotation_file(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+
+            </div>
+        </fieldset>
+
 
         <fieldset class="form-control p-3">
             <legend>Redaction Settings</legend>

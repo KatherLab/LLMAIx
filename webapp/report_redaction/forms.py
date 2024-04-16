@@ -13,6 +13,10 @@ class ReportRedactionForm(FlaskForm):
         FileAllowed(['zip'], 'Only .zip file allowed!')
     ])
 
+    annotation_file = FileField("Annotation File", validators=[
+        FileAllowed(['zip'], 'Only .zip file allowed!')
+    ])
+
     enable_fuzzy = BooleanField("Enable fuzzy matching")
     threshold = IntegerField("Threshold (0-100):", validators=[validators.NumberRange(0,100)], default=90)
 

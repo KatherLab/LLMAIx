@@ -3,3 +3,5 @@
 logs*
 *.log
 __pycache__
+
+*test_inception_json_parser.py

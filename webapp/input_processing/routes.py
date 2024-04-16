@@ -149,7 +149,14 @@ def download():
         max_length = 3000
 
         # Add an 'id' column and generate unique IDs for every row
-        df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
+        # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
+
+        df['filename'] = df['filepath'].apply(lambda x: os.path.basename(x))
+        df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4()), axis=1)
+
+        # Optionally, you can drop the 'filename' column if you don't need it anymore
+        df.drop(columns=['filename'], inplace=True)
+
 
         # Function to add files to a zip file
         def add_files_to_zip(zipf, files, ids):

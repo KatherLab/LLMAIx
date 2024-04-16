@@ -1,6 +1,6 @@
 import unittest
 import os
-from webapp.llm_processing.routes import anonymize_pdf
+from webapp.llm_processing.utils import anonymize_pdf
 
 class TestAnonymizePDF(unittest.TestCase):
     def test_anonymize_pdf(self):

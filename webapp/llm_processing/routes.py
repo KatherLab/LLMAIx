@@ -114,7 +114,7 @@ def extract_from_report(
 
     try:
         requests.post(
-            url="http://localhost:{llamacpp_port}/completion",
+            url=f"http://localhost:{llamacpp_port}/completion",
             json={"prompt": "foo", "n_predict": 1}
         )
     except requests.exceptions.ConnectionError:
@@ -151,7 +151,7 @@ def extract_from_report(
             continue
         for symptom in symptoms:
             result = requests.post(
-                url="http://localhost:{llamacpp_port}/completion",
+                url=f"http://localhost:{llamacpp_port}/completion",
                 json={
                     "prompt": prompt.format(
                         symptom=symptom, report="".join(report)
@@ -217,7 +217,9 @@ def postprocess_grammar(result):
     # Convert the list of dictionaries into a DataFrame
     df = pd.DataFrame(extracted_data)
 
-    df['base_id'] = df['id'].str.split('_').str[0]
+    # id without the extension for splitted reports
+    df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
+
 
     # Group by base_id and aggregate reports and other columns into lists
     aggregated_df = df.groupby('base_id').agg(lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()

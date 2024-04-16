@@ -1,9 +1,31 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container">
+<div class="nested-container">
     <h2>Report Redaction Viewer</h2>
     <h3>Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
+
+    {% if scores %}
+    <h3 >Metrics:</h3>
+    <div class="btn-group">
+        {% for key, value in scores.items() %}
+            <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+        {% endfor %}
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+              Confusion Matrix
+            </button>
+          </p>
+          
+    </div>
+    <div class="collapse" id="collapseExample">
+        <div class="card card-body">
+            <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img" height="300px">
+        </div>
+      </div>
+    
+    {% endif %}
+
     <div class="navigation-buttons">
         {% if previous_id %}
             <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=previous_id) }}" class="btn btn-secondary float-left">Previous Report</a>
@@ -13,16 +35,33 @@
         {% endif %}
         <div class="clearfix"></div>
     </div>
+    {% if not session.get('annotation_file', False) or not session.get('annotation_pdf_filepath', None) %}
     <div class="pdf-container">
-        <div class="pdf-viewer">
+        <!-- <div class="pdf-viewer">
             <h3>Original Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileoriginal', id=report_id) }}" height="800px" frameborder="0"></iframe>
-        </div>
+        </div> -->
         <div class="pdf-viewer">
             <h3>Redacted Document</h3>
-            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0"></iframe>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
         </div>
     </div>
+    {% else %}
+    <div class="pdf-container">
+        <!-- <div class="pdf-viewer-3">
+            <h3>Original Document</h3>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileoriginal', id=report_id) }}" height="800px" frameborder="0"></iframe>
+        </div> -->
+        <div class="pdf-viewer-2">
+            <h3>Redacted Document</h3>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
+        </div>
+        <div class="pdf-viewer-2">
+            <h3>Annotated Document</h3>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileannotation', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
+        </div>
+    </div>
+    {% endif %}
     <div class="personal-info-list">
         <h3>Personal Information</h3>
         <div class="btn-group" role="group" aria-label="Personal Information">
@@ -35,11 +74,22 @@
     <div class="personal-info-list">
         <h3>Fuzzy Matches</h3>
         <div class="btn-group" id="fuzzy-matches-group" role="group" aria-label="Fuzzy Matches">
-                
+            {% for fuzzy_match in fuzzy_matches %}
+                <button type="button" class="btn btn-secondary" disabled>{{ fuzzy_match[0] }} (Score: {{ fuzzy_match[1] }})</button>
+            {% endfor %}
         </div>
     </div>
-    
     {% endif %}
+
+    {% if colormap %}
+    <div class="btn-group" role="group" aria-label="Color Map">
+        {% for label, color in colormap.items() %}
+        <button type="button" class="btn" style="background-color: rgb({{ color[0]*255 }}, {{ color[1]*255 }}, {{ color[2]*255 }});">{{ label }}</button>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
 </div>
 
 
@@ -51,7 +101,18 @@
     }
 
     .pdf-viewer {
+        width: 100%;
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer-2 {
         width: 48%; /* Adjust width to accommodate spacing */
+        padding: 10px; /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer-3 {
+        width: 32%; /* Adjust width to accommodate spacing */
         padding: 10px; /* Add spacing between iframes */
         border: 1px solid #ccc;
     }
@@ -83,6 +144,17 @@
         margin-top: 20px;
         margin-bottom: 50px;
     }
+
+    .container-custom {
+        max-width: 95%;
+    }
+
+    .nested-container {
+            position: absolute;
+            left: 50%; /* Position the left edge of the container at the horizontal center */
+            transform: translateX(-50%); /* Move the container to the left by half of its width */
+            width: calc(90vw - 30px);
+            padding: 0 15px;
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
 
@@ -114,6 +186,12 @@
             // Append the button to the button group
             buttonGroup.appendChild(button);
         });
+    });
+
+    socket.on('scores', function(data) {
+        var accuracy = data.accuracy;
+        console.log("Received accuracy score:", accuracy);
+        // You can use the accuracy score here in your website
     });
 </script>
 {% endblock %}
