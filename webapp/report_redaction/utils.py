@@ -251,7 +251,10 @@ class InceptionAnnotationParser:
                                 else:
                                     raise Exception("Annotation text does not match the text gathered from the PDF.")
 
-                                if len(annotation_in_text_match) == 1:
+
+                                if not annotation_in_text_match:
+                                    print("Something is broken about the text matching, ignore bounding box!")
+                                elif len(annotation_in_text_match) == 1:
                                     merged_bboxes.append((page_num,annotation_in_text_match[0]))
                                 elif len(annotation_in_text_match) > 1:
                                     print("More than one match")
