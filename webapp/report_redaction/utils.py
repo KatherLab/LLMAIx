@@ -200,6 +200,9 @@ class InceptionAnnotationParser:
 
             # Iterate over each word
             for word_block in words:
+                if 'lines' not in word_block:
+                    print("No text in word block - ignore")
+                    continue
                 for l, line in enumerate(word_block['lines']):
                     for span in line['spans']:
                         word_line = span['text']
