@@ -225,6 +225,10 @@ class InceptionAnnotationParser:
                             adjusted_end_pos = min(end_pos - char_count, len(word_line) - 1)
 
                             cut_from_text = word_line[adjusted_start_pos:adjusted_end_pos]
+                            
+                            if len(cut_from_text) == 0:
+                                print("Empty text match, skipping")
+                                continue
 
                             bboxes = []
                             # Iterate over each character
