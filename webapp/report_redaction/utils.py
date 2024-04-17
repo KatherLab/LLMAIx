@@ -242,9 +242,13 @@ class InceptionAnnotationParser:
 
                                 search_mask = self.combine_bboxes(bboxes)
 
-                                search_mask_expanded = [search_mask[0] -5, search_mask[1] - 5, search_mask[2] +5, search_mask[3] + 5]
+                                def expand_search_mask(search_mask, width=5, height=5):
+                                    x0, y0, x1, y1 = search_mask
+                                    return [x0 - width, y0 - height, x1 + width, y1 + height]
 
-                                search_mask_expanded = fitz.Rect(search_mask_expanded)
+                                # search_mask_expanded = [search_mask[0] -5, search_mask[1] - 5, search_mask[2] +5, search_mask[3] + 5]
+
+                                search_mask_expanded = fitz.Rect(expand_search_mask(search_mask))
 
                                 if cut_from_text in annotation_text:
                                     annotation_in_text_match = page.search_for(cut_from_text, clip=search_mask_expanded)
@@ -253,12 +257,24 @@ class InceptionAnnotationParser:
 
 
                                 if not annotation_in_text_match:
-                                    print("Something is broken about the text matching, ignore bounding box!")
+                                    print("Did not find text in the bounding box: ", cut_from_text)
+                                    print("Iteratively enlargeing the bounding box.")
+                                    for i in range(10):
+                                        search_mask_expanded = fitz.Rect(expand_search_mask(search_mask, i[1]*3, i[1]))
+                                        annotation_in_text_match = page.search_for(cut_from_text, clip=search_mask_expanded)
+
+                                        if annotation_in_text_match:
+                                            break
+                                    
+                                    if not annotation_in_text_match:
+                                        print("Did not find text in the bounding box: ", cut_from_text)
+                                        raise Exception("Did not find text in the bounding box, even after enlarging it. Text: ", cut_from_text)
+
                                 elif len(annotation_in_text_match) == 1:
                                     merged_bboxes.append((page_num,annotation_in_text_match[0]))
                                 elif len(annotation_in_text_match) > 1:
-                                    print("More than one match")
-                                    raise Exception("More than one match")
+                                    print("More than one match in bounding box. Ambiguous.")
+                                    raise Exception("More than one match in bounding box. Ambiguous.")
                                 else:
                                     breakpoint()
                                     print("No match, use inaccurrate bounding boxes.")
