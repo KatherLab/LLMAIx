@@ -184,7 +184,7 @@ class InceptionAnnotationParser:
         return [x0, y0, x1, y1]
     
     def merge_bounding_boxes_within_range(self, doc, start_pos, end_pos, annotation_text):
-        print("Run for annotation text: " + annotation_text)
+        print("Run for annotation text: " + annotation_text + "| with start pos: " + str(start_pos) + " and end pos: " + str(end_pos))
         merged_bboxes = []
 
         # Initialize variables for tracking character count and page number
