@@ -260,7 +260,7 @@ class InceptionAnnotationParser:
                                     print("Did not find text in the bounding box: ", cut_from_text)
                                     print("Iteratively enlargeing the bounding box.")
                                     for i in range(10):
-                                        search_mask_expanded = fitz.Rect(expand_search_mask(search_mask, i[1]*3, i[1]))
+                                        search_mask_expanded = fitz.Rect(expand_search_mask(search_mask_expanded, i*3, i))
                                         annotation_in_text_match = page.search_for(cut_from_text, clip=search_mask_expanded)
 
                                         if annotation_in_text_match:
