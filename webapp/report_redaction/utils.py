@@ -229,6 +229,8 @@ class InceptionAnnotationParser:
                             if len(cut_from_text) == 0:
                                 print("Empty text match, skipping")
                                 continue
+                            else:
+                                print("Found non-empty text match: " + cut_from_text)
 
                             bboxes = []
                             # Iterate over each character
