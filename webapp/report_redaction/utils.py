@@ -162,7 +162,7 @@ class InceptionAnnotationParser:
             end = annotation['end']
             clean_begin = begin - self.compare_text_and_count_removals(text_with_extra[:begin], clean_text, begin)[1]
             clean_end = end - self.compare_text_and_count_removals(text_with_extra[:end], clean_text, end)[1]
-            converted_annotations.append({'begin': clean_begin, 'end': clean_end, 'label': annotation['label']})
+            converted_annotations.append({'begin': clean_begin, 'end': clean_end, 'label': annotation['label'], 'coveredText': annotation['coveredText']})
         
         return converted_annotations
 
@@ -184,7 +184,7 @@ class InceptionAnnotationParser:
         return [x0, y0, x1, y1]
     
     def merge_bounding_boxes_within_range(self, doc, start_pos, end_pos, annotation_text):
-        print("Run for annotation text: " + annotation_text + "| with start pos: " + str(start_pos) + " and end pos: " + str(end_pos))
+        print("Run for annotation text: " + annotation_text + " with start pos: " + str(start_pos) + " and end pos: " + str(end_pos))
         merged_bboxes = []
 
         # Initialize variables for tracking character count and page number
@@ -387,8 +387,14 @@ class InceptionAnnotationParser:
         t2 = self.get_pymupdf_text_wordwise(pdf_input_path)
 
         anconv = self.convert_annotations(sofastring, t2, annotations)
+            
+
         # DO NOT COMMENT
         anex = self.extract_positions_text(anconv, t2)
+
+        print("Check if the converted annotation positions extract the same text.")
+        for anno in anex:
+            assert anno['coveredText'] == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
 
         dollartext_annotated = self.generate_dollartext(t2, anex, "■")
 
@@ -397,6 +403,8 @@ class InceptionAnnotationParser:
         pdf = fitz.open(pdf_input_path)
 
         all_bboxes = []
+
+        breakpoint()
 
         for annotation in anconv:
             bboxes = self.merge_bounding_boxes_within_range(pdf, annotation['begin'], annotation['end'], annotation_text=annotation['extracted_text'])
