@@ -146,7 +146,7 @@ def download():
             return redirect(url_for('input_processing.main'))
 
         # split report into chunks of 3000 chars
-        max_length = 3000
+        max_length = 10000
 
         # Add an 'id' column and generate unique IDs for every row
         # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
