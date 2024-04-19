@@ -108,26 +108,53 @@ class InceptionAnnotationParser:
         differ = difflib.Differ()
         diff = list(differ.compare(text_with_extra, clean_text))
         
-        cleaned_text = []
+        # Workaround, as sometimes when there are a lot of + entries at the end, they are substracted from the removed_count even if they are occurring after the position in the first text
+        if position and position > 0:
+            position -= 1
+
+        position_text_current = 0
+
         removed_count = 0
-        for idx, item in enumerate(diff):
-            if position is not None and idx >= position:
+        for item in diff:
+            if position is not None and position_text_current >= position:
                 break
-            if item.startswith('-'):
+            if item.startswith('- '):
                 removed_count += 1
+                position_text_current += 1
                 # print("Removed count++")
-            elif item.startswith('+'):
+            elif item.startswith('  '):
+                position_text_current += 1
+            elif item.startswith('+ '):
                 removed_count -= 1
                 # print("Removed count--")
-            elif not item.startswith('?'):
-                cleaned_text.append(item[-1])
+            elif not item.startswith('? '):
+                print("?: " + item[-1])
             else:
                 # print("No change")
                 pass
+
+        # self.save_data_to_file(text_with_extra, "text_with_extra.pkl")
+        # self.save_data_to_file(clean_text, "clean_text.pkl")
+        # self.save_data_to_file(position, "position.pkl")
+
+        # breakpoint()
         
-        return ''.join(cleaned_text), removed_count
+        if position is not None:
+            return clean_text[:position-removed_count], removed_count
+        else:
+            return clean_text, removed_count
     
-    def get_pymupdf_text_wordwise(self, input_file):
+    def get_pymupdf_text_pageswise(self, input_file):
+        print("get_pymupdf_text_pageswise")
+        pdf = fitz.open(input_file)
+
+        text = ""
+        for page in pdf:
+            text += page.get_text("text") + " "
+
+        return text
+
+    def get_pymupdf_text_wordwise(self, input_file, add_spaces=False):
         print("get_pymupdf_text_wordwise")
         pdf = fitz.open(input_file)
 
@@ -141,20 +168,30 @@ class InceptionAnnotationParser:
                         for span in line['spans']:
                             word = span['text']
                             # print("W: '" + word + "'")
-                            text += word
+                            text += word # + " "
+                            if add_spaces:
+                                text += " "
+                                char_count += 1
 
-                            char_count += len(word) 
+                            char_count += len(word)
+
                             # print("W: '" + word + "'" + " char_count: " + str(char_count))
                 else:
                     print("No text in word block - ignore")
 
         return text
     
+    def save_data_to_file(self, data, filename):
+
+        import pickle
+
+        with open(filename, 'wb') as handle:
+            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
     def convert_annotations(self, text_with_extra, clean_text, annotations):
         """
         Convert a list of annotations according to the text with extra and the clean text.
         """
-
         
         converted_annotations = []
         for annotation in annotations:
@@ -162,6 +199,15 @@ class InceptionAnnotationParser:
             end = annotation['end']
             clean_begin = begin - self.compare_text_and_count_removals(text_with_extra[:begin], clean_text, begin)[1]
             clean_end = end - self.compare_text_and_count_removals(text_with_extra[:end], clean_text, end)[1]
+            
+            # TODO: Very dirty workaround
+            if clean_end-clean_begin == end-begin-1:
+                clean_begin -= 1
+            if clean_end-clean_begin == end-begin+1:
+                clean_begin += 1
+
+            assert(clean_end-clean_begin == end-begin)
+            
             converted_annotations.append({'begin': clean_begin, 'end': clean_end, 'label': annotation['label'], 'coveredText': annotation['coveredText']})
         
         return converted_annotations
@@ -222,7 +268,7 @@ class InceptionAnnotationParser:
                             print("Found match for annotation text: " + annotation_text + " in line " + str(l) + " of page " + str(page_num))
                             # Calculate the adjusted start and end positions for this word
                             adjusted_start_pos = max(start_pos - char_count, 0)
-                            adjusted_end_pos = min(end_pos - char_count, len(word_line) - 1)
+                            adjusted_end_pos = min(end_pos - char_count, len(word_line)) # TODO: removed word_line - 1
 
                             cut_from_text = word_line[adjusted_start_pos:adjusted_end_pos]
                             
@@ -230,7 +276,7 @@ class InceptionAnnotationParser:
                                 print("Empty text match, skipping")
                                 continue
                             else:
-                                print("Found non-empty text match: " + cut_from_text)
+                                print("Found non-empty text match: '" + cut_from_text + "'")
 
                             bboxes = []
                             # Iterate over each character
@@ -255,10 +301,11 @@ class InceptionAnnotationParser:
                                 # search_mask_expanded = [search_mask[0] -5, search_mask[1] - 5, search_mask[2] +5, search_mask[3] + 5]
 
                                 search_mask_expanded = fitz.Rect(expand_search_mask(search_mask))
-
+                                
                                 if cut_from_text in annotation_text:
                                     annotation_in_text_match = page.search_for(cut_from_text, clip=search_mask_expanded)
                                 else:
+                                    breakpoint()
                                     raise Exception("Annotation text does not match the text gathered from the PDF.")
 
 
@@ -288,7 +335,7 @@ class InceptionAnnotationParser:
 
 
                         # Update the character count
-                        char_count += len(word_line) 
+                        char_count += len(word_line) + 1 # TODO: +1 only if additional spaces per line are used!
 
             # Move to the next page
             page_num += 1
@@ -369,10 +416,10 @@ class InceptionAnnotationParser:
 
 
     def apply_annotations_to_pdf(self, pdf_input_path):
-        with pdfplumber.open(pdf_input_path) as pdf:
-            text_pdfplumber = pdf.pages[0].extract_text()
+        # with pdfplumber.open(pdf_input_path) as pdf:
+        #     text_pdfplumber = pdf.pages[0].extract_text()
 
-        labels = self.unique_labels
+        # labels = self.unique_labels
         sofastring = self.get_sofastring()
 
         annotations = self.get_annotations()
@@ -380,17 +427,25 @@ class InceptionAnnotationParser:
         for annotation in annotations:
             annotation['coveredText'] = sofastring[annotation['begin']:annotation['end']]
 
-        total_text_len_diff = len(sofastring) - len(text_pdfplumber)
-        measured_text_len_diff = self.compare_text_and_count_removals(sofastring, text_pdfplumber)[1]
-        assert total_text_len_diff == measured_text_len_diff
+        # total_text_len_diff = len(sofastring) - len(text_pdfplumber)
+        # measured_text_len_diff = self.compare_text_and_count_removals(sofastring, text_pdfplumber)[1]
+        # assert total_text_len_diff == measured_text_len_diff
 
-        t2 = self.get_pymupdf_text_wordwise(pdf_input_path)
+
+        t1 = self.get_pymupdf_text_pageswise(pdf_input_path)
+        t2 = self.get_pymupdf_text_wordwise(pdf_input_path, add_spaces=True)
 
         anconv = self.convert_annotations(sofastring, t2, annotations)
             
 
         # DO NOT COMMENT
         anex = self.extract_positions_text(anconv, t2)
+
+        print("pymupdf text: ", t2)
+
+        print("\n*************************************************************************************\n")
+
+        print("annotation_text: ", sofastring)
 
         print("Check if the converted annotation positions extract the same text.")
         for anno in anex:
@@ -404,7 +459,7 @@ class InceptionAnnotationParser:
 
         all_bboxes = []
 
-        breakpoint()
+        # breakpoint()
 
         for annotation in anconv:
             bboxes = self.merge_bounding_boxes_within_range(pdf, annotation['begin'], annotation['end'], annotation_text=annotation['extracted_text'])

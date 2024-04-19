@@ -199,7 +199,7 @@ def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_
     # comparison_text = ""
     # Build a text 
 
-    for gt_char, auto_char, orig_char in zip(ground_truth, automatic_redacted, original_text):
+    for i, (gt_char, auto_char, orig_char) in enumerate(zip(ground_truth, automatic_redacted, original_text)):
         # Ignore spaces and other characters for the score calculation!
         if orig_char != ' ' and orig_char != ',' and orig_char != '.' and orig_char != '!' and orig_char != '?' and orig_char != ':' and orig_char != ';' and orig_char != '-' and orig_char != '(' and orig_char != ')' and orig_char != '"' and orig_char != "'" and orig_char != '\n':
             if gt_char == redacted_char and auto_char == redacted_char:
@@ -213,6 +213,8 @@ def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_
                 # comparison_text += orig_char # "N"
             elif gt_char == redacted_char and auto_char != redacted_char:
                 false_negatives += 1
+                print("False Negative: GT Char: ", gt_char, " auto_char ", auto_char)
+                # breakpoint()
                 # comparison_text += "-"
         else:
             # comparison_text += orig_char # "I"
@@ -309,7 +311,9 @@ def load_redacted_pdf(personal_info_list, filename, df, id):
     else:
         fuzzy_matches = []
 
-    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, len(fuzzy_matches) > 0)
+    
+
+    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if session['exclude_single_chars'] else 0)
 
     anonymize_pdf(filename, personal_info_list, filename.replace(".pdf", "_redacted.pdf"), fuzzy_matches)
 
@@ -322,25 +326,54 @@ def reportredactionfileredacted(id):
 
     return send_file(session['redacted_pdf_filename'], mimetype='application/pdf')
 
-def generated_dollartext_stringlist(filename, information_list, use_fuzzy_matching=False):
-        """Replace all occurrences of the strings in information_list with dollar signs in the pdf text"""
+def get_pymupdf_text_wordwise(input_file, add_spaces=False):
+    print("get_pymupdf_text_wordwise")
+    import fitz
+    pdf = fitz.open(input_file)
 
-        # Load pdf text with pymupdf
-        import fitz
-        pdf = fitz.open(filename)
+    char_count = 0
 
-        text = ""
-        for page in pdf:
-            for word_block in page.get_text("dict")["blocks"]:
-                if 'lines' in word_block:
-                    for line in word_block['lines']:
-                        for span in line['spans']:
-                            word = span['text']
-                            text += word
-                else:
-                    print("No text in word block - ignore")
+    text = ""
+    for page in pdf:
+        for word_block in page.get_text("dict")["blocks"]:
+            if 'lines' in word_block:
+                for line in word_block['lines']:
+                    for span in line['spans']:
+                        word = span['text']
+                        # print("W: '" + word + "'")
+                        text += word # + " "
+                        if add_spaces:
+                            text += " "
+                            char_count += 1
 
-        return replace_personal_info(text, information_list, use_fuzzy_matching=use_fuzzy_matching, generate_dollarstring=True)
+                        char_count += len(word)
+
+                        # print("W: '" + word + "'" + " char_count: " + str(char_count))
+            else:
+                print("No text in word block - ignore")
+
+    return text
+
+def generated_dollartext_stringlist(filename, information_list, fuzzy_matches, ignore_short_sequences:int=0):
+    """Replace all occurrences of the strings in information_list with dollar signs in the pdf text"""
+
+    # Load pdf text with pymupdf
+    # pdf = fitz.open(filename)
+
+    # text = ""
+    # for page in pdf:
+    #     for word_block in page.get_text("dict")["blocks"]:
+    #         if 'lines' in word_block:
+    #             for line in word_block['lines']:
+    #                 for span in line['spans']:
+    #                     word = span['text']
+    #                     text += word
+    #         else:
+    #             print("No text in word block - ignore")
+
+    text = get_pymupdf_text_wordwise(filename, add_spaces=True)
+
+    return replace_personal_info(text, information_list, fuzzy_matches, generate_dollarstring=True, ignore_short_sequences=ignore_short_sequences)
 
 @report_redaction.route("/reportredactionconfusionmatrix")
 def reportredactionconfusionmatrix():

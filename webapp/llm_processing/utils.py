@@ -107,7 +107,25 @@ import re
 from thefuzz import process
 from thefuzz.fuzz import QRatio, WRatio
 
-def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuzzy_matching: bool = False, fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■") -> str:
+def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'):
+    # Create a list to store tuples of match positions
+    match_positions = []
+
+    # Find all matches and store their positions as tuples (start, end)
+    for info in personal_info_list:
+        if is_empty_string_nan_or_none(info):
+            continue
+        matches = re.finditer(re.escape(info), text)
+        for match in matches:
+            match_positions.append((match.start(), match.end()))
+
+    # Replace characters within the match positions with the placeholder character
+    for start, end in match_positions:
+        text = text[:start] + replacement_char * (end - start) + text[end:]
+
+    return text
+
+def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_matches: list[str,int], fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■", ignore_short_sequences: int = 0) -> str:
     """
     Replace personal information in the given text with asterisks.
 
@@ -128,31 +146,54 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], use_fuz
     assert len(replacement_char) == 1, "replacement_char must be a single character"
 
     # Replace remaining personal information with asterisks (*)
-    for info in personal_info_list:
-        if is_empty_string_nan_or_none(info):
-            continue
-        if not generate_dollarstring:
-            masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
-        else:
-            masked_text = re.sub(f"\\b{re.escape(info)}\\b", replacement_char * len(info), masked_text)
+    # for info in personal_info_list:
+    #     if is_empty_string_nan_or_none(info):
+    #         continue
+    #     if not generate_dollarstring:
+    #         # masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
+    #         masked_text = re.sub(re.escape(info), lambda match: replacement_char * 3, masked_text)
+    #     else:
+    #         # masked_text = re.sub(f"\\b{re.escape(info)}\\b", replacement_char * len(info), masked_text)
+    #         # masked_test = re.sub(f"\\b{re.escape(info)}\\b", lambda match: replacement_char * len(match.group(0)), masked_text)
+    #         masked_text = re.sub(re.escape(info), lambda match: replacement_char * len(match.group(0)), masked_text)
 
+    fuzzy_list = []
 
-    if use_fuzzy_matching:
-        for info in personal_info_list:
-            if is_empty_string_nan_or_none(info):
-                continue
-            # Get a list of best matches for the current personal information from the text
-            best_matches = process.extract(info, text.split())
-            best_score = best_matches[0][1]
-            for match, score in best_matches:
-                if score == best_score and score >= fuzzy_matching_threshold:
-                    # Replace best matches with asterisks (*)
-                    if not generate_dollarstring:
-                        masked_text = re.sub(f"\\b{re.escape(match)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
-                    else:
-                        masked_text = re.sub(f"\\b{re.escape(match)}\\b", replacement_char * len(match), masked_text)
+    for match_text, score in fuzzy_matches:
+        if score >= fuzzy_matching_threshold:
+            fuzzy_list.append(match_text)
 
-                
+    # if use_fuzzy_matching:
+    #     for info in personal_info_list:
+    #         if is_empty_string_nan_or_none(info):
+    #             continue
+    #         # Get a list of best matches for the current personal information from the text
+    #         best_matches = process.extract(info, text.split())
+    #         best_score = best_matches[0][1]
+    #         for match_text, score in best_matches:
+    #             if score == best_score and score >= fuzzy_matching_threshold:
+    #                 fuzzy_list.append(match_text)
+    #                 # Replace best matches with asterisks (*) TODO: Seems not to work if only part of a word is redacted (e.g. because of missing space ...)
+    #                 # if not generate_dollarstring:
+    #                 #     # masked_text = re.sub(f"\\b{re.escape(match_text)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
+    #                 #     masked_text = re.sub(re.escape(match_text), lambda match: replacement_char * 3, masked_text)
+    #                 # else:
+    #                 #     # masked_text = re.sub(f"\\b{re.escape(match)}\\b", replacement_char * len(match), masked_text)
+    #                 #     masked_text = re.sub(re.escape(match_text), lambda match: replacement_char * len(match.group(0)), masked_text)
+    
+    # breakpoint()
+
+    personal_info_list = personal_info_list + fuzzy_list
+
+    print("PERSONAL INFORMATION LIST: " + ', '.join(personal_info_list))
+    print("FUZZY LIST: "+ ', '.join(fuzzy_list))
+
+    if ignore_short_sequences > 0:
+        print("IGNORE SEQUENCES SHORTER THAN ", ignore_short_sequences)
+        personal_info_list = [item for item in personal_info_list if len(item) > ignore_short_sequences]
+
+    masked_text = replace_text_with_placeholder(masked_text, personal_info_list, replacement_char=replacement_char)
+
     return masked_text
 
 def read_preprocessed_csv_from_zip(zip_file: str) -> pd.DataFrame | None:
