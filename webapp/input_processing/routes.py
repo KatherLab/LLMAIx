@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, send_file
 import io
 import os
@@ -153,6 +154,9 @@ def download():
 
         df['filename'] = df['filepath'].apply(lambda x: os.path.basename(x))
         df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4()), axis=1)
+        
+        # add metadata column with json structure. Add the current date and time as preprocessing key in the json structure
+        df['metadata'] = df.apply(lambda x: {'preprocessing': {'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}, axis=1)
 
         # Optionally, you can drop the 'filename' column if you don't need it anymore
         df.drop(columns=['filename'], inplace=True)
