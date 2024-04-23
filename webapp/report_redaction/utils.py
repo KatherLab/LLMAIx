@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import pdfplumber
 import fitz
+import numpy as np
+import seaborn as sns 
 
 def find_llm_output_csv(directory: str) -> pd.DataFrame | None:
     # List all files in the directory
@@ -499,23 +501,55 @@ def generate_score_dict(ground_truth, comparison, original_text, round_digits = 
 
     return score_dict, confusion_matrix_filepath
 
+
 def generate_confusion_matrix_from_counts(tp, tn, fp, fn, filename):
-    import numpy as np
-    from matplotlib import pyplot as plt
-    import seaborn as sns
-
-    plt.switch_backend('Agg') # otherwise it would not run outside of the main thread
+    
+    plt.switch_backend('Agg')
+    
     # Constructing the confusion matrix from counts
-    cm = np.array([[tp, fp], [fn, tn]])
+    cm = np.array([[tp, fn], [fp, tn]])
 
-    # Plotting the confusion matrix
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Redacted', 'Not Redacted'], yticklabels=['Redacted', 'Not Redacted'])
-    plt.xlabel('Annotation')
-    plt.ylabel('LLM Anonymizer')
-    plt.title('Confusion Matrix')
+    # Normalize the confusion matrix
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    # Convert to DataFrame for Seaborn heatmap
+    cm_df = pd.DataFrame(cm_normalized)
+
+    # Generate annotations with both absolute counts and normalized values
+    annotations = [["{0:d}\n({1:.2f})".format(abs_num, frac) for abs_num, frac in zip(row_abs, row_frac)] 
+                    for row_abs, row_frac in zip(cm, cm_normalized)]
+
+    # Plotting the confusion matrix using Seaborn with increased font sizes
+    plt.figure(figsize=(8,6))
+    ax = sns.heatmap(cm_df, annot=annotations, fmt="", cmap='Blues', vmin=0, vmax=1, annot_kws={"size": 16}, xticklabels=['Redacted', 'Not Redacted'], yticklabels=['Redacted', 'Not Redacted'])
+
+    plt.ylabel('Annotation', fontsize=16)
+    plt.xlabel('LLM Anonymizer', fontsize=16)
+
+    ax.tick_params(axis='x', labelsize=16)  # Adjust font size for x-axis tick labels
+    ax.tick_params(axis='y', labelsize=16)  #
+    plt.title('Confusion Matrix for Report Redaction (char-wise)', fontsize=18)
     plt.savefig(filename)  # Save the plot to a file
     plt.close()
+
+
+# def generate_confusion_matrix_from_counts_old(tp, tn, fp, fn, filename):
+#     import numpy as np
+#     from matplotlib import pyplot as plt
+#     import seaborn as sns
+
+#     plt.switch_backend('Agg') # otherwise it would not run outside of the main thread
+#     # Constructing the confusion matrix from counts
+#     cm = np.array([[tp, fp], [fn, tn]])
+
+#     # Plotting the confusion matrix
+#     plt.figure(figsize=(8, 6))
+#     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Redacted', 'Not Redacted'], yticklabels=['Redacted', 'Not Redacted'])
+#     plt.ylabel('Annotation')
+#     plt.xlabel('LLM Anonymizer')
+#     plt.title('Confusion Matrix')
+#     plt.savefig(filename)  # Save the plot to a file
+#     plt.close()
 
 def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_char):
     assert len(ground_truth) == len(automatic_redacted) == len(original_text), "All texts must have the same length"
