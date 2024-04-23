@@ -10,7 +10,6 @@ os.makedirs("logs", exist_ok=True)
 
 log_file_name = datetime.now().strftime(os.path.join("logs", 'llmanonymizer_%H_%M_%d_%m_%Y.log'))
 logging.basicConfig(level=logging.DEBUG, filename=log_file_name, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
-logging.debug('Start Program')
 
 logging.debug('Start LLM Anonymizer')
 

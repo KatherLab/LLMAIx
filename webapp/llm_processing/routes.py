@@ -179,9 +179,6 @@ def extract_from_report(
     return postprocess_grammar(results), zip_file_path
 
 
-
-
-
 def postprocess_grammar(result):
 
     extracted_data = []
@@ -197,6 +194,8 @@ def postprocess_grammar(result):
         
         # Parse the content string into a dictionary
         try:
+            if content.endswith('<|eot_id|>'):
+                content = content[:-len('<|eot_id|>')]
             info_dict = ast.literal_eval(content)
         except Exception as e:
             print(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")

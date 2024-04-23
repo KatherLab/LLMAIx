@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nested-container">
+    <h2>Report Redaction Metrics</h2>
+
+    <p>Total reports: {{ total_reports }}</p>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Macro Score</th>
+                            <th>Micro Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Precision</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_precision'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_precision'] }}</td>
+                        </tr>
+                        <tr>
+                            <td>Recall</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_recall'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_recall'] }}</td>
+                        </tr>
+                        <tr>
+                            <td>Accuracy</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_accuracy'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_accuracy'] }}</td>
+                        </tr>
+                        <tr>
+                            <td>F1 Score</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_f1_score'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_f1_score'] }}</td>
+                        </tr>
+                        <tr>
+                            <td>False Positive Rate</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_false_positive_rate'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_false_positive_rate'] }}</td>
+                        </tr>
+                        <tr>
+                            <td>False Negative Rate</td>
+                            <td>{{ report_list['accumulated_metrics']['macro_false_negative_rate'] }}</td>
+                            <td>{{ report_list['accumulated_metrics']['micro_false_negative_rate'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id) }}" class="img" height="300px">
+            </div>
+        </div>
+    </div>
+
+    <ol class="list-group list-group-numbered">
+        {% for report in report_list['report_list'] %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">{{report['id']}}</div>
+                F1: {{report['scores']['f1_score']}}
+                Acc: {{report['scores']['accuracy']}}
+                P: {{report['scores']['precision']}}
+                R: {{report['scores']['recall']}}
+                FPR: {{report['scores']['false_positive_rate']}}
+                FNR: {{report['scores']['false_negative_rate']}}
+                <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}" class="btn btn-secondary float-right">View Report</a>
+            </div>
+            {% if report['scores']['false_negative_rate'] == 0 %}
+                <span class="badge text-bg-success rounded-pill">FNR: {{report['scores']['false_negative_rate']}}</span>
+            {% else %}
+                <span class="badge text-bg-danger rounded-pill">FNR: {{report['scores']['false_negative_rate']}}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}

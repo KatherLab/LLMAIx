@@ -127,6 +127,8 @@ ws ::= ([ \t\n])?
 - page for general metrics
 - classwise metrics
 
+- Select box in the viewer to select a specific case
+
 - replace pateintenstrasse typo in jsons
 
 - Grammatik: Mädchenname

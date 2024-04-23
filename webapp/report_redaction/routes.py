@@ -1,21 +1,53 @@
+from concurrent import futures
 import json
 import os
+import secrets
 import tempfile
+import time
+import traceback
+import zipfile
+import os
+from flask import render_template, session
 from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list, find_fuzzy_matches, replace_personal_info
-from webapp.report_redaction.utils import InceptionAnnotationParser, find_llm_output_csv
+from webapp.report_redaction.utils import InceptionAnnotationParser, find_llm_output_csv, calculate_metrics, generate_confusion_matrix_from_counts, generate_score_dict, get_pymupdf_text_wordwise
 from . import report_redaction
 from flask import abort, render_template, request, redirect, send_file, url_for, session, flash
 from .forms import ReportRedactionForm
 from .. import socketio
 
+JobID = str
+report_redaction_jobs: dict[JobID, futures.Future] = {}
+executor = futures.ThreadPoolExecutor(1)
+
+job_progress = {}
+
+def update_progress(job_id, progress: tuple[int, int, bool]):
+    global job_progress
+    job_progress[job_id] = progress    
+
+    print("Progress: ", progress)
+    socketio.emit('progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
+
+def failed_job(job_id):
+    time.sleep(2)
+    print("FAILED")
+    global job_progress
+    # wait for 1s
+    socketio.emit('progress_failed', {'job_id': job_id})
+
+def complete_job(job_id):
+    print("COMPLETE")
+    global job_progress
+    socketio.emit('progress_complete', {'job_id': job_id})
+
 @socketio.on('connect')
 def handle_connect():
     print("Client Connected")
 
-
 @socketio.on('disconnect')
 def handle_disconnect():
     print("Client Disconnected")
+
 @report_redaction.route("/reportredaction", methods=['GET', 'POST'])
 def main():
     form = ReportRedactionForm()
@@ -66,6 +98,8 @@ def main():
         session['redacted_pdf_filename'] = None
         session['annotation_pdf_filepath'] = None
 
+        session['report_list'] = []
+
         # First report id
 
         df = find_llm_output_csv(content_temp_dir)
@@ -79,17 +113,165 @@ def main():
 
             return redirect(url_for('report_redaction.report_redaction_viewer', report_id=report_id))
         
-        elif 'submit-viewer' in request.form:
+        elif 'submit-metrics' in request.form:
+            if session['annotation_file'] is None:
+                flash('No annotation file was sent!', 'danger')
+                return redirect(request.url)
+            
             print("Metrics Page")
 
-            return redirect(url_for('report_redaction.report_redaction_metrics'))
+            df = find_llm_output_csv(session['pdf_file_zip'])
+            if df is None or len(df) == 0:
+                flash('No CSV file found in the uploaded file!', 'danger')
+                return redirect(request.url)
+            
+            job_id = secrets.token_urlsafe()
+            update_progress(job_id=job_id, progress=(0, len(df), True))
 
-        return render_template("report_redaction_form.html", form=form)
-        
+            # report_list = generate_report_list(df)
 
-import zipfile
-import os
-from flask import render_template, session
+            print("Start Job")
+
+            global report_redaction_jobs
+            report_redaction_jobs[job_id] = executor.submit(
+                generate_report_list,
+                df = df,
+                job_id = job_id, 
+                pdf_file_zip = session['pdf_file_zip'],
+                annotation_file = session['annotation_file']
+            )
+
+            # wait 0.5s
+            time.sleep(0.5)
+            # check if the job is aborted
+            if job_id in report_redaction_jobs:
+                if report_redaction_jobs[job_id].cancelled():
+                    flash('Job Aborted!', "danger")
+                elif report_redaction_jobs[job_id].done():
+                    flash('Job Finished!', "success")
+                else:
+                    flash('Upload Successful! Job is running!', "success")
+
+    global job_progress
+    return render_template("report_redaction_form.html", form=form, progress=job_progress)
+
+
+def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
+    print("Run Report List Generator")
+    report_list = []
+
+    try:
+        for index, row in df.iterrows():
+            print("Calculate Metrics for Report ", index, row['id'])
+            report_dict = {}
+            report_dict['id'] = row['id']
+
+            report_dict['personal_info_list'] = convert_personal_info_list(row['personal_info_list'])
+
+            orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
+
+            report_dict['redacted_pdf_filepath'], report_dict['redacted_text'], report_dict['fuzzy_matches'] = load_redacted_pdf(report_dict['personal_info_list'], orig_pdf_path, df, row['id'])
+            report_dict['annotated_pdf_filepath'], report_dict['annotated_text'], report_dict['original_text'], report_dict['colormap'] = load_annotated_pdf(row['id'], orig_pdf_path, annotation_file)
+
+            report_dict['scores'], report_dict["confusion_matrix_filepath"] = generate_score_dict(report_dict['annotated_text'], report_dict['redacted_text'], report_dict['original_text'])
+
+            report_list.append(report_dict)
+
+            update_progress(job_id=job_id, progress=(index + 1, len(df), False))
+
+        if len(report_list) == len(df):
+            complete_job(job_id)
+        else:
+            failed_job(job_id)
+
+        report_summary_dict = {
+            'report_list': report_list,
+            'total_reports': len(report_list),
+            'accumulated_metrics': accumulate_metrics(report_list),
+        }
+
+        confusion_matrix_filepath = os.path.join(tempfile.mkdtemp(), "confusion_matrix.svg")
+        generate_confusion_matrix_from_counts(report_summary_dict['accumulated_metrics']['total_true_positives'], report_summary_dict['accumulated_metrics']['total_true_negatives'], report_summary_dict['accumulated_metrics']['total_false_positives'], report_summary_dict['accumulated_metrics']['total_false_negatives'], confusion_matrix_filepath)
+
+        report_summary_dict['confusion_matrix_filepath'] = confusion_matrix_filepath
+
+    except Exception as e:
+        print(traceback.print_exc())
+        failed_job(job_id)
+        return
+        # breakpoint()
+
+    return report_summary_dict
+
+def accumulate_metrics(report_list):
+    total_tp = total_fp = total_tn = total_fn = 0
+    total_precision = total_recall = total_accuracy = total_f1_score = 0
+    total_false_positive_rate = total_false_negative_rate = 0
+    num_samples = len(report_list)
+
+    for report_dict in report_list:
+        score_dict = report_dict['scores']
+        total_tp += score_dict['true_positives']
+        total_fp += score_dict['false_positives']
+        total_tn += score_dict['true_negatives']
+        total_fn += score_dict['false_negatives']
+        total_precision += score_dict['precision']
+        total_recall += score_dict['recall']
+        total_accuracy += score_dict['accuracy']
+        total_f1_score += score_dict['f1_score']
+        total_false_positive_rate += score_dict['false_positive_rate']
+        total_false_negative_rate += score_dict['false_negative_rate']
+
+    macro_precision = total_precision / num_samples
+    macro_recall = total_recall / num_samples
+    macro_accuracy = total_accuracy / num_samples
+    macro_f1_score = total_f1_score / num_samples
+    macro_false_positive_rate = total_false_positive_rate / num_samples
+    macro_false_negative_rate = total_false_negative_rate / num_samples
+
+    micro_precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
+    micro_recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) != 0 else 0
+    micro_accuracy = (total_tp + total_tn) / (total_tp + total_fp + total_tn + total_fn)
+    micro_f1_score = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall) if (micro_precision + micro_recall) != 0 else 0
+    micro_false_positive_rate = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
+    micro_false_negative_rate = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
+
+    return {
+        'macro_precision': macro_precision,
+        'macro_recall': macro_recall,
+        'macro_accuracy': macro_accuracy,
+        'macro_f1_score': macro_f1_score,
+        'macro_false_positive_rate': macro_false_positive_rate,
+        'macro_false_negative_rate': macro_false_negative_rate,
+        'micro_precision': micro_precision,
+        'micro_recall': micro_recall,
+        'micro_accuracy': micro_accuracy,
+        'micro_f1_score': micro_f1_score,
+        'micro_false_positive_rate': micro_false_positive_rate,
+        'micro_false_negative_rate': micro_false_negative_rate,
+        'total_true_positives': total_tp,
+        'total_false_positives': total_fp,
+        'total_true_negatives': total_tn,
+        'total_false_negatives': total_fn
+    }
+
+
+@report_redaction.route("/reportredactionmetrics/<string:job_id>", methods=['GET'])
+def report_redaction_metrics(job_id:str):
+
+    # Check if the job exists
+    if job_id not in report_redaction_jobs:
+        flash(f"Job {job_id} not found!", "danger")
+        return redirect(request.url)
+
+    # Get the result from the job
+    result = report_redaction_jobs[job_id].result()
+
+    if result is None:
+        flash(f"Job {job_id} not found or not finished yet!", "danger")
+        return redirect(request.url)
+    
+    return render_template("report_redaction_metrics.html", total_reports=len(result['report_list']), report_list=result, job_id=job_id)
 
 @report_redaction.route("/reportredactionviewer/<string:report_id>", methods=['GET'])
 def report_redaction_viewer(report_id):
@@ -127,12 +309,12 @@ def report_redaction_viewer(report_id):
     next_id = df.at[current_index + 1, 'id'] if current_index < len(df) - 1 else None
 
     orig_pdf_path = os.path.join(pdf_file_zip, f"{report_id}.pdf")
-    session['redacted_pdf_filename'], dollartext_redacted, fuzzy_matches = load_redacted_pdf(personal_info_list, orig_pdf_path, df, report_id)
+    session['redacted_pdf_filename'], dollartext_redacted, fuzzy_matches = load_redacted_pdf(personal_info_list, orig_pdf_path, df, report_id, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), exclude_single_chars=session.get('exclude_single_chars', False), scorer=session.get('scorer', None))
 
 
     if session.get('annotation_file', None):
         try:
-            session['annotation_pdf_filepath'], dollartext_annotated, original_text, colormap = load_annotated_pdf(report_id)
+            session['annotation_pdf_filepath'], dollartext_annotated, original_text, colormap = load_annotated_pdf(report_id, pdf_file_zip,session['annotation_file'])
             scores, session["confusion_matrix_filepath"] = generate_score_dict(dollartext_annotated, dollartext_redacted, original_text)
         except FileNotFoundError as e:
             flash(str(e), 'danger')
@@ -148,112 +330,9 @@ def report_redaction_viewer(report_id):
 
     return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), colormap = colormap, scores=scores, fuzzy_matches = fuzzy_matches)
 
-def generate_score_dict(ground_truth, comparison, original_text, round_digits = 2):
-    # check if both dollartext_annotated and dollartext_redacted are set
-    print("CHECK SCORES")
-
-    # if not session.get('dollartext_annotated', None) or not session.get('dollartext_redacted', None) or not session.get('original_text', None):
-    #     print("Dollartext not yet set")
-    #     # breakpoint()
-    #     return
-    
-    print("Ground truth: ", ground_truth)
-    print("Comparison: ", comparison)
-
-    precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath = calculate_metrics(ground_truth, comparison, original_text, '■')
-    print("Accuracy: ", accuracy)
-    print("Precision: ", precision)
-    print("Recall: ", recall)
-    print("F1 score: ", f1_score)
-    print("False positive rate: ", false_positive_rate)
-    print("False negative rate: ", false_negative_rate)
-
-    score_dict = {
-        'precision': round(precision, round_digits),
-        'recall': round(recall, round_digits),
-        'accuracy': round(accuracy, round_digits),
-        'f1_score': round(f1_score, round_digits),
-        'false_positive_rate': round(false_positive_rate, round_digits),
-        'false_negative_rate': round(false_negative_rate, round_digits)
-    }
-
-    return score_dict, confusion_matrix_filepath
-
-def generate_confusion_matrix_from_counts(tp, tn, fp, fn, filename):
-    import numpy as np
-    from matplotlib import pyplot as plt
-    import seaborn as sns
-
-    plt.switch_backend('Agg') # otherwise it would not run outside of the main thread
-    # Constructing the confusion matrix from counts
-    cm = np.array([[tp, fp], [fn, tn]])
-
-    # Plotting the confusion matrix
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Redacted', 'Not Redacted'], yticklabels=['Redacted', 'Not Redacted'])
-    plt.xlabel('Annotation')
-    plt.ylabel('LLM Anonymizer')
-    plt.title('Confusion Matrix')
-    plt.savefig(filename)  # Save the plot to a file
-    plt.close()
-
-def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_char):
-    assert len(ground_truth) == len(automatic_redacted) == len(original_text), "All texts must have the same length"
-
-    true_positives = 0
-    false_positives = 0
-    true_negatives = 0
-    false_negatives = 0
-
-    # comparison_text = ""
-    # Build a text 
-
-    for i, (gt_char, auto_char, orig_char) in enumerate(zip(ground_truth, automatic_redacted, original_text)):
-        # Ignore spaces and other characters for the score calculation!
-        if orig_char != ' ' and orig_char != ',' and orig_char != '.' and orig_char != '!' and orig_char != '?' and orig_char != ':' and orig_char != ';' and orig_char != '-' and orig_char != '(' and orig_char != ')' and orig_char != '"' and orig_char != "'" and orig_char != '\n':
-            if gt_char == redacted_char and auto_char == redacted_char:
-                true_positives += 1
-                # comparison_text += "R"
-            elif gt_char != redacted_char and auto_char == redacted_char:
-                false_positives += 1
-                # comparison_text += "+"
-            elif gt_char != redacted_char and auto_char != redacted_char:
-                true_negatives += 1
-                # comparison_text += orig_char # "N"
-            elif gt_char == redacted_char and auto_char != redacted_char:
-                false_negatives += 1
-                print("False Negative: GT Char: ", gt_char, " auto_char ", auto_char)
-                # breakpoint()
-                # comparison_text += "-"
-        else:
-            # comparison_text += orig_char # "I"
-            pass
-            # Optional: count all the spaces in the original text as true negatives
-            # true_negatives += 1
-
-    # print("Comparison text: ", comparison_text)
-
-    precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) != 0 else 0
-    recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
-    accuracy = (true_positives + true_negatives) / (len([char for char in original_text if char != ' ']))  # Ignoring spaces in original text
-    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
-    false_positive_rate = false_positives / (true_negatives + false_positives) if (true_negatives + false_positives) != 0 else 0
-    false_negative_rate = false_negatives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
-
-    confusion_matrix_filepath = os.path.join(tempfile.mkdtemp(), "confusion_matrix.svg")
-    generate_confusion_matrix_from_counts(true_positives, true_negatives, false_positives, false_negatives, confusion_matrix_filepath)
-
-    return precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath
-
-def load_annotated_pdf(report_id):
+def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
+    print("load_annotated_pdf")
     json_filename = '.'.join(report_id.split('$')[0].split('.')[:-1]) + ".json"
-
-    # Open uploaded annotation file
-    annotation_zip_file = session.get('annotation_file', None)
-    
-    if not annotation_zip_file:
-        print("Annotation File not set.")
-        abort(404)
 
     print("Filename: ", json_filename)
     # Open zip file and get filename file in any level of this zip file
@@ -268,22 +347,17 @@ def load_annotated_pdf(report_id):
             raise FileNotFoundError(f"JSON file {json_filename} not found in annotation zip file.")
 
     annoparser = InceptionAnnotationParser(annotation)
-    
-    pdf_file_zip = session.get('pdf_file_zip', None)
-    if not pdf_file_zip:
-        print("PDF File not set.")
-        # Handle the case where the path to the zip file is not found
-        abort(404)
 
     # Construct the filename based on the session variable and the ID
-    original_pdf_filepath = os.path.join(pdf_file_zip, f"{report_id}.pdf")
+    if not pdf_file.endswith('.pdf'):
+        pdf_file = os.path.join(pdf_file, f"{report_id}.pdf")
 
     # Check if the file exists
-    if not os.path.isfile(original_pdf_filepath):
-        print("File not found: ", original_pdf_filepath)
-        abort(404)
+    if not os.path.isfile(pdf_file):
+        print("File not found: ", pdf_file)
+        raise FileNotFoundError(f"File {pdf_file} not found.")
 
-    annotation_pdf_filepath, dollartext_annotated, original_text = annoparser.apply_annotations_to_pdf(original_pdf_filepath)
+    annotation_pdf_filepath, dollartext_annotated, original_text = annoparser.apply_annotations_to_pdf(pdf_file)
 
     return annotation_pdf_filepath, dollartext_annotated, original_text, annoparser.colormap
 
@@ -310,19 +384,18 @@ def reportredactionfileoriginal(id):
     # Serve the PDF file
     return send_file(filename, mimetype='application/pdf')
 
-def load_redacted_pdf(personal_info_list, filename, df, id):
+def load_redacted_pdf(personal_info_list, filename, df, id, exclude_single_chars=False, enable_fuzzy=False, threshold=90, scorer="WRatio"):
+    print("load_redacted_pdf")
 
-    if session.get('exclude_single_chars', False):
+    if exclude_single_chars:
         personal_info_list = [item for item in personal_info_list if len(item) > 1]
 
-    if session.get('enable_fuzzy', False):
-        fuzzy_matches = find_fuzzy_matches(df.loc[df['id'] == id, 'report'].iloc[0], personal_info_list, threshold=int(session.get('threshold', 90)), scorer=session.get('scorer', 'WRatio'))
+    if enable_fuzzy:
+        fuzzy_matches = find_fuzzy_matches(df.loc[df['id'] == id, 'report'].iloc[0], personal_info_list, threshold=int(threshold), scorer=scorer)
     else:
         fuzzy_matches = []
 
-    
-
-    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if session['exclude_single_chars'] else 0)
+    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if exclude_single_chars else 0)
 
     anonymize_pdf(filename, personal_info_list, filename.replace(".pdf", "_redacted.pdf"), fuzzy_matches)
 
@@ -335,50 +408,8 @@ def reportredactionfileredacted(id):
 
     return send_file(session['redacted_pdf_filename'], mimetype='application/pdf')
 
-def get_pymupdf_text_wordwise(input_file, add_spaces=False):
-    print("get_pymupdf_text_wordwise")
-    import fitz
-    pdf = fitz.open(input_file)
-
-    char_count = 0
-
-    text = ""
-    for page in pdf:
-        for word_block in page.get_text("dict")["blocks"]:
-            if 'lines' in word_block:
-                for line in word_block['lines']:
-                    for span in line['spans']:
-                        word = span['text']
-                        # print("W: '" + word + "'")
-                        text += word # + " "
-                        if add_spaces:
-                            text += " "
-                            char_count += 1
-
-                        char_count += len(word)
-
-                        # print("W: '" + word + "'" + " char_count: " + str(char_count))
-            else:
-                print("No text in word block - ignore")
-
-    return text
-
 def generated_dollartext_stringlist(filename, information_list, fuzzy_matches, ignore_short_sequences:int=0):
     """Replace all occurrences of the strings in information_list with dollar signs in the pdf text"""
-
-    # Load pdf text with pymupdf
-    # pdf = fitz.open(filename)
-
-    # text = ""
-    # for page in pdf:
-    #     for word_block in page.get_text("dict")["blocks"]:
-    #         if 'lines' in word_block:
-    #             for line in word_block['lines']:
-    #                 for span in line['spans']:
-    #                     word = span['text']
-    #                     text += word
-    #         else:
-    #             print("No text in word block - ignore")
 
     text = get_pymupdf_text_wordwise(filename, add_spaces=True)
 
@@ -386,12 +417,25 @@ def generated_dollartext_stringlist(filename, information_list, fuzzy_matches, i
 
 @report_redaction.route("/reportredactionconfusionmatrix")
 def reportredactionconfusionmatrix():
-    # 
-    confusion_matrix_svg_filepath = session.get('confusion_matrix_filepath', None)
+    job_id = request.args.get('job_id')
 
-    if not confusion_matrix_svg_filepath:
-        # Handle the case where the path to the zip file is not found
-        abort(404)
+    if job_id:
+        # If job_id is provided, serve the confusion matrix from the specific job
+        result = report_redaction_jobs.get(job_id).result()
 
-    # Serve the PDF file
-    return send_file(confusion_matrix_svg_filepath, mimetype='image/svg+xml')
+        if result is None or 'confusion_matrix_filepath' not in result:
+            # Handle the case where the result or confusion matrix filepath is not found
+            abort(404)
+
+        # Serve the confusion matrix SVG file from the specific job
+        return send_file(result['confusion_matrix_filepath'], mimetype='image/svg+xml')
+    else:
+        # If no job_id provided, serve the default confusion matrix SVG file
+        confusion_matrix_svg_filepath = session.get('confusion_matrix_filepath', None)
+
+        if not confusion_matrix_svg_filepath:
+            # Handle the case where the path to the confusion matrix SVG file is not found
+            abort(404)
+
+        # Serve the default confusion matrix SVG file
+        return send_file(confusion_matrix_svg_filepath, mimetype='image/svg+xml')
