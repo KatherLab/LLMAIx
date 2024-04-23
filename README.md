@@ -119,3 +119,14 @@ ws ::= ([ \t\n])?
 - support UIMA CAS JSON 0.4.0
 - dockerize
 - put original filename in csv
+
+- variable ctx size (automatically adjust if not set manually)
+- make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
+- When reports are split, put the already extracted information in the input for the next part.
+
+- page for general metrics
+- classwise metrics
+
+- replace pateintenstrasse typo in jsons
+
+- Grammatik: Mädchenname

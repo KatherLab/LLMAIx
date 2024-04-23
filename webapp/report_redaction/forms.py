@@ -24,4 +24,5 @@ class ReportRedactionForm(FlaskForm):
 
     exclude_single_chars = BooleanField("Exclude single characters")
 
-    submit = SubmitField("Report Redaction")
+    submit = SubmitField("Report Redaction Viewer")
+    submit_scores = SubmitField("Report Redaction Metrics")

@@ -218,7 +218,20 @@ def postprocess_grammar(result):
     df = pd.DataFrame(extracted_data)
 
     # id without the extension for splitted reports
-    df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
+
+    def extract_base_id(id):
+        parts = id.split('_')
+        if '_' in id:
+            if '$' in parts[-1] and '_' in parts[-1]:
+                return '_'.join(parts[:-1])
+            else:
+                return '_'.join(parts[:-1]) if parts[:-1] else id
+        else:
+            return id
+
+    df['base_id'] = df['id'].apply(extract_base_id)
+
+    # df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
 
 
     # Group by base_id and aggregate reports and other columns into lists

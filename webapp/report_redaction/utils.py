@@ -197,8 +197,8 @@ class InceptionAnnotationParser:
         for annotation in annotations:
             begin = annotation['begin']
             end = annotation['end']
-            clean_begin = begin - self.compare_text_and_count_removals(text_with_extra[:begin], clean_text, begin)[1]
-            clean_end = end - self.compare_text_and_count_removals(text_with_extra[:end], clean_text, end)[1]
+            clean_begin = begin - self.compare_text_and_count_removals(text_with_extra, clean_text, begin)[1]
+            clean_end = end - self.compare_text_and_count_removals(text_with_extra, clean_text, end)[1]
             
             # TODO: Very dirty workaround
             if clean_end-clean_begin == end-begin-1:
@@ -206,7 +206,12 @@ class InceptionAnnotationParser:
             if clean_end-clean_begin == end-begin+1:
                 clean_begin += 1
 
-            assert(clean_end-clean_begin == end-begin)
+            try:
+                assert(clean_end-clean_begin == end-begin)
+            except AssertionError as e:
+                print("Error: Length of converted text positions does not look right! ", e)
+                breakpoint()
+
             
             converted_annotations.append({'begin': clean_begin, 'end': clean_end, 'label': annotation['label'], 'coveredText': annotation['coveredText']})
         

@@ -21,6 +21,7 @@ def main():
     form = ReportRedactionForm()
 
     if form.validate_on_submit():
+
         # Check if the POST request has the file part
         if 'file' not in request.files:
             flash('No file was sent!', 'danger')
@@ -72,11 +73,19 @@ def main():
             flash('No CSV file found in the uploaded file!', 'danger')
             return redirect(request.url)
 
-        report_id = df['id'].iloc[0]
+        if 'submit-viewer' in request.form:
 
-        return redirect(url_for('report_redaction.report_redaction_viewer', report_id=report_id))
+            report_id = df['id'].iloc[0]
 
-    return render_template("report_redaction_form.html", form=form)
+            return redirect(url_for('report_redaction.report_redaction_viewer', report_id=report_id))
+        
+        elif 'submit-viewer' in request.form:
+            print("Metrics Page")
+
+            return redirect(url_for('report_redaction.report_redaction_metrics'))
+
+        return render_template("report_redaction_form.html", form=form)
+        
 
 import zipfile
 import os
