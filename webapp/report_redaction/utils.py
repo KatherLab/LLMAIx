@@ -153,33 +153,6 @@ class InceptionAnnotationParser:
             text += page.get_text("text") + " "
 
         return text
-
-    def get_pymupdf_text_wordwise(self, input_file, add_spaces=False):
-        print("get_pymupdf_text_wordwise")
-        pdf = fitz.open(input_file)
-
-        char_count = 0
-
-        text = ""
-        for page in pdf:
-            for word_block in page.get_text("dict")["blocks"]:
-                if 'lines' in word_block:
-                    for line in word_block['lines']:
-                        for span in line['spans']:
-                            word = span['text']
-                            # print("W: '" + word + "'")
-                            text += word # + " "
-                            if add_spaces:
-                                text += " "
-                                char_count += 1
-
-                            char_count += len(word)
-
-                            # print("W: '" + word + "'" + " char_count: " + str(char_count))
-                else:
-                    print("No text in word block - ignore")
-
-        return text
     
     def save_data_to_file(self, data, filename):
 
@@ -438,7 +411,7 @@ class InceptionAnnotationParser:
 
 
         t1 = self.get_pymupdf_text_pageswise(pdf_input_path)
-        t2 = self.get_pymupdf_text_wordwise(pdf_input_path, add_spaces=True)
+        t2 = get_pymupdf_text_wordwise(pdf_input_path, add_spaces=True)
 
         anconv = self.convert_annotations(sofastring, t2, annotations)
             
@@ -454,7 +427,10 @@ class InceptionAnnotationParser:
 
         print("Check if the converted annotation positions extract the same text.")
         for anno in anex:
-            assert anno['coveredText'] == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
+            # try:
+            assert anno['coveredText'].replace("\n", " ") == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
+            # except AssertionError as e:
+            #     breakpoint()
 
         dollartext_annotated = self.generate_dollartext(t2, anex, "■")
 
@@ -488,3 +464,131 @@ class InceptionAnnotationParser:
         
 
 
+def generate_score_dict(ground_truth, comparison, original_text, round_digits = 2):
+    # check if both dollartext_annotated and dollartext_redacted are set
+    print("CHECK SCORES")
+
+    # if not session.get('dollartext_annotated', None) or not session.get('dollartext_redacted', None) or not session.get('original_text', None):
+    #     print("Dollartext not yet set")
+    #     # breakpoint()
+    #     return
+    
+    print("Ground truth: ", ground_truth)
+    print("Comparison: ", comparison)
+
+    precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath, tp, fp, tn, fn = calculate_metrics(ground_truth, comparison, original_text, '■')
+    print("Accuracy: ", accuracy)
+    print("Precision: ", precision)
+    print("Recall: ", recall)
+    print("F1 score: ", f1_score)
+    print("False positive rate: ", false_positive_rate)
+    print("False negative rate: ", false_negative_rate)
+
+    score_dict = {
+        'precision': round(precision, round_digits),
+        'recall': round(recall, round_digits),
+        'accuracy': round(accuracy, round_digits),
+        'f1_score': round(f1_score, round_digits),
+        'false_positive_rate': round(false_positive_rate, round_digits),
+        'false_negative_rate': round(false_negative_rate, round_digits),
+        'true_positives': tp,
+        'false_positives': fp,
+        'true_negatives': tn,
+        'false_negatives': fn
+    }
+
+    return score_dict, confusion_matrix_filepath
+
+def generate_confusion_matrix_from_counts(tp, tn, fp, fn, filename):
+    import numpy as np
+    from matplotlib import pyplot as plt
+    import seaborn as sns
+
+    plt.switch_backend('Agg') # otherwise it would not run outside of the main thread
+    # Constructing the confusion matrix from counts
+    cm = np.array([[tp, fp], [fn, tn]])
+
+    # Plotting the confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Redacted', 'Not Redacted'], yticklabels=['Redacted', 'Not Redacted'])
+    plt.xlabel('Annotation')
+    plt.ylabel('LLM Anonymizer')
+    plt.title('Confusion Matrix')
+    plt.savefig(filename)  # Save the plot to a file
+    plt.close()
+
+def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_char):
+    assert len(ground_truth) == len(automatic_redacted) == len(original_text), "All texts must have the same length"
+
+    true_positives = 0
+    false_positives = 0
+    true_negatives = 0
+    false_negatives = 0
+
+    # comparison_text = ""
+    # Build a text 
+
+    for i, (gt_char, auto_char, orig_char) in enumerate(zip(ground_truth, automatic_redacted, original_text)):
+        # Ignore spaces and other characters for the score calculation!
+        if orig_char != ' ' and orig_char != ',' and orig_char != '.' and orig_char != '!' and orig_char != '?' and orig_char != ':' and orig_char != ';' and orig_char != '-' and orig_char != '(' and orig_char != ')' and orig_char != '"' and orig_char != "'" and orig_char != '\n':
+            if gt_char == redacted_char and auto_char == redacted_char:
+                true_positives += 1
+                # comparison_text += "R"
+            elif gt_char != redacted_char and auto_char == redacted_char:
+                false_positives += 1
+                # comparison_text += "+"
+            elif gt_char != redacted_char and auto_char != redacted_char:
+                true_negatives += 1
+                # comparison_text += orig_char # "N"
+            elif gt_char == redacted_char and auto_char != redacted_char:
+                false_negatives += 1
+                print("False Negative: GT Char: ", gt_char, " auto_char ", auto_char)
+                # breakpoint()
+                # comparison_text += "-"
+        else:
+            # comparison_text += orig_char # "I"
+            pass
+            # Optional: count all the spaces in the original text as true negatives
+            # true_negatives += 1
+
+    # print("Comparison text: ", comparison_text)
+
+    precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) != 0 else 0
+    recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
+    accuracy = (true_positives + true_negatives) / (len([char for char in original_text if char != ' ']))  # Ignoring spaces in original text
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
+    false_positive_rate = false_positives / (true_negatives + false_positives) if (true_negatives + false_positives) != 0 else 0
+    false_negative_rate = false_negatives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
+
+    confusion_matrix_filepath = os.path.join(tempfile.mkdtemp(), "confusion_matrix.svg")
+    generate_confusion_matrix_from_counts(true_positives, true_negatives, false_positives, false_negatives, confusion_matrix_filepath)
+
+    return precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath, true_positives, false_positives, true_negatives, false_negatives
+
+
+def get_pymupdf_text_wordwise(input_file, add_spaces=False):
+        print("get_pymupdf_text_wordwise")
+        pdf = fitz.open(input_file)
+
+        char_count = 0
+
+        text = ""
+        for page in pdf:
+            for word_block in page.get_text("dict")["blocks"]:
+                if 'lines' in word_block:
+                    for line in word_block['lines']:
+                        for span in line['spans']:
+                            word = span['text']
+                            # print("W: '" + word + "'")
+                            text += word # + " "
+                            if add_spaces:
+                                text += " "
+                                char_count += 1
+
+                            char_count += len(word)
+
+                            # print("W: '" + word + "'" + " char_count: " + str(char_count))
+                else:
+                    print("No text in word block - ignore")
+
+        return text
