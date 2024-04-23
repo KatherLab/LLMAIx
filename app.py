@@ -20,10 +20,12 @@ if __name__ == '__main__':
     parser.add_argument("--model_path", type=str, default=r"D:\LLM-Pipeline\models", help="Path where the models are stored which llama cpp can load.")
     parser.add_argument("--server_path", type=str, default=r"D:\LLMAnonymizer\llama-b2709-bin-win-cuda-cu12.2.0-x64\server.exe")
     parser.add_argument("--port", type=int, default=5001, help="On which port the Web App should be available.")
+    parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--ctx_size", type=int, default=8192)
     parser.add_argument("--n_gpu_layers", type=int, default=80)
     parser.add_argument("--n_predict", type=int, default=2048)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
+    parser.add_argument("--debug", action="store_true")
 
     args = parser.parse_args()
 
@@ -35,9 +37,9 @@ if __name__ == '__main__':
     app.config['N_PREDICT'] = args.n_predict
     app.config['LLAMACPP_PORT'] = args.llamacpp_port
 
-    # disable debug TODO
-    # app.run(debug=True, use_reloader=True, port=5005)
-    socketio.run(app, debug=True, use_reloader=True, port=args.port)
+    print("Start Server on http://" + args.host + ":" + str(args.port))
+
+    socketio.run(app, debug=args.debug, use_reloader=True, port=args.port)
 
 
     
