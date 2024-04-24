@@ -126,6 +126,10 @@ ws ::= ([ \t\n])?
 
 - page for general metrics
 - classwise metrics
+- Download all metrics
+
+- Executor Fehler durchreichen
+- skip annotation json entry if no label is set
 
 - Select box in the viewer to select a specific case
 

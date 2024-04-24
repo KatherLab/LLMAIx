@@ -68,6 +68,9 @@ class InceptionAnnotationParser:
             anno_type = annotation["%TYPE"]
             if anno_type != "custom.Span":
                 break
+            if not "label" in annotation:
+                print("Annotation has no label. Skip. Annotation: " + str(annotation))
+                continue
             label = annotation["label"]
             begin = annotation["begin"]
             end = annotation["end"]
@@ -80,6 +83,9 @@ class InceptionAnnotationParser:
             anno_type = annotation["%TYPE"]
             if anno_type != "custom.Span":
                 break
+            if not "label" in annotation:
+                print("Annotation has no label. Skip. Annotation: " + str(annotation))
+                continue
             label = annotation["label"]
             begin = annotation["begin"]
             end = annotation["end"]
@@ -589,7 +595,7 @@ def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_
 
     precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) != 0 else 0
     recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
-    accuracy = (true_positives + true_negatives) / (len([char for char in original_text if char != ' ']))  # Ignoring spaces in original text
+    accuracy = (true_positives + true_negatives) / (true_positives + true_negatives + false_positives + false_negatives)  # Ignoring spaces in original text
     f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
     false_positive_rate = false_positives / (true_negatives + false_positives) if (true_negatives + false_positives) != 0 else 0
     false_negative_rate = false_negatives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0

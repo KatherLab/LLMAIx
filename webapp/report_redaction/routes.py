@@ -1,4 +1,5 @@
 from concurrent import futures
+import io
 import json
 import os
 import secrets
@@ -8,6 +9,7 @@ import traceback
 import zipfile
 import os
 from flask import render_template, session
+import pandas as pd
 from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list, find_fuzzy_matches, replace_personal_info
 from webapp.report_redaction.utils import InceptionAnnotationParser, find_llm_output_csv, calculate_metrics, generate_confusion_matrix_from_counts, generate_score_dict, get_pymupdf_text_wordwise
 from . import report_redaction
@@ -272,6 +274,87 @@ def report_redaction_metrics(job_id:str):
         return redirect(request.url)
     
     return render_template("report_redaction_metrics.html", total_reports=len(result['report_list']), report_list=result, job_id=job_id)
+
+def generate_export_df(result_dict: list):
+    # Iterate over every report in result_list['report_list'] and add all scores in ['scores'] as one row to the dataframe, use ['id'] as id column
+    # df = pd.DataFrame()
+
+    scores_to_include = ['f1_score', 'accuracy', 'precision', 'recall', 'true_positives', 
+                     'false_positives', 'true_negatives', 'false_negatives', 
+                     'false_positive_rate', 'false_negative_rate']
+
+    # Initialize a dictionary to store the extracted scores
+    data = {'id': []}
+    for score in scores_to_include:
+        data[score] = []
+
+    # Iterate over the list of dictionaries
+    for entry in result_dict['report_list']:
+        # Append ID to the 'id' list
+        data['id'].append(entry['id'])
+        # Iterate over the scores to include
+        for score in scores_to_include:
+            # If the score exists in the entry, append it to the corresponding list
+            if score in entry['scores']:
+                data[score].append(entry['scores'][score])
+            else:
+                data[score].append(None)  # Append None if score doesn't exist
+
+    macro_scores = {}
+    micro_scores = {}
+    accumulated_metrics = result_dict.get('accumulated_metrics', {})
+    for key in accumulated_metrics:
+        if key.startswith('macro_'):
+            macro_scores[key[len('macro_'):]] = float(accumulated_metrics[key])
+        elif key.startswith('micro_'):
+            micro_scores[key[len('micro_'):]] = float(accumulated_metrics[key])
+        elif key.startswith('total_'):
+            macro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
+            micro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
+
+    # Append macro and micro scores to the DataFrame
+    data['id'].append('macro_scores')
+    for score in scores_to_include:
+        data[score].append(macro_scores.get(score, None))
+
+    data['id'].append('micro_scores')
+    for score in scores_to_include:
+        data[score].append(micro_scores.get(score, None))
+
+
+    # Create a DataFrame using the extracted values
+    df = pd.DataFrame(data)
+
+    # breakpoint()
+
+    return df
+
+@report_redaction.route("/downloadall", methods=['GET'])
+def download_all():
+    job_id = request.args.get('job_id', None)
+    if not job_id:
+        # Handle the case where the path to the zip file is not found
+        flash('No job ID found!', 'danger')
+
+        # Redirect to the generated URL
+        return redirect(request.url)
+
+
+    df = generate_export_df(report_redaction_jobs[job_id].result())
+
+    breakpoint()
+
+    csv_buffer = io.BytesIO()
+    df.to_csv(csv_buffer, index=False, float_format='%.2f')
+    csv_buffer.seek(0)
+
+    # Send the CSV file as an attachment
+    return send_file(
+        csv_buffer,
+        as_attachment=True,
+        download_name=f'report_redaction_job_{job_id}.csv',
+        mimetype='text/csv'
+    )
 
 @report_redaction.route("/reportredactionviewer/<string:report_id>", methods=['GET'])
 def report_redaction_viewer(report_id):
