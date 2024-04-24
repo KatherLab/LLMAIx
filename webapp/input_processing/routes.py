@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, send_file
+from flask import render_template, request, redirect, url_for, flash, send_file, session
 import io
 import os
 import tempfile
@@ -146,8 +146,8 @@ def download():
             flash("Preprocessing failed / did not output anything useful!", "danger")
             return redirect(url_for('input_processing.main'))
 
-        # split report into chunks of 3000 chars
-        max_length = 10000
+        # split the text in chunks
+        max_length = session['text_split']
 
         # Add an 'id' column and generate unique IDs for every row
         # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
@@ -244,6 +244,8 @@ def main():
         job_id = secrets.token_urlsafe()
 
         temp_dir = tempfile.mkdtemp()
+
+        session['text_split'] = form.text_split.data
 
         # Save each uploaded file to the temporary directory
         file_paths = []
