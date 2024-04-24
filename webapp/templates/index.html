@@ -11,7 +11,7 @@
             <legend>Select Raw Reports (pdf, png, jpg, jpeg, docx, odf, txt)</legend>
 
             <div class="row">
-                <div class="form-group col-md-10">
+                <div class="form-group col-md-8">
         
                     {% if form.files.errors %}
                     {{ form.files(class="form-control form-control-lg is-invalid") }}
@@ -23,6 +23,21 @@
                     {% else %}
                     {{ form.files(class="form-control form-control-lg") }}
                     {% endif %}
+                </div>
+                <div class="form-group col-md-2">
+                    
+                    {% if form.text_split.errors %}
+                    {{ form.text_split(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.text_split.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.text_split(class="form-control form-control-lg") }}
+                    {% endif %}
+
+                    {{ form.text_split.label(class="form-control-label") }}
                 </div>
                 <div class="form-group col-md-2">        
                     <button type="submit" name="submit-form" class="form-control form-control-lg btn btn-secondary">Preprocess Files</button>
