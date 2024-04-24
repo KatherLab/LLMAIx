@@ -40,6 +40,9 @@ def failed_job(job_id):
 def complete_job(job_id):
     print("COMPLETE")
     global job_progress
+    # set the job progress tuple [2] to true 
+    job_progress[job_id] = (job_progress[job_id][0], job_progress[job_id][1], True)
+    
     socketio.emit('progress_complete', {'job_id': job_id})
 
 @socketio.on('connect')

@@ -98,7 +98,8 @@ class LLMPipelineForm(FlaskForm):
             ("mixtral-8x7b-v0.1.Q5_K_M.gguf", "Mistral 8x7b"),
             ("Meta-Llama-3-8B-Instruct-Q5_K_M.gguf", "LLaMA 3 8B Instruct Q5_K_M"),
             ("Meta-Llama-3-70B-Q5_K_M.gguf", "LLaMA 3 70B Q5_K_M"),
-            ("Meta-Llama-3-70B-Q4_K_M.gguf", "LLaMA 3 70B Q4_K_M")
+            ("Meta-Llama-3-70B-Q4_K_M.gguf", "LLaMA 3 70B Q4_K_M"),
+            ("Phi-3-mini-128k-instruct.Q8_0.gguf", "Phi 3 mini 128k instruct")
         ]
         if model_path:
             self.model.validators = [FileExistsValidator(message='File does not exist.', path=model_path)]

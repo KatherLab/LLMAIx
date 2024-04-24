@@ -153,9 +153,9 @@
                 {% if progress_tuple[0] == progress_tuple[1] %}
                     <a id="download-{{ job_id }}" href="/reportredactionmetrics/{{ job_id }}" class="btn btn-success">View Metrics</a>
                 {% elif progress_tuple[2] %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>View Metrics</a>
                 {% else %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>View Metrics</a>
                 {% endif %}
             </div>
         </div>
