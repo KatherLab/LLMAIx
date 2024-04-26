@@ -133,7 +133,7 @@ def main():
             job_id = secrets.token_urlsafe()
             update_progress(job_id=job_id, progress=(0, len(df), True))
 
-            # report_list = generate_report_list(df)
+            # report_list = generate_report_list(df, job_id, session['pdf_file_zip'], session['annotation_file'])
 
             print("Start Job")
 
@@ -175,9 +175,12 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
 
             orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
 
+            print("Load Redacted PDF")
             report_dict['redacted_pdf_filepath'], report_dict['redacted_text'], report_dict['fuzzy_matches'] = load_redacted_pdf(report_dict['personal_info_list'], orig_pdf_path, df, row['id'])
+            print("Load Annotated PDF")
             report_dict['annotated_pdf_filepath'], report_dict['annotated_text'], report_dict['original_text'], report_dict['colormap'] = load_annotated_pdf(row['id'], orig_pdf_path, annotation_file)
 
+            print("Generate Score Dict")
             report_dict['scores'], report_dict["confusion_matrix_filepath"] = generate_score_dict(report_dict['annotated_text'], report_dict['redacted_text'], report_dict['original_text'])
 
             report_list.append(report_dict)
@@ -443,6 +446,7 @@ def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
         print("File not found: ", pdf_file)
         raise FileNotFoundError(f"File {pdf_file} not found.")
 
+    print("Apply Annotations to PDF")
     annotation_pdf_filepath, dollartext_annotated, original_text = annoparser.apply_annotations_to_pdf(pdf_file)
 
     return annotation_pdf_filepath, dollartext_annotated, original_text, annoparser.colormap
