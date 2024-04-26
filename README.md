@@ -104,6 +104,8 @@ number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
 # Optional space: by convention, applied in this grammar after literal chars when allowed
 ws ::= ([ \t\n])?
 ```
+## MODEL Links
+- Phi-3-mini-4k-instruct-fp16.gguf microsoft/Phi-3-mini-4k-instruct-gguf
 
 ## TODO
 

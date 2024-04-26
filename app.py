@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     parser = ArgumentParser(description="Parameters to run the KatherLab LLM Pipeline")
     parser.add_argument("--model_path", type=str, default=r"D:\LLM-Pipeline\models", help="Path where the models are stored which llama cpp can load.")
-    parser.add_argument("--server_path", type=str, default=r"D:\LLMAnonymizer\llama-b2709-bin-win-cuda-cu12.2.0-x64\server.exe")
+    parser.add_argument("--server_path", type=str, default=r"D:\LLMAnonymizer\llama-b2717-bin-win-cuda-cu12.2.0-x64\server.exe")
     parser.add_argument("--port", type=int, default=5001, help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--ctx_size", type=int, default=8192)

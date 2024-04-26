@@ -107,14 +107,11 @@ class InceptionAnnotationParser:
                 newline_count += 1
         return newline_count
     
-    def compare_text_and_count_removals(self, text_with_extra:str, clean_text:str, position=None):
+    def compare_text_and_count_removals(self, diff:str, position=None):
         """
         Compare two texts and mark the differences to remove from text1 to match text2.
         Optionally, return the count of removed characters up to a specified position in text2.
         """
-        import difflib
-        differ = difflib.Differ()
-        diff = list(differ.compare(text_with_extra, clean_text))
         
         # Workaround, as sometimes when there are a lot of + entries at the end, they are substracted from the removed_count even if they are occurring after the position in the first text
         if position and position > 0:
@@ -148,9 +145,9 @@ class InceptionAnnotationParser:
         # breakpoint()
         
         if position is not None:
-            return clean_text[:position-removed_count], removed_count
+            return removed_count
         else:
-            return clean_text, removed_count
+            return 0
     
     def get_pymupdf_text_pageswise(self, input_file):
         print("get_pymupdf_text_pageswise")
@@ -173,22 +170,34 @@ class InceptionAnnotationParser:
         """
         Convert a list of annotations according to the text with extra and the clean text.
         """
+
+        import difflib
+        differ = difflib.Differ()
+        diff = list(differ.compare(text_with_extra, clean_text))
         
         converted_annotations = []
         for annotation in annotations:
             begin = annotation['begin']
             end = annotation['end']
-            clean_begin = begin - self.compare_text_and_count_removals(text_with_extra, clean_text, begin)[1]
-            clean_end = end - self.compare_text_and_count_removals(text_with_extra, clean_text, end)[1]
+            
+            clean_begin = begin - self.compare_text_and_count_removals(diff, begin)
+            clean_end = end - self.compare_text_and_count_removals(diff, end)
             
             # TODO: Very dirty workaround
-            if clean_end-clean_begin == end-begin-1:
+            if clean_end-clean_begin == end-begin-1 and clean_text[clean_begin-1:clean_begin] != " ":
                 clean_begin -= 1
+                print("WORKAROUND1")
             if clean_end-clean_begin == end-begin+1:
+                print("WORKAROUND2")
                 clean_begin += 1
 
             try:
-                assert(clean_end-clean_begin == end-begin)
+                # assert(clean_end-clean_begin == end-begin)
+                # Comment this for more performance
+                text_1 = text_with_extra[begin:end]
+                text_1 = text_1.replace("\r\n", " ")
+                text_2 = clean_text[clean_begin:clean_end]
+                assert(text_1 == text_2)
             except AssertionError as e:
                 print("Error: Length of converted text positions does not look right! ", e)
                 breakpoint()
@@ -226,6 +235,7 @@ class InceptionAnnotationParser:
         # Iterate over each page
         while char_count <= end_pos and page_num < doc.page_count:
             page = doc.load_page(page_num)
+            bboxes = []
 
             # Get the words and their bounding boxes on the page
             words = page.get_text("dict")["blocks"]
@@ -240,6 +250,11 @@ class InceptionAnnotationParser:
                         word_line = span['text']
                         # print("W: '" + word + "'")
                         bbox = span['bbox']  # Bounding box: [x0, y0, x1, y1]
+                        # print("READ WL: ", word_line)
+                        if span['bbox'] in bboxes:
+                            print("DUPLICATE BBOX, SKIP")
+                            continue
+                        bboxes.append(bbox)
 
                         # Get the start and end positions of the word
                         word_line_start_pos = char_count
@@ -312,8 +327,10 @@ class InceptionAnnotationParser:
                                 elif len(annotation_in_text_match) == 1:
                                     merged_bboxes.append((page_num,annotation_in_text_match[0]))
                                 elif len(annotation_in_text_match) > 1:
-                                    print("More than one match in bounding box. Ambiguous.")
-                                    raise Exception("More than one match in bounding box. Ambiguous.")
+                                    print("More than one match in bounding box. Ambiguous. Choose first.")
+                                    merged_bboxes.append((page_num,annotation_in_text_match[0]))
+                                    # breakpoint()
+                                    # raise Exception("More than one match in bounding box. Ambiguous.")
                                 else:
                                     breakpoint()
                                     print("No match, use inaccurrate bounding boxes.")
@@ -418,13 +435,15 @@ class InceptionAnnotationParser:
         # assert total_text_len_diff == measured_text_len_diff
 
 
-        t1 = self.get_pymupdf_text_pageswise(pdf_input_path)
+        # t1 = self.get_pymupdf_text_pageswise(pdf_input_path)
         t2 = get_pymupdf_text_wordwise(pdf_input_path, add_spaces=True)
 
+        print("Convert Annotations")
         anconv = self.convert_annotations(sofastring, t2, annotations)
             
 
         # DO NOT COMMENT
+        print("Extract new Text")
         anex = self.extract_positions_text(anconv, t2)
 
         print("pymupdf text: ", t2)
@@ -436,7 +455,7 @@ class InceptionAnnotationParser:
         print("Check if the converted annotation positions extract the same text.")
         for anno in anex:
             # try:
-            assert anno['coveredText'].replace("\n", " ") == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
+            assert anno['coveredText'].replace("\r\n", " ") == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
             # except AssertionError as e:
             #     breakpoint()
 
@@ -450,7 +469,10 @@ class InceptionAnnotationParser:
 
         # breakpoint()
 
-        for annotation in anconv:
+
+        print("Merge Bounding Boxes")
+        from tqdm import tqdm
+        for annotation in tqdm(anconv):
             bboxes = self.merge_bounding_boxes_within_range(pdf, annotation['begin'], annotation['end'], annotation_text=annotation['extracted_text'])
             all_bboxes.append(bboxes)
             annotation['bounding_boxes'] = bboxes
@@ -462,6 +484,7 @@ class InceptionAnnotationParser:
 
         overlay_output_file = os.path.join(dirpath, pdf_input_path.replace(".pdf", "_redacted_bboxes.pdf"))
 
+        print("Overlay Annotations")
         self.overlay_annotations(pdf_input_path, overlay_output_file, anconv, colormap)
 
         # self.redact_pdf_with_bboxes(pdf_input_path, 'arztbericht_redacted_bboxes.pdf', all_bboxes)
@@ -607,28 +630,33 @@ def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_
 
 
 def get_pymupdf_text_wordwise(input_file, add_spaces=False):
-        print("get_pymupdf_text_wordwise")
-        pdf = fitz.open(input_file)
+    print("get_pymupdf_text_wordwise")
+    pdf = fitz.open(input_file)
 
-        char_count = 0
+    char_count = 0
 
-        text = ""
-        for page in pdf:
-            for word_block in page.get_text("dict")["blocks"]:
-                if 'lines' in word_block:
-                    for line in word_block['lines']:
-                        for span in line['spans']:
-                            word = span['text']
-                            # print("W: '" + word + "'")
-                            text += word # + " "
-                            if add_spaces:
-                                text += " "
-                                char_count += 1
+    text = ""
+    for page in pdf:
+        bboxes = []
+        for word_block in page.get_text("dict")["blocks"]:
+            if 'lines' in word_block:
+                for line in word_block['lines']:
+                    for span in line['spans']:
+                        if span['bbox'] in bboxes:
+                            print("DUPLICATE BBOX, SKIP")
+                            continue
+                        bboxes.append(span['bbox'])
+                        word = span['text']
+                        # print("W: '" + word + "'")
+                        text += word # + " "
+                        if add_spaces:
+                            text += " "
+                            char_count += 1
 
-                            char_count += len(word)
+                        char_count += len(word)
 
-                            # print("W: '" + word + "'" + " char_count: " + str(char_count))
-                else:
-                    print("No text in word block - ignore")
+                        # print("W: '" + word + "'" + " char_count: " + str(char_count))
+            else:
+                print("No text in word block - ignore")
 
-        return text
+    return text
