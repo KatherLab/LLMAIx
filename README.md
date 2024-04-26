@@ -32,7 +32,7 @@ Run:
 |--n_predict|How many tokens to predict. Will crash if too little. Default: 2048|200|
 |--server_path|Path of llama cpp executable (on Windows: server.exe).|/path/to/llamacpp/executable/server|
 |--port|Port on which this web app should be started on. Default: 5001|5001|
-|--ctx_size|Size of the context window of the llama model. Default: 2048 (for most models)|2048|
+|--config_file|Custom path to the configuration file.|config.yml|
 |--n_gpu_layers|How many model layers to offload to the GPU. Default: 100 (whole model on GPU)|100|
 
 ## Usage

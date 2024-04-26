@@ -245,10 +245,25 @@ def postprocess_grammar(result):
 
     return aggregated_df, error_count 
 
+def get_context_size(yaml_filename, model_name):
+    import yaml
+    with open(yaml_filename, 'r') as file:
+        config_data = yaml.safe_load(file)
+
+    print(config_data)
+    print("Find ", model_name)
+
+    for model in config_data["models"]:
+        if model["path_to_gguf"] == model_name:
+            return int(model["context_size"])
+
+    print("FAILED TO FIND CONTEXT SIZE")
+    return None  # Model not found in the YAML file
+
 @llm_processing.route("/llm", methods=['GET', 'POST'])
 def main():
 
-    form = LLMPipelineForm(current_app.config['MODEL_PATH'])
+    form = LLMPipelineForm(current_app.config['CONFIG_FILE'], current_app.config['MODEL_PATH'])
     form.variables.render_kw = {'disabled': 'disabled'}
 
     if form.validate_on_submit():
@@ -360,7 +375,7 @@ def main():
             model_path=current_app.config['MODEL_PATH'],
             server_path=current_app.config['SERVER_PATH'],
             n_predict=current_app.config['N_PREDICT'],
-            ctx_size=current_app.config['CTX_SIZE'],
+            ctx_size=get_context_size(current_app.config['CONFIG_FILE'], form.model.data),
             n_gpu_layers=current_app.config['N_GPU_LAYERS'],
             job_id=job_id,
             zip_file_path=zip_file_path or None,

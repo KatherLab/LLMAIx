@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument("--server_path", type=str, default=r"D:\LLMAnonymizer\llama-b2717-bin-win-cuda-cu12.2.0-x64\server.exe")
     parser.add_argument("--port", type=int, default=5001, help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default="0.0.0.0")
-    parser.add_argument("--ctx_size", type=int, default=8192)
+    parser.add_argument("--config_file", type=str, default='config.yml')
     parser.add_argument("--n_gpu_layers", type=int, default=80)
     parser.add_argument("--n_predict", type=int, default=2048)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     app.config['MODEL_PATH'] = args.model_path
     app.config['SERVER_PATH'] = args.server_path
     app.config['SERVER_PORT'] = args.port
-    app.config['CTX_SIZE'] = args.ctx_size
+    app.config['CONFIG_FILE'] = args.config_file
     app.config['N_GPU_LAYERS'] = args.n_gpu_layers
     app.config['N_PREDICT'] = args.n_predict
     app.config['LLAMACPP_PORT'] = args.llamacpp_port

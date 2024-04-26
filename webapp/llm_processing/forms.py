@@ -87,22 +87,18 @@ class GrammarValidator:
             raise ValidationError('Grammar field is required when "Enable Grammar" is checked.')
 
 class LLMPipelineForm(FlaskForm):
-    def __init__(self, model_path, *args, **kwargs):
+    def __init__(self, config_file_path, model_path, *args, **kwargs):
         super(LLMPipelineForm, self).__init__(*args, **kwargs)
+        import yaml
         
-        self.model.choices = [
-            ("sauerkrautlm-7b-v1.Q5_K_M.gguf", "LLaMA 2 7b chat sauerkraut"),
-            ("sauerkrautlm-70b-v1.Q5_K_M.gguf", "LLaMA 2 70b chat sauerkraut"),
-            ("sauerkrautlm-13b-v1.Q5_K_M.gguf", "LLaMA 2 13b chat sauerkraut"),
-            ("mistral-7b-instruct-v0.1.Q5_K_M.gguf", "Mistral 7b"),
-            ("mixtral-8x7b-v0.1.Q5_K_M.gguf", "Mistral 8x7b"),
-            ("Meta-Llama-3-8B-Instruct-Q5_K_M.gguf", "LLaMA 3 8B Instruct Q5_K_M"),
-            ("Meta-Llama-3-70B-Q5_K_M.gguf", "LLaMA 3 70B Q5_K_M"),
-            ("Meta-Llama-3-70B-Q4_K_M.gguf", "LLaMA 3 70B Q4_K_M"),
-            ("Phi-3-mini-128k-instruct.Q8_0.gguf", "Phi 3 mini 128k instruct Q8"),
-            ("Phi-3-mini-4k-instruct-fp16.gguf", "Phi 3 mini 4k Instruct fp16")
+        with open(config_file_path, 'r') as file:
+            config_data = yaml.safe_load(file)
 
-        ]
+        # Extract model choices from config data
+        model_choices = [(model["path_to_gguf"], model["name"]) for model in config_data["models"]]
+
+        # Set choices for the model field
+        self.model.choices = model_choices
         if model_path:
             self.model.validators = [FileExistsValidator(message='File does not exist.', path=model_path)]
             # self.model.validators.append(FileExistsValidator(message='File does not exist.', path=model_path))
@@ -118,6 +114,6 @@ class LLMPipelineForm(FlaskForm):
     prompt = TextAreaField("Prompt:", validators=[], default=default_prompt)
     variables = StringField("Variables (separated by commas):", validators=[], default="Patienteninfos")
     temperature = FloatField("Temperature:", validators=[validators.NumberRange(0,1)], default=0.1)
-    model = SelectField("Model:", choices=[("sauerkrautlm-7b-v1.Q5_K_M.gguf", "LLaMA 2 7b chat sauerkraut"), ("sauerkrautlm-70b-v1.Q5_K_M.gguf", "LLaMA 2 70b chat sauerkraut"), ("sauerkrautlm-13b-v1.Q5_K_M.gguf", "LLaMA 2 13b chat sauerkraut")], validators=[])
+    model = SelectField("Model:", validators=[])
 
     submit = SubmitField("Run Pipeline")

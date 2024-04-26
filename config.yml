@@ -1,0 +1,31 @@
+models:
+  - name: "LLaMA 2 7b chat sauerkraut"
+    path_to_gguf: "sauerkrautlm-7b-v1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "LLaMA 2 70b chat sauerkraut"
+    path_to_gguf: "sauerkrautlm-70b-v1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "LLaMA 2 13b chat sauerkraut"
+    path_to_gguf: "sauerkrautlm-13b-v1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "Mistral 7b"
+    path_to_gguf: "mistral-7b-instruct-v0.1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "Mistral 8x7b"
+    path_to_gguf: "mixtral-8x7b-v0.1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "LLaMA 3 8B Instruct Q5_K_M"
+    path_to_gguf: "Meta-Llama-3-8B-Instruct-Q5_K_M.gguf"
+    context_size: 8196
+  - name: "LLaMA 3 70B Q5_K_M"
+    path_to_gguf: "Meta-Llama-3-70B-Q5_K_M.gguf"
+    context_size: 8196
+  - name: "LLaMA 3 70B Q4_K_M"
+    path_to_gguf: "Meta-Llama-3-70B-Q4_K_M.gguf"
+    context_size: 8196
+  - name: "Phi 3 mini 128k instruct Q8"
+    path_to_gguf: "Phi-3-mini-128k-instruct.Q8_0.gguf"
+    context_size: 128000
+  - name: "Phi 3 mini 4k Instruct fp16"
+    path_to_gguf: "Phi-3-mini-4k-instruct-fp16.gguf"
+    context_size: 4096
