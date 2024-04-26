@@ -10,7 +10,7 @@ Features:
 - Performs OCR if necessary
 - Extracts person-related information from the reports using a llama model
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance
-- Compare and calculate metrics using annotated pdf files ([Inception](https://inception-project.github.io/))
+- Compare documents and calculate metrics using annotated pdf files ([Inception](https://inception-project.github.io/))
 
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
 
@@ -132,7 +132,3 @@ ws ::= ([ \t\n])?
 - skip annotation json entry if no label is set
 
 - Select box in the viewer to select a specific case
-
-- replace pateintenstrasse typo in jsons
-
-- Grammatik: Mädchenname
