@@ -212,6 +212,8 @@ def postprocess_grammar(result, df, llm_metadata):
         try:
             if content.endswith('<|eot_id|>'):
                 content = content[:-len('<|eot_id|>')]
+            if content.endswith('</s>'):
+                content = content[:-len('</s>')]
             import ast
             info_dict = ast.literal_eval(content)
             print(f"Successfully parsed LLM output. ({content=})")
