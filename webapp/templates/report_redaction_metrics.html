@@ -53,6 +53,11 @@
                             <td>{{ report_list['accumulated_metrics']['micro_f1_score'] }}</td>
                         </tr>
                         <tr>
+                            <td>Specificity</td> 
+                            <td>{{ report_list['accumulated_metrics']['macro_specificity'] }}</td> 
+                            <td>{{ report_list['accumulated_metrics']['micro_specificity'] }}</td>
+                        </tr>
+                        <tr>
                             <td>False Positive Rate</td>
                             <td>{{ report_list['accumulated_metrics']['macro_false_positive_rate'] }}</td>
                             <td>{{ report_list['accumulated_metrics']['micro_false_positive_rate'] }}</td>
@@ -147,6 +152,7 @@
                 Acc: {{report['scores']['accuracy']}}
                 P: {{report['scores']['precision']}}
                 R: {{report['scores']['recall']}}
+                Spec: {{report['scores']['specificity']}}
                 FPR: {{report['scores']['false_positive_rate']}}
                 FNR: {{report['scores']['false_negative_rate']}}
                 <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}" class="btn btn-secondary float-right">View Report</a>

@@ -223,6 +223,7 @@ def accumulate_metrics(report_list):
     total_tp = total_fp = total_tn = total_fn = 0
     total_precision = total_recall = total_accuracy = total_f1_score = 0
     total_false_positive_rate = total_false_negative_rate = 0
+    total_specificity = 0
     num_samples = len(report_list)
 
     for report_dict in report_list:
@@ -235,6 +236,7 @@ def accumulate_metrics(report_list):
         total_recall += score_dict['recall']
         total_accuracy += score_dict['accuracy']
         total_f1_score += score_dict['f1_score']
+        total_specificity += score_dict['specificity']
         total_false_positive_rate += score_dict['false_positive_rate']
         total_false_negative_rate += score_dict['false_negative_rate']
 
@@ -242,6 +244,7 @@ def accumulate_metrics(report_list):
     macro_recall = total_recall / num_samples
     macro_accuracy = total_accuracy / num_samples
     macro_f1_score = total_f1_score / num_samples
+    macro_specificity = total_specificity / num_samples
     macro_false_positive_rate = total_false_positive_rate / num_samples
     macro_false_negative_rate = total_false_negative_rate / num_samples
 
@@ -249,20 +252,29 @@ def accumulate_metrics(report_list):
     micro_recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) != 0 else 0
     micro_accuracy = (total_tp + total_tn) / (total_tp + total_fp + total_tn + total_fn)
     micro_f1_score = 2 * (micro_precision * micro_recall) / (micro_precision + micro_recall) if (micro_precision + micro_recall) != 0 else 0
+    micro_specificity = total_tn / (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
     micro_false_positive_rate = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
     micro_false_negative_rate = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
 
-    return {
+    def round_values(metrics_dict, round_digits=4):
+        rounded_metrics = {}
+        for key, value in metrics_dict.items():
+            rounded_metrics[key] = round(value, round_digits)
+        return rounded_metrics
+
+    metrics_dict = {
         'macro_precision': macro_precision,
         'macro_recall': macro_recall,
         'macro_accuracy': macro_accuracy,
         'macro_f1_score': macro_f1_score,
+        'macro_specificity': macro_specificity,
         'macro_false_positive_rate': macro_false_positive_rate,
         'macro_false_negative_rate': macro_false_negative_rate,
         'micro_precision': micro_precision,
         'micro_recall': micro_recall,
         'micro_accuracy': micro_accuracy,
         'micro_f1_score': micro_f1_score,
+        'micro_specificity': micro_specificity,
         'micro_false_positive_rate': micro_false_positive_rate,
         'micro_false_negative_rate': micro_false_negative_rate,
         'total_true_positives': total_tp,
@@ -270,6 +282,10 @@ def accumulate_metrics(report_list):
         'total_true_negatives': total_tn,
         'total_false_negatives': total_fn
     }
+
+    return round_values(metrics_dict, round_digits=4)
+
+
 
 
 @report_redaction.route("/reportredactionmetrics/<string:job_id>", methods=['GET'])

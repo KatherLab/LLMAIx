@@ -495,7 +495,7 @@ class InceptionAnnotationParser:
         
 
 
-def generate_score_dict(ground_truth, comparison, original_text, round_digits = 2):
+def generate_score_dict(ground_truth, comparison, original_text, round_digits = 4):
     # check if both dollartext_annotated and dollartext_redacted are set
     print("CHECK SCORES")
 
@@ -507,11 +507,12 @@ def generate_score_dict(ground_truth, comparison, original_text, round_digits = 
     print("Ground truth: ", ground_truth)
     print("Comparison: ", comparison)
 
-    precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath, tp, fp, tn, fn = calculate_metrics(ground_truth, comparison, original_text, '■')
+    precision, recall, accuracy, f1_score, specificity, false_positive_rate, false_negative_rate, confusion_matrix_filepath, tp, fp, tn, fn = calculate_metrics(ground_truth, comparison, original_text, '■')
     print("Accuracy: ", accuracy)
     print("Precision: ", precision)
     print("Recall: ", recall)
     print("F1 score: ", f1_score)
+    print("Specificity: ", specificity)
     print("False positive rate: ", false_positive_rate)
     print("False negative rate: ", false_negative_rate)
 
@@ -520,6 +521,7 @@ def generate_score_dict(ground_truth, comparison, original_text, round_digits = 
         'recall': round(recall, round_digits),
         'accuracy': round(accuracy, round_digits),
         'f1_score': round(f1_score, round_digits),
+        'specificity': round(specificity, round_digits),
         'false_positive_rate': round(false_positive_rate, round_digits),
         'false_negative_rate': round(false_negative_rate, round_digits),
         'true_positives': tp,
@@ -620,13 +622,14 @@ def calculate_metrics(ground_truth, automatic_redacted, original_text, redacted_
     recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
     accuracy = (true_positives + true_negatives) / (true_positives + true_negatives + false_positives + false_negatives)  # Ignoring spaces in original text
     f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
+    specificity = true_negatives / (true_negatives + false_positives) if (true_negatives + false_positives) != 0 else 0
     false_positive_rate = false_positives / (true_negatives + false_positives) if (true_negatives + false_positives) != 0 else 0
     false_negative_rate = false_negatives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0
 
     confusion_matrix_filepath = os.path.join(tempfile.mkdtemp(), "confusion_matrix.svg")
     generate_confusion_matrix_from_counts(true_positives, true_negatives, false_positives, false_negatives, confusion_matrix_filepath)
 
-    return precision, recall, accuracy, f1_score, false_positive_rate, false_negative_rate, confusion_matrix_filepath, true_positives, false_positives, true_negatives, false_negatives
+    return precision, recall, accuracy, f1_score, specificity, false_positive_rate, false_negative_rate, confusion_matrix_filepath, true_positives, false_positives, true_negatives, false_negatives
 
 
 def get_pymupdf_text_wordwise(input_file, add_spaces=False):
