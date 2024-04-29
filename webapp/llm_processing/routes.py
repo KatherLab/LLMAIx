@@ -211,8 +211,10 @@ def postprocess_grammar(result, df, llm_metadata):
         # Parse the content string into a dictionary
         try:
             if content.endswith('<|eot_id|>'):
+                print("Remove eot_id")
                 content = content[:-len('<|eot_id|>')]
             if content.endswith('</s>'):
+                print("Remove </s>")
                 content = content[:-len('</s>')]
             import ast
             info_dict = ast.literal_eval(content)
