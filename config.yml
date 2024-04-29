@@ -23,6 +23,9 @@ models:
   - name: "LLaMA 3 70B Q4_K_M"
     path_to_gguf: "Meta-Llama-3-70B-Q4_K_M.gguf"
     context_size: 8196
+  - name: "LLaMA 3 70B Instruct Q4_K_M"
+    path_to_gguf: "Meta-Llama-3-70B-Instruct.Q4_K_M.gguf"
+    context_size: 8196
   - name: "Phi 3 mini 128k instruct Q8"
     path_to_gguf: "Phi-3-mini-128k-instruct.Q8_0.gguf"
     context_size: 128000
