@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--config_file", type=str, default='config.yml')
     parser.add_argument("--n_gpu_layers", type=int, default=80)
-    parser.add_argument("--n_predict", type=int, default=256)
+    parser.add_argument("--n_predict", type=int, default=384)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
     parser.add_argument("--debug", action="store_true")
 

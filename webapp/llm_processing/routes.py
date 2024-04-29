@@ -377,6 +377,18 @@ def main():
             flash("Llama CPP Server executable not found. Did you specify --server_path correctly?", "danger")
             return render_template("llm_processing.html", form=form)
 
+        longest_report = max(df['report'], key=len)
+        import transformers
+        tokenizer = transformers.AutoTokenizer.from_pretrained("./tokenizer")
+        longest_report_tokens = len(tokenizer.tokenize(longest_report))
+
+        ctx_size = get_context_size(current_app.config['CONFIG_FILE'], form.model.data)
+        n_predict = current_app.config['N_PREDICT']
+        if longest_report_tokens > ctx_size - n_predict:
+            flash(f"At least one report might be too long to process. Your model has a context size of {ctx_size}, n_predict is set to {n_predict} but the longest report already takes {longest_report_tokens} llama 3 tokens!", "danger")
+        else:
+            flash(f"Your model has a context size of {ctx_size}, n_predict is set to {n_predict} and the longest report takes {longest_report_tokens} tokens. Good to go!", "success")
+
         print("Run job!")
         global llm_jobs
 
