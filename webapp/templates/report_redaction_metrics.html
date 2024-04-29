@@ -4,8 +4,22 @@
 <div class="nested-container">
     <h2>Report Redaction Metrics</h2>
 
-    <p>Total reports: {{ total_reports }}</p>
-
+    <div class="d-flex justify-content-between align-items-center">
+        <p>Total reports: {{ total_reports }}</p>
+        <div>
+            {% if metadata %}
+            <span class="badge rounded-pill text-bg-info">{{ metadata['llm_processing']['model_name']}}</span>
+            {% endif %}
+            {% if session.get('enable_fuzzy', False) %}
+            <span class="badge rounded-pill text-bg-success ml-1">Fuzzy Matching</span>
+            {% else %}
+            <span class="badge rounded-pill text-bg-secondary ml-1">Default Matching</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    
+    
     <div class="container">
         <div class="row">
             <div class="col-md-6">
@@ -57,7 +71,72 @@
         </div>
     </div>
 
-    <a href="{{ url_for('report_redaction.download_all', job_id=job_id) }}" class="btn btn-secondary">Download All</a>
+    <div class="btn-group">
+        <p>
+            <a href="{{ url_for('report_redaction.download_all', job_id=job_id) }}" class="btn btn-secondary">Download All</a>
+        </p>
+
+        {% if metadata %}
+          <p>
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="false" aria-controls="collapseMetadata">
+              Metadata
+            </button>
+          </p>
+          {% endif %}
+    </div>
+
+    {% if metadata %}
+    <div class="collapse" id="collapseMetadata">
+        <div class="card card-body">
+            <h3>Experiment Metadata</h3>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <td><b>Preprocessing Date</b></td>
+                        <td>{{ metadata['preprocessing']['date']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>LLM Processing Date</b></td>
+                        <td>{{ metadata['llm_processing']['date']}}</td> 
+                    </tr>
+                    <tr>
+                        <td><b>Model Name</b></td>
+                        <td>{{ metadata['llm_processing']['model_name']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Prompt</b></td>
+                        <td>{{ metadata['llm_processing']['prompt']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Symptoms</b></td>
+                        <td>{{ metadata['llm_processing']['symptoms']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Temperature</b></td>
+                        <td>{{ metadata['llm_processing']['temperature']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>N Predict</b></td>
+                        <td>{{ metadata['llm_processing']['n_predict']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>CTX size</b></td>
+                        <td>{{ metadata['llm_processing']['ctx_size']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Grammar</b></td>
+                        <td>{{ metadata['llm_processing']['grammar']}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Fuzzy Matching</b></td>
+                        <td>{% if session.get('enable_fuzzy', False) %}Enabled, Threshold: {{ session['threshold'] }}, Scorer: {{ session['scorer'] }}, Exclude Single Chars: {% if session.get('exclude_single_chars', False) %}Yes{% else %}No{% endif %} {% else %}No{% endif %}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!--<pre>{{ metadata }}</pre>-->
+        </div>
+    </div>
+    {% endif %}
 
     <ol class="list-group list-group-numbered">
         {% for report in report_list['report_list'] %}

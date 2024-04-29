@@ -196,13 +196,13 @@ class InceptionAnnotationParser:
                 # Comment this for more performance
                 text_1 = text_with_extra[begin:end]
                 text_1 = text_1.replace("\r\n", " ")
+                text_1 = text_1.replace("\n", " ")
                 text_2 = clean_text[clean_begin:clean_end]
                 assert(text_1 == text_2)
             except AssertionError as e:
                 print("Error: Length of converted text positions does not look right! ", e)
                 breakpoint()
 
-            
             converted_annotations.append({'begin': clean_begin, 'end': clean_end, 'label': annotation['label'], 'coveredText': annotation['coveredText']})
         
         return converted_annotations
@@ -455,7 +455,7 @@ class InceptionAnnotationParser:
         print("Check if the converted annotation positions extract the same text.")
         for anno in anex:
             # try:
-            assert anno['coveredText'].replace("\r\n", " ") == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
+            assert anno['coveredText'].replace("\r\n", " ").replace("\n", " ") == anno['extracted_text'], f"The original text '{anno['coveredText']}' does not match the extracted text with the updated positions '{anno['extracted_text']}'"
             # except AssertionError as e:
             #     breakpoint()
 

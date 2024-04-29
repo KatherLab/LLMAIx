@@ -192,10 +192,18 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
         else:
             failed_job(job_id)
 
+        import ast
+        if 'metadata' in df.columns:
+            metadata = df['metadata'].iloc[0]
+            metadata = ast.literal_eval(metadata)
+        else:
+            metadata = None
+
         report_summary_dict = {
             'report_list': report_list,
             'total_reports': len(report_list),
             'accumulated_metrics': accumulate_metrics(report_list),
+            'metadata': metadata
         }
 
         confusion_matrix_filepath = os.path.join(tempfile.mkdtemp(), "confusion_matrix.svg")
@@ -279,7 +287,7 @@ def report_redaction_metrics(job_id:str):
         flash(f"Job {job_id} not found or not finished yet!", "danger")
         return redirect(request.url)
     
-    return render_template("report_redaction_metrics.html", total_reports=len(result['report_list']), report_list=result, job_id=job_id)
+    return render_template("report_redaction_metrics.html", total_reports=len(result['report_list']), report_list=result, job_id=job_id, metadata = result['metadata'])
 
 def generate_export_df(result_dict: list):
     # Iterate over every report in result_list['report_list'] and add all scores in ['scores'] as one row to the dataframe, use ['id'] as id column
@@ -348,8 +356,6 @@ def download_all():
 
     df = generate_export_df(report_redaction_jobs[job_id].result())
 
-    breakpoint()
-
     csv_buffer = io.BytesIO()
     df.to_csv(csv_buffer, index=False, float_format='%.2f')
     csv_buffer.seek(0)
@@ -374,7 +380,7 @@ def report_redaction_viewer(report_id):
     
     df = find_llm_output_csv(session.get('pdf_file_zip', None))
     if df is None or len(df) == 0:
-        flash('No CSV file found in the uploaded file!', 'danger')
+        flash('No CSV file (llm-output***********.csv) found in the uploaded zip file or the csv is empty!', 'danger')
         return redirect(request.url)
 
     # Check if the current report ID exists in the DataFrame
@@ -417,7 +423,17 @@ def report_redaction_viewer(report_id):
         scores = None
         colormap = {}
 
-    return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), colormap = colormap, scores=scores, fuzzy_matches = fuzzy_matches)
+    import ast
+
+    # Check if metadata key exists in df[df['id'] == report_id]['metadata']
+
+    if 'metadata' not in df[df['id'] == report_id].columns:
+        metadata = None
+    else:
+        metadata = df[df['id'] == report_id]['metadata'].item()
+        metadata = ast.literal_eval(metadata)
+
+    return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), colormap = colormap, scores=scores, fuzzy_matches = fuzzy_matches, metadata=metadata)
 
 def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
     print("load_annotated_pdf")

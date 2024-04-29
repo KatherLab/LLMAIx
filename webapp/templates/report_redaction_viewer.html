@@ -12,17 +12,32 @@
             <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
         {% endfor %}
         <p>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfMat" aria-expanded="false" aria-controls="collapseConfMat">
               Confusion Matrix
             </button>
           </p>
+          {% if metadata %}
+          <p>
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="false" aria-controls="collapseMetadata">
+              Metadata
+            </button>
+          </p>
+          {% endif %}
           
     </div>
-    <div class="collapse" id="collapseExample">
+    <div class="collapse" id="collapseConfMat">
         <div class="card card-body">
             <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img" height="300px">
         </div>
     </div>
+
+    {% if metadata %}
+    <div class="collapse" id="collapseMetadata">
+        <div class="card card-body">
+            <pre>{{ metadata }}</pre>
+        </div>
+    </div>
+    {% endif %}
     
     {% endif %}
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 import shutil
 import tempfile
 import zipfile
@@ -128,6 +129,8 @@ def extract_from_report(
 
     results = {}
 
+    # breakpoint()
+
     # socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': 0, 'total_steps': len(df)})
 
     def is_empty_string_nan_or_none(variable):
@@ -176,10 +179,22 @@ def extract_from_report(
 
     socketio.emit('llm_progress_complete', {'job_id': job_id,'total_steps': len(df) - skipped})
 
-    return postprocess_grammar(results), zip_file_path
+    llm_metadata = {
+        'model_name': model_name,
+        'prompt': prompt,
+        'symptoms': symptoms,
+        'temperature': temperature,
+        'n_predict': n_predict,
+        'ctx_size': ctx_size,
+        'grammar': grammar,
+        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+
+    return postprocess_grammar(results, df, llm_metadata), zip_file_path
 
 
-def postprocess_grammar(result):
+def postprocess_grammar(result, df, llm_metadata):
+    print("POSTPROCESSING GRAMMAR")
 
     extracted_data = []
 
@@ -187,6 +202,7 @@ def postprocess_grammar(result):
 
     # Iterate over each report and its associated data
     for i, (id, info) in enumerate(result.items()):
+        print(f"Processing report {i} of {len(result)}")
         # Get the first key in the dictionary (here assumed to be the relevant field)
         
         # Extract the content of the first field
@@ -196,17 +212,29 @@ def postprocess_grammar(result):
         try:
             if content.endswith('<|eot_id|>'):
                 content = content[:-len('<|eot_id|>')]
+            import ast
             info_dict = ast.literal_eval(content)
+            print(f"Successfully parsed LLM output. ({content=})")
         except Exception as e:
             print(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
             print(f"Will ignore the error for report {i} and continue.")
+            breakpoint()
             info_dict = {}
             error_count += 1
 
             # raise Exception(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})") from e
         
+        # get metadata from df by looking for row where id == id and get the column metadata
+
+        metadata = df[df['id'] == id]['metadata'].iloc[0]
+        import ast
+        metadata = ast.literal_eval(metadata)
+        metadata['llm_processing'] = llm_metadata
+
+        import json
+
         # Construct a dictionary containing the report and extracted information
-        extracted_info = {'report': info['report'], 'id': id}
+        extracted_info = {'report': info['report'], 'id': id, 'metadata': json.dumps(metadata)}
         for key, value in info_dict.items():
             extracted_info[key] = value
         
@@ -236,12 +264,14 @@ def postprocess_grammar(result):
     # Group by base_id and aggregate reports and other columns into lists
     aggregated_df = df.groupby('base_id').agg(lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()
 
-    aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report"]) for item in list], axis=1)
+    aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(["id", "base_id", "report", "metadata"]) for item in list], axis=1)
 
     aggregated_df['masked_report'] = aggregated_df['report'].apply(lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0], []))
 
     aggregated_df.drop(columns=['id'], inplace=True)
     aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
+
+    aggregated_df['metadata'] = aggregated_df['metadata'].apply(lambda x: x[0])
 
     return aggregated_df, error_count 
 
@@ -414,6 +444,8 @@ def llm_download():
         if not zip_file_path or not os.path.exists(zip_file_path):
             print("Download only the csv.")
             result_io = BytesIO()
+            # breakpoint()
+
             result_df.to_csv(result_io, index=False)
             result_io.seek(0)
             return send_file(
