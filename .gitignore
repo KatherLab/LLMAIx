@@ -6,3 +6,4 @@ __pycache__
 
 *test_inception_json_parser.py
 test_diff.py
+test_tokenizer.py

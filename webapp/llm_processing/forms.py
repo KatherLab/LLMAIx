@@ -6,7 +6,7 @@ import os
 from flask import current_app
 
 default_prompt = r"""[INST] <<SYS>>
-Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte finde die gesuchte Information aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
+Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
 <</SYS>>
 [/INST]
 
@@ -18,20 +18,23 @@ Extrahiere diese Elemente aus dem Text: {symptom}?
 [/INST]"""
 
 
-default_grammer = r"""root   ::= allrecords
+default_grammer = r"""
+root   ::= allrecords
 value  ::= object | array | string | number | ("true" | "false" | "null") ws
 
 allrecords ::= (
   "{"
   ws "\"patientennachname\":" ws string ","
   ws "\"patientenvorname\":" ws string ","
+  ws "\"patientenname\":" ws string ","
   ws "\"patientengeschlecht\":" ws string ","
   ws "\"patientengeburtsdatum\":" ws string ","
-  ws "\"patientenid\":" ws string ","
+  ws "\"patientenid\":" ws idartiges ","
   ws "\"patientenstrasse\":" ws string ","
   ws "\"patientenhausnummer\":" ws string ","
-  ws "\"patientenpostleitzahl\":" ws string ","
+  ws "\"patientenpostleitzahl\":" ws plz ","
   ws "\"patientenstadt\":" ws string ","
+  ws "\"patientengeburtsname\":" ws string ","
   ws "}"
   ws
 )
@@ -64,8 +67,13 @@ string ::=
 
 number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
 
+plz ::= ("\"" [0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
+idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
+tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
+
 # Optional space: by convention, applied in this grammar after literal chars when allowed
-ws ::= ([ \t\n])?"""
+ws ::= ([ \t\n])?
+"""
 
 class FileExistsValidator:
     def __init__(self, message=None, path=""):
