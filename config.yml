@@ -32,3 +32,6 @@ models:
   - name: "Phi 3 mini 4k Instruct fp16"
     path_to_gguf: "Phi-3-mini-4k-instruct-fp16.gguf"
     context_size: 4096
+  - name: "Gemma 7B Q4_K_M"
+    path_to_gguf: "gemma-7b.Q4_K_M.gguf"
+    context_size: 8192
