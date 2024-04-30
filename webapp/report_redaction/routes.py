@@ -447,7 +447,10 @@ def report_redaction_viewer(report_id):
         metadata = None
     else:
         metadata = df[df['id'] == report_id]['metadata'].item()
-        metadata = ast.literal_eval(metadata)
+        try:
+            metadata = ast.literal_eval(metadata)
+        except Exception as e:
+            breakpoint()
 
     return render_template("report_redaction_viewer.html", report_id=report_id, previous_id=previous_id, next_id=next_id, report_number=current_index + 1, total_reports=len(df), personal_info_list=personal_info_list, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), colormap = colormap, scores=scores, fuzzy_matches = fuzzy_matches, metadata=metadata)
 
