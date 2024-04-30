@@ -216,7 +216,13 @@ def postprocess_grammar(result, df, llm_metadata):
             if content.endswith('</s>'):
                 print("Remove </s>")
                 content = content[:-len('</s>')]
+            # search for last } in content and remove anything after that
+            content = content[:content.rfind('}')+1]
             import ast
+            
+            # replace all backslash in the content string with nothing
+            content = content.replace("\\", "")
+
             info_dict = ast.literal_eval(content)
             print(f"Successfully parsed LLM output. ({content=})")
         except Exception as e:
