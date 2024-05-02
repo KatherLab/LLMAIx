@@ -27,15 +27,64 @@ JobID = str
 llm_jobs: dict[JobID, futures.Future] = {}
 executor = futures.ThreadPoolExecutor(1)
 
-llm_progress = {}
+
 new_model = False
+llm_progress = {}
+
+# def update_progress(job_id, progress: tuple[int, int, bool]):
+#     global llm_progress
+#     llm_progress[job_id] = progress    
+
+#     print("Progress: ", progress[0], " total: ", progress[1])
+#     socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
+
+start_times = {}
+
+def format_time(seconds):
+    if seconds < 120:
+        return f"{seconds:.0f}s"
+    elif seconds < 3600:
+        return f"{seconds / 60:.1f}min"
+    elif seconds < 86400:
+        return f"{seconds / 3600:.1f}h"
+    else:
+        return f"{seconds / 86400:.1f}d"
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
     global llm_progress
-    llm_progress[job_id] = progress    
+    
+    # Initialize llm_progress dictionary if not already initialized
+    if not 'llm_progress' in globals():
+        llm_progress = {}
+    
+    # Update progress dictionary
+    llm_progress[job_id] = progress
 
-    print("Progress: ", progress[0], " total: ", progress[1])
-    socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
+    # Calculate elapsed time since the job started
+    if job_id not in start_times:
+        start_times[job_id] = time.time()
+    elapsed_time = time.time() - start_times[job_id]
+    
+    # Calculate average time per progress step
+    if progress[0] > 0:
+        avg_time_per_step = elapsed_time / progress[0]
+    else:
+        avg_time_per_step = 0
+
+    # Calculate estimated remaining time
+    if progress[0] < progress[1]:
+        remaining_steps = progress[1] - progress[0]
+        estimated_remaining_time = avg_time_per_step * remaining_steps
+    else:
+        estimated_remaining_time = 0
+    
+    estimated_remaining_time  = format_time(estimated_remaining_time)
+
+    print("Progress: ", progress[0], " Total: ", progress[1], " Estimated Remaining Time: ", estimated_remaining_time)
+
+    # Emit progress update via socketio
+    socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1], 'remaining_time': estimated_remaining_time})
+
 
 @socketio.on('connect')
 def handle_connect():
