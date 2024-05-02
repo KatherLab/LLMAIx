@@ -35,6 +35,7 @@ if __name__ == '__main__':
     app.config['N_GPU_LAYERS'] = args.n_gpu_layers
     app.config['N_PREDICT'] = args.n_predict
     app.config['LLAMACPP_PORT'] = args.llamacpp_port
+    app.config['DEBUG'] = args.debug
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
 

@@ -3,7 +3,7 @@ import tempfile
 import zipfile
 from . import llm_processing
 from .. import socketio
-from flask import render_template, current_app, flash, request, redirect, send_file, url_for
+from flask import render_template, current_app, flash, request, redirect, send_file, url_for, session
 from .forms import LLMPipelineForm
 import requests
 import pandas as pd
@@ -109,7 +109,8 @@ def extract_from_report(
         n_predict: int,
         job_id: int,
         zip_file_path: str,
-        llamacpp_port: int
+        llamacpp_port: int,
+        debug: bool = False
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -226,10 +227,10 @@ def extract_from_report(
         'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
-    return postprocess_grammar(results, df, llm_metadata), zip_file_path
+    return postprocess_grammar(results, df, llm_metadata, debug), zip_file_path
 
 
-def postprocess_grammar(result, df, llm_metadata):
+def postprocess_grammar(result, df, llm_metadata, debug=False):
     print("POSTPROCESSING GRAMMAR")
 
     extracted_data = []
@@ -272,7 +273,8 @@ def postprocess_grammar(result, df, llm_metadata):
         except Exception as e:
             print(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
             print(f"Will ignore the error for report {i} and continue.")
-            breakpoint()
+            if debug:
+                breakpoint()
             info_dict = {}
             error_count += 1
 
@@ -475,7 +477,8 @@ def main():
             n_gpu_layers=current_app.config['N_GPU_LAYERS'],
             job_id=job_id,
             zip_file_path=zip_file_path or None,
-            llamacpp_port=current_app.config['LLAMACPP_PORT']
+            llamacpp_port=current_app.config['LLAMACPP_PORT'],
+            session['DEBUG']
         )
 
         print("Started job successfully!")
