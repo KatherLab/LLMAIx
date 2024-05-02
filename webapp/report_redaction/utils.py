@@ -69,7 +69,7 @@ class InceptionAnnotationParser:
             pdf_pages.append({'begin': pdf_page.begin, 'end': pdf_page.end, 'width': pdf_page.width, 'height': pdf_page.height, 'pageNumber': pdf_page.pageNumber})
 
         for custom_span in self.cas.select('custom.Span'):
-            if not "label" in custom_span or custom_span.label is None:
+            if custom_span.label is None:
                 print("Annotation has no label. Skip. Annotation: " + str(custom_span))
                 continue
             span_begin = custom_span.begin
