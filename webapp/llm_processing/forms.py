@@ -6,7 +6,7 @@ import os
 from flask import current_app
 
 default_prompt = r"""[INST] <<SYS>>
-Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
+Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information wortwörtlich aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
 <</SYS>>
 [/INST]
 
@@ -29,7 +29,7 @@ allrecords ::= (
   ws "\"patientenname\":" ws string ","
   ws "\"patientengeschlecht\":" ws string ","
   ws "\"patientengeburtsdatum\":" ws string ","
-  ws "\"patientenid\":" ws idartiges ","
+  ws "\"patientenid\":" ws string ","
   ws "\"patientenstrasse\":" ws string ","
   ws "\"patientenhausnummer\":" ws string ","
   ws "\"patientenpostleitzahl\":" ws plz ","

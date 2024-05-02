@@ -7,6 +7,7 @@ import tempfile
 import time
 import traceback
 import zipfile
+from cassis import *
 import os
 from flask import render_template, session
 import pandas as pd
@@ -178,10 +179,11 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
 
             orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
 
-            print("Load Redacted PDF")
-            report_dict['redacted_pdf_filepath'], report_dict['redacted_text'], report_dict['fuzzy_matches'] = load_redacted_pdf(report_dict['personal_info_list'], orig_pdf_path, df, row['id'])
             print("Load Annotated PDF")
-            report_dict['annotated_pdf_filepath'], report_dict['annotated_text'], report_dict['original_text'], report_dict['colormap'] = load_annotated_pdf(row['id'], orig_pdf_path, annotation_file)
+            report_dict['annotated_pdf_filepath'], report_dict['annotated_text'], report_dict['original_text'], report_dict['colormap'], sofastring = load_annotated_pdf(row['id'], orig_pdf_path, annotation_file)
+
+            print("Load Redacted PDF")
+            report_dict['redacted_pdf_filepath'], report_dict['redacted_text'], report_dict['fuzzy_matches'] = load_redacted_pdf(report_dict['personal_info_list'], orig_pdf_path, df, row['id'], text=sofastring)
 
             print("Generate Score Dict")
             report_dict['scores'], report_dict["confusion_matrix_filepath"] = generate_score_dict(report_dict['annotated_text'], report_dict['redacted_text'], report_dict['original_text'])
@@ -423,15 +425,16 @@ def report_redaction_viewer(report_id):
     next_id = df.at[current_index + 1, 'id'] if current_index < len(df) - 1 else None
 
     orig_pdf_path = os.path.join(pdf_file_zip, f"{report_id}.pdf")
-    session['redacted_pdf_filename'], dollartext_redacted, fuzzy_matches = load_redacted_pdf(personal_info_list, orig_pdf_path, df, report_id, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), exclude_single_chars=session.get('exclude_single_chars', False), scorer=session.get('scorer', None))
-
+    if session.get('annotation_file', None) is None:
+        session['redacted_pdf_filename'], dollartext_redacted, fuzzy_matches = load_redacted_pdf(personal_info_list, orig_pdf_path, df, report_id, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), exclude_single_chars=session.get('exclude_single_chars', False), scorer=session.get('scorer', None))
 
     if session.get('annotation_file', None):
         try:
-            session['annotation_pdf_filepath'], dollartext_annotated, original_text, colormap = load_annotated_pdf(report_id, pdf_file_zip,session['annotation_file'])
+            session['annotation_pdf_filepath'], dollartext_annotated, original_text, colormap, sofastring = load_annotated_pdf(report_id, pdf_file_zip, session['annotation_file'])
+            session['redacted_pdf_filename'], dollartext_redacted, fuzzy_matches  = load_redacted_pdf(personal_info_list, orig_pdf_path, df, report_id, enable_fuzzy=session.get('enable_fuzzy', False), threshold=session.get('threshold', 90), exclude_single_chars=session.get('exclude_single_chars', False), scorer=session.get('scorer', None), text=sofastring)
             scores, session["confusion_matrix_filepath"] = generate_score_dict(dollartext_annotated, dollartext_redacted, original_text)
         except FileNotFoundError as e:
-            flash(str(e), 'danger')
+            flash("File Not Found: " + str(e), 'danger')
             scores = None
             colormap = {}
 
@@ -467,13 +470,15 @@ def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
         for file_info in zipf.infolist():
 
             if file_info.filename == json_filename:
-                with zipf.open(file_info) as annotation_file:
+                with zipf.open(file_info, 'r') as annotation_file:
+                    cas = load_cas_from_json(annotation_file)
+                with zipf.open(file_info, 'r') as annotation_file:
                     annotation = json.load(annotation_file)
                 break
         else:
             raise FileNotFoundError(f"JSON file {json_filename} not found in annotation zip file.")
 
-    annoparser = InceptionAnnotationParser(annotation)
+    annoparser = InceptionAnnotationParser(annotation, cas)
 
     # Construct the filename based on the session variable and the ID
     if not pdf_file.endswith('.pdf'):
@@ -487,7 +492,7 @@ def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
     print("Apply Annotations to PDF")
     annotation_pdf_filepath, dollartext_annotated, original_text = annoparser.apply_annotations_to_pdf(pdf_file)
 
-    return annotation_pdf_filepath, dollartext_annotated, original_text, annoparser.colormap
+    return annotation_pdf_filepath, dollartext_annotated, original_text, annoparser.colormap, annoparser.get_sofastring()
 
 @report_redaction.route("/reportredactionfileannotation/<string:id>")
 def reportredactionfileannotation(id):
@@ -512,7 +517,7 @@ def reportredactionfileoriginal(id):
     # Serve the PDF file
     return send_file(filename, mimetype='application/pdf')
 
-def load_redacted_pdf(personal_info_list, filename, df, id, exclude_single_chars=False, enable_fuzzy=False, threshold=90, scorer="WRatio"):
+def load_redacted_pdf(personal_info_list, filename, df, id, exclude_single_chars=False, enable_fuzzy=False, threshold=90, scorer="WRatio", text=None):
     print("load_redacted_pdf")
 
     if exclude_single_chars:
@@ -523,7 +528,7 @@ def load_redacted_pdf(personal_info_list, filename, df, id, exclude_single_chars
     else:
         fuzzy_matches = []
 
-    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if exclude_single_chars else 0)
+    dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if exclude_single_chars else 0, text=text)
 
     anonymize_pdf(filename, personal_info_list, filename.replace(".pdf", "_redacted.pdf"), fuzzy_matches)
 
@@ -536,10 +541,11 @@ def reportredactionfileredacted(id):
 
     return send_file(session['redacted_pdf_filename'], mimetype='application/pdf')
 
-def generated_dollartext_stringlist(filename, information_list, fuzzy_matches, ignore_short_sequences:int=0):
+def generated_dollartext_stringlist(filename, information_list, fuzzy_matches, ignore_short_sequences:int=0, text=None):
     """Replace all occurrences of the strings in information_list with dollar signs in the pdf text"""
 
-    text = get_pymupdf_text_wordwise(filename, add_spaces=True)
+    if not text:
+        text = get_pymupdf_text_wordwise(filename, add_spaces=True)
 
     return replace_personal_info(text, information_list, fuzzy_matches, generate_dollarstring=True, ignore_short_sequences=ignore_short_sequences)
 

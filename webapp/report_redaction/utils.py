@@ -29,10 +29,11 @@ def find_llm_output_csv(directory: str) -> pd.DataFrame | None:
     return None
 
 class InceptionAnnotationParser:
-    def __init__(self, json_file):
+    def __init__(self, json_file, cas):
         self.annotations = self._load_json(json_file)
         self.unique_labels = self._get_unique_labels()
         self.colormap = self.generate_colormap(self.unique_labels)
+        self.cas = cas
 
     def _load_json(self, json_file):
         if isinstance(json_file, dict):
@@ -62,6 +63,61 @@ class InceptionAnnotationParser:
         return labels
     
     def get_annotations(self) -> list[dict[str, int, int]]:
+        annotations = []
+        pdf_pages = []
+        for pdf_page in self.cas.select('org.dkpro.core.api.pdf.type.PdfPage'):
+            pdf_pages.append({'begin': pdf_page.begin, 'end': pdf_page.end, 'width': pdf_page.width, 'height': pdf_page.height, 'pageNumber': pdf_page.pageNumber})
+
+        for custom_span in self.cas.select('custom.Span'):
+            span_begin = custom_span.begin
+            span_end = custom_span.end
+            print("Annotation Start: ", span_begin)
+            print("Annotation End: ", span_end)
+
+            boundingboxes = []
+
+            # Iterate over PdfChunk annotations in the CAS
+            for pdf_chunk in self.cas.select('org.dkpro.core.api.pdf.type.PdfChunk'):
+                chunk_begin = pdf_chunk.begin
+                chunk_end = pdf_chunk.end
+
+                # Check if the PdfChunk overlaps with the custom_Span
+                if span_begin <= chunk_end and span_end >= chunk_begin:
+                    print("Found fitting chunk")
+                    print("Chunk Begin: ", chunk_begin)
+                    print("Chunk End: ", chunk_end)
+                    print("Length: ", len(pdf_chunk.g.elements))
+                    # Calculate the indices within the PdfChunk
+                    start_index = max(span_begin - chunk_begin, 0)
+                    end_index = min(span_end - chunk_begin, len(pdf_chunk.g.elements) - 1)
+
+                    print("Start Index: ", start_index)
+                    print("End Index: ", end_index)
+
+                    x_start = pdf_chunk.g.elements[start_index]
+                    x_end = pdf_chunk.g.elements[end_index]
+
+                    page_number = None
+
+                    for pdf_page in pdf_pages:
+                        # breakpoint()
+                        if pdf_page['begin'] <= chunk_end and pdf_page['end'] >= chunk_begin:
+                            page_number = pdf_page['pageNumber']
+                        
+                    if page_number is None:
+                        print("Page not found for chunk")
+                        breakpoint()
+
+                    print(f"Custom Span '{custom_span.label}' Bounding Box: x={x_start}, y={pdf_chunk.y}, width={x_end-x_start}, height={pdf_chunk.h}, page={page_number}")
+                    bounding_box = (page_number, (x_start, pdf_chunk.y, x_end, pdf_chunk.y + pdf_chunk.h))
+                    print(f"Resulting BB: {bounding_box}")
+                    boundingboxes.append(bounding_box)
+
+            annotations.append({"label": custom_span.label, "begin": span_begin, "end": span_end, "bounding_boxes": boundingboxes})
+
+        return annotations
+
+    def get_annotations_old(self) -> list[dict[str, int, int]]:
         # Return a list of annotations. Each annotation contains a label, begin and end
         annotations = []
         for annotation in self.annotations:
@@ -357,7 +413,7 @@ class InceptionAnnotationParser:
             color_map[label] = colors[i % 10]  # Ensure cycling through colors if num_labels > 10
         return color_map
 
-    def overlay_annotations(self, pdf_path, pdf_save_path,annotations, colormap, offset=0):
+    def overlay_annotations(self, pdf_path, pdf_save_path,annotations, colormap, offset=0, random_factor=0.005):
         doc = fitz.open(pdf_path)
         for annotation in annotations:
             label = annotation['label']
@@ -365,8 +421,9 @@ class InceptionAnnotationParser:
             for page_num, bbox in annotation['bounding_boxes']:
                 page = doc[page_num]
                 x0, y0, x1, y1 = bbox
-                offset += random.randint(-100, 100) / 200.0
+                offset += random.randint(-100, 100) * random_factor
                 rect = fitz.Rect(x0, y0 + offset, x1, y1 + offset)
+                print("Draw Rect: ", rect)
                 # rect = fitz.Rect(x0, y0, x1, y1)
                 # rect.y1 += offset
                 # print("Color: ", color)
@@ -415,10 +472,23 @@ class InceptionAnnotationParser:
 
         return text
     
-    
-
-
     def apply_annotations_to_pdf(self, pdf_input_path):
+        
+        dirpath = tempfile.mkdtemp()
+        overlay_output_file = os.path.join(dirpath, pdf_input_path.replace(".pdf", "_redacted_bboxes.pdf"))
+
+        annotations = self.get_annotations()
+
+        self.overlay_annotations(pdf_input_path, overlay_output_file, annotations, self.colormap)
+
+        sofastring = self.get_sofastring()
+
+        dollartext_annotated = self.generate_dollartext(sofastring, annotations, "■")
+
+        return overlay_output_file, dollartext_annotated, sofastring
+
+
+    def apply_annotations_to_pdf_old(self, pdf_input_path):
         # with pdfplumber.open(pdf_input_path) as pdf:
         #     text_pdfplumber = pdf.pages[0].extract_text()
 
