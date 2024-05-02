@@ -2,26 +2,23 @@ models:
   - name: "LLaMA 2 7b chat sauerkraut"
     path_to_gguf: "sauerkrautlm-7b-v1.Q5_K_M.gguf"
     context_size: 2048
-  - name: "LLaMA 2 70b chat sauerkraut"
-    path_to_gguf: "sauerkrautlm-70b-v1.Q5_K_M.gguf"
-    context_size: 2048
   - name: "LLaMA 2 13b chat sauerkraut"
     path_to_gguf: "sauerkrautlm-13b-v1.Q5_K_M.gguf"
     context_size: 2048
-  - name: "Mistral 7b"
+  - name: "LLaMA 2 70b chat sauerkraut"
+    path_to_gguf: "sauerkrautlm-70b-v1.Q5_K_M.gguf"
+    context_size: 2048
+  - name: "Mistral 7b Instruct"
     path_to_gguf: "mistral-7b-instruct-v0.1.Q5_K_M.gguf"
     context_size: 2048
-  - name: "Mistral 8x7b"
-    path_to_gguf: "mixtral-8x7b-v0.1.Q5_K_M.gguf"
+  - name: "Mistral 8x7b Instruct"
+    path_to_gguf: "mixtral-8x7b-instruct-v0.1.Q5_K_M.gguf"
     context_size: 2048
   - name: "LLaMA 3 8B Instruct Q5_K_M"
     path_to_gguf: "Meta-Llama-3-8B-Instruct-Q5_K_M.gguf"
     context_size: 8196
-  - name: "LLaMA 3 70B Q5_K_M"
-    path_to_gguf: "Meta-Llama-3-70B-Q5_K_M.gguf"
-    context_size: 8196
-  - name: "LLaMA 3 70B Q4_K_M"
-    path_to_gguf: "Meta-Llama-3-70B-Q4_K_M.gguf"
+  - name: "LLaMA 3 70B Instruct Q5_K_M"
+    path_to_gguf: "Meta-Llama-3-70B-Instruct.Q5_K_M.gguf"
     context_size: 8196
   - name: "LLaMA 3 70B Instruct Q4_K_M"
     path_to_gguf: "Meta-Llama-3-70B-Instruct.Q4_K_M.gguf"
