@@ -478,7 +478,7 @@ def main():
             job_id=job_id,
             zip_file_path=zip_file_path or None,
             llamacpp_port=current_app.config['LLAMACPP_PORT'],
-            debug=session['DEBUG']
+            debug=current_app.config['DEBUG']
         )
 
         print("Started job successfully!")
