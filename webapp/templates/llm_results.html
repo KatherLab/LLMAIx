@@ -93,12 +93,13 @@
         var job_id = data.job_id;
         var progress = data.progress;
         var totalSteps = data.total;
+        var remaining_time = data.remaining_time
 
         // Update progress bar for the corresponding job
         var progressBar = document.getElementById('progress-' + job_id);
         if (progressBar) {
             progressBar.style.width = (progress / totalSteps) * 100 + '%';
-            progressBar.innerText = progress + ' / ' + totalSteps;
+            progressBar.innerText = progress + ' / ' + totalSteps + ' Remaining Time: ' + remaining_time;
         }
     });
 
