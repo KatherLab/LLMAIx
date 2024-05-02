@@ -312,7 +312,7 @@ def generate_export_df(result_dict: list):
     # Iterate over every report in result_list['report_list'] and add all scores in ['scores'] as one row to the dataframe, use ['id'] as id column
     # df = pd.DataFrame()
 
-    scores_to_include = ['f1_score', 'accuracy', 'precision', 'recall', 'true_positives', 
+    scores_to_include = ['f1_score', 'accuracy', 'precision', 'recall', 'specificity', 'true_positives', 
                      'false_positives', 'true_negatives', 'false_negatives', 
                      'false_positive_rate', 'false_negative_rate']
 
