@@ -171,7 +171,10 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
             report_dict = {}
             report_dict['id'] = row['id']
 
-            report_dict['personal_info_list'] = convert_personal_info_list(row['personal_info_list'])
+            try:
+                report_dict['personal_info_list'] = convert_personal_info_list(row['personal_info_list'])
+            except Exception as e:
+                breakpoint()
 
             orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
 

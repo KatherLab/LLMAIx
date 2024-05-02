@@ -78,7 +78,7 @@ ws ::= ([ \t\n])?
 #patientengeburtsdatum ::= "\"" day "\\." month "\\." year "\"" space
 #patientengeburtsdatum-kv ::= "\"patientengeburtsdatum\"" space ":" space patientengeburtsdatum
 
-grammar_new = r"""
+grammar_new1 = r"""
 integer ::= ("-"? integral-part) space
 integral-part ::= [0-9] | [1-9] [0-9]* 
 day ::= ("0"[1-9] | [12][0-9] | "3"[01])
@@ -109,6 +109,60 @@ patientnachname ::= "\"" (char (char (char (char (char (char (char (char (char (
 patientnachname-kv ::= "\"patientnachname\"" space ":" space patientnachname
 root ::= "{" space patientenname-kv "," space patientenvorname-kv "," space patientnachname-kv "," space patientengeschlecht-kv "," space patientengeburtsdatum-kv "," space patientenid-kv "," space patientenstrasse-kv "," space patientenhausnummer-kv "," space patientenpostleitzahl-kv "," space patientenstadt-kv "," space patientengeburtsname-kv "}" space
 space ::= " "?"""
+
+grammar_new= r"""
+root   ::= allrecords
+value  ::= object | array | string | number | ("true" | "false" | "null") ws
+
+allrecords ::= (
+  "{"
+  ws "\"patientennachname\":" ws string ","
+  ws "\"patientenvorname\":" ws string ","
+  ws "\"patientenname\":" ws string ","
+  ws "\"patientengeschlecht\":" ws string ","
+  ws "\"patientengeburtsdatum\":" ws string ","
+  ws "\"patientenid\":" ws idartiges ","
+  ws "\"patientenstrasse\":" ws string ","
+  ws "\"patientenhausnummer\":" ws string ","
+  ws "\"patientenpostleitzahl\":" ws plz ","
+  ws "\"patientenstadt\":" ws string ","
+  ws "\"patientengeburtsname\":" ws string ","
+  ws "}"
+  ws
+)
+
+record ::= (
+    "{"
+    ws "\"excerpt\":" ws ( string | "null" ) ","
+    ws "\"present\":" ws ("true" | "false") ws 
+    ws "}"
+    ws
+)
+
+object ::=
+  "{" ws (
+            string ":" ws value
+    ("," ws string ":" ws value)*
+  )? "}" ws
+
+array  ::=
+  "[" ws (
+            value
+    ("," ws value)*
+  )? "]" ws
+char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
+string ::=
+  "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" ws
+
+number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
+
+plz ::= ("\"" [0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
+idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
+tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
+
+# Optional space: by convention, applied in this grammar after literal chars when allowed
+ws ::= ([ \t\n])?
+"""
 
 class FileExistsValidator:
     def __init__(self, message=None, path=""):

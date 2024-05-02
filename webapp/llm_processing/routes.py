@@ -1,5 +1,4 @@
 from datetime import datetime
-import shutil
 import tempfile
 import zipfile
 from . import llm_processing
@@ -12,15 +11,13 @@ from pathlib import Path
 import subprocess
 import time
 from typing import Any, Iterable, Optional
-import ast
 import os
 from .read_strange_csv import read_and_save_csv
 import secrets
 from concurrent import futures
 import subprocess
 import io
-import math
-from .utils import read_preprocessed_csv_from_zip, replace_personal_info
+from .utils import read_preprocessed_csv_from_zip, replace_personal_info, is_empty_string_nan_or_none
 from io import BytesIO
 
 server_connection: Optional[subprocess.Popen[Any]] = None
@@ -132,16 +129,6 @@ def extract_from_report(
     # breakpoint()
 
     # socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': 0, 'total_steps': len(df)})
-
-    def is_empty_string_nan_or_none(variable):
-        if variable is None:
-            return True
-        elif isinstance(variable, str) and variable.strip() == "":
-            return True
-        elif isinstance(variable, float) and math.isnan(variable):
-            return True
-        else:
-            return False
         
     skipped = 0
 
@@ -223,7 +210,15 @@ def postprocess_grammar(result, df, llm_metadata):
             # replace all backslash in the content string with nothing
             content = content.replace("\\", "")
 
-            info_dict = ast.literal_eval(content)
+            info_dict_raw = ast.literal_eval(content)
+
+            info_dict = {}
+            for (key, value) in info_dict_raw.items():
+                if is_empty_string_nan_or_none(value):
+                    info_dict[key] = ""
+                else:
+                    info_dict[key] = value
+
             print(f"Successfully parsed LLM output. ({content=})")
         except Exception as e:
             print(f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
