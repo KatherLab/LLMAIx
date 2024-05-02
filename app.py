@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
 
-    socketio.run(app, debug=args.debug, use_reloader=True, port=args.port)
+    socketio.run(app, debug=args.debug, use_reloader=args.debug, port=args.port)
 
 
     
