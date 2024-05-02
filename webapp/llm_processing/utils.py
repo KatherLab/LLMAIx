@@ -6,6 +6,8 @@ import pandas as pd
 
 def convert_personal_info_list(personal_info_list) -> None:
     import ast
+    personal_info_list = personal_info_list.replace("nan,", "")
+    personal_info_list = personal_info_list.replace("'',", "")
     personal_info_list = ast.literal_eval(personal_info_list)
     personal_info_list = list(set(personal_info_list))
     personal_info_list = [item for item in personal_info_list if item != ""]
