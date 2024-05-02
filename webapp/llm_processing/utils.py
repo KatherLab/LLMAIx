@@ -99,8 +99,11 @@ def is_empty_string_nan_or_none(variable) -> bool:
             return True
         elif isinstance(variable, float) and math.isnan(variable):
             return True
-        else:
+        elif isinstance(variable, str):
             return False
+        else:
+            print(f"WARNING: Removed {variable} from list.")
+            return True
         
 
 import re
