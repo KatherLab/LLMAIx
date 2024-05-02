@@ -96,14 +96,46 @@
     </div>
     {% endif %}
 
+
+    <!--
     {% if colormap %}
     <div class="btn-group" role="group" aria-label="Color Map">
         {% for label, color in colormap.items() %}
         <button type="button" class="btn" style="background-color: rgb({{ color[0]*255 }}, {{ color[1]*255 }}, {{ color[2]*255 }});">{{ label }}</button>
         {% endfor %}
     </div>
-
     {% endif %}
+    -->
+
+    <!--This should not require Javascript, however: The above code is always shown with errors in vscode because of the jinja variables inside the rgb function-->
+
+    {% if colormap %}
+    <div class="btn-group" role="group" aria-label="Color Map">
+        {% for label, color in colormap.items() %}
+            <button type="button" class="btn color-button" data-color="{{ color }}" data-label="{{ label }}">{{ label }}</button>
+        {% endfor %}
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var buttons = document.querySelectorAll('.color-button');
+            buttons.forEach(function(button) {
+                var colorStr = button.dataset.color;
+                // Remove parentheses and split the color string
+                var colorValues = colorStr.substring(1, colorStr.length - 1).split(', ');
+                var colorRGB = '';
+                for (var i = 0; i < colorValues.length; i++) {
+                    var color = parseFloat(colorValues[i]) * 255;
+                    colorRGB += Math.round(color) + (i < colorValues.length - 1 ? ',' : '');
+                }
+                button.style.backgroundColor = 'rgb(' + colorRGB + ')';
+            });
+        });
+    </script>
+    {% endif %}
+
+
+
+
 
 </div>
 
@@ -170,6 +202,7 @@
             transform: translateX(-50%); /* Move the container to the left by half of its width */
             width: calc(90vw - 30px);
             padding: 0 15px;
+    }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
 
@@ -209,4 +242,5 @@
         // You can use the accuracy score here in your website
     });
 </script>
+
 {% endblock %}
