@@ -1,4 +1,5 @@
 from datetime import datetime
+import shutil
 from flask import render_template, request, redirect, url_for, flash, send_file, session
 import io
 import os
@@ -83,8 +84,16 @@ def preprocess_input(job_id, file_paths):
                 
                 if not contains_text:
                     ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
-
-                    subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                    if shutil.which("tesseract") is not None:
+                        if shutil.which("ocrmypdf") is not None:
+                            # Command exists, proceed with subprocess
+                            subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                        else:
+                            print(f"OCRMyPDF not found, skipping OCR for {file_path}")
+                            return "OCRMyPDF not found but required for OCR."
+                    else:
+                        print(f"Tesseract not found, skipping OCR for {file_path}")
+                        return "Tesseract not found but required for OCR."
 
                 else:
                     ocr_output_path = file_path
@@ -93,6 +102,7 @@ def preprocess_input(job_id, file_paths):
                     ocr_text = ''
                     for page in ocr_pdf.pages:
                         ocr_text += page.extract_text()
+                print("Save Report as ", ocr_output_path)
                 merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path}))
 
             elif file_path.endswith('.txt'):
@@ -112,10 +122,10 @@ def preprocess_input(job_id, file_paths):
             else:
                 print(f"Unsupported file format: {file_path}")
         except Exception as e:
-            print(f"Error processing file {file_path} (might also be that tesseract etc is not installed / found): {e}")
+            print(f"Error processing file {file_path} (might also be that tesseract / ghostscript / ocrmypdf is not installed or not in PATH): {e}")
             update_progress(job_id=job_id, progress=(i, len(file_paths), False))
             os.remove(file_path)
-            return
+            return "Error processing file: " + str(e)
 
         update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
 
@@ -144,6 +154,10 @@ def download():
             df = job.result()
         except Exception as e:
             flash("Preprocessing failed / did not output anything useful!", "danger")
+            return redirect(url_for('input_processing.main'))
+
+        if isinstance(df, str):
+            flash(df, "danger")
             return redirect(url_for('input_processing.main'))
 
         # split the text in chunks
