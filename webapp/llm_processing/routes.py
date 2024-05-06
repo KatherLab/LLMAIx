@@ -302,17 +302,31 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
 
     # id without the extension for splitted reports
 
+    # def extract_base_id(id):
+    #     parts = id.split('_')
+    #     if '_' in id:
+    #         if '$' in parts[-1] and '_' in parts[-1]:
+    #             return '_'.join(parts[:-1])
+    #         else:
+    #             return '_'.join(parts[:-1]) if parts[:-1] else id
+    #     else:
+    #         return id
+
     def extract_base_id(id):
-        parts = id.split('_')
-        if '_' in id:
-            if '$' in parts[-1] and '_' in parts[-1]:
-                return '_'.join(parts[:-1])
-            else:
-                return '_'.join(parts[:-1]) if parts[:-1] else id
-        else:
-            return id
+        parts = id.split('$')
+        base_id = parts[0]  # The part before the dollar sign
+
+        if len(parts) > 1:  # If there's a dollar sign in the ID
+            subparts = parts[1].split('_')
+            if len(subparts) > 1 and subparts[-1].isdigit():
+                # If there's an underscore followed by a number after the dollar sign
+                return base_id + '$' + '_'.join(subparts[:-1])
+        
+        return id  # Return the original ID if no underscore followed by a number is found after the dollar sign
 
     df['base_id'] = df['id'].apply(extract_base_id)
+    # test_id = 'ocr_arztbericht-bild.pdf$eea5469f-f6a4-4b08-92f3-2340c61b0745'
+    # breakpoint()
 
     # df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
 
@@ -584,5 +598,5 @@ def llm_download():
         )
 
     else:
-        flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty!", "danger")
+        flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty and / or the code ran into a breakpoint!", "danger")
         return redirect(url_for('llm_processing.llm_results'))
