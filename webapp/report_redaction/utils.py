@@ -475,6 +475,27 @@ class InceptionAnnotationParser:
 
         return text
     
+    def generate_classwise_dollartext(self, text, annotations, replacement_character="$"):
+        """Replace all text characters within each annotations begin and end range with dollar signs"""
+
+        assert len(replacement_character) == 1, "Replacement character must be a single character"
+
+        dollartext_labelwise = {}
+
+
+        for label in self._get_unique_labels():
+            dollartext_labelwise[label] = text
+            print("Generate Dollar text for label: ", label)
+            for annotation in annotations:
+                if annotation['label'] == label:
+                    begin = annotation['begin']
+                    end = annotation['end']
+                    
+                    # replace text characters within begin and end range with dollar signs
+                    dollartext_labelwise[label] = dollartext_labelwise[label][:begin] + replacement_character*(end - begin) + dollartext_labelwise[label][end:]
+
+        return dollartext_labelwise
+    
     def apply_annotations_to_pdf(self, pdf_input_path):
         
         dirpath = tempfile.mkdtemp()
@@ -488,7 +509,9 @@ class InceptionAnnotationParser:
 
         dollartext_annotated = self.generate_dollartext(sofastring, annotations, "■")
 
-        return overlay_output_file, dollartext_annotated, sofastring
+        dollartext_annotated_labelwise = self.generate_classwise_dollartext(sofastring, annotations, "■")
+
+        return overlay_output_file, dollartext_annotated, sofastring, dollartext_annotated_labelwise
 
 
     def apply_annotations_to_pdf_old(self, pdf_input_path):

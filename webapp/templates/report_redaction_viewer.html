@@ -6,25 +6,71 @@
     <h3>Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
 
     {% if scores %}
-    <h3 >Metrics:</h3>
-    <div class="btn-group">
-        {% for key, value in scores.items() %}
-            <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+    <h3>Metrics:</h3>
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane"
+                type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">All Annotations</button>
+        </li>
+        {% for key, value in scores.items() if key != 'personal_info_list' %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
+                data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
+                aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
+        </li>
         {% endfor %}
-        <p>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfMat" aria-expanded="false" aria-controls="collapseConfMat">
-              Confusion Matrix
-            </button>
-          </p>
-          {% if metadata %}
-          <p>
-            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="false" aria-controls="collapseMetadata">
-              Metadata
-            </button>
-          </p>
-          {% endif %}
-          
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
+            tabindex="0">
+            <div class="btn-group">
+                {% for key, value in scores['personal_info_list'][0].items() %}
+                {% if key == 'false_negatives' %}
+                {% if value == 0 %}
+                <button type="button" class="btn btn-success">{{ key }}: {{ value }}</button>
+                {% else %}
+                <button type="button" class="btn btn-danger">{{ key }}: {{ value }}</button>
+                {% endif %}
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+        </div>
+        {% for label, value in scores.items() if label != 'personal_info_list' %}
+
+        <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
+            aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+            <div class="btn-group">
+                {% for key, value in scores[label][0].items() %}
+                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endfor %}
+
     </div>
+
+    <div class="btn-group">
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfMat"
+                aria-expanded="false" aria-controls="collapseConfMat">
+                Confusion Matrix
+            </button>
+        </p>
+        {% if metadata %}
+        <p>
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+                aria-expanded="false" aria-controls="collapseMetadata">
+                Metadata
+            </button>
+        </p>
+        {% endif %}
+    </div>
+
     <div class="collapse" id="collapseConfMat">
         <div class="card card-body">
             <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img" height="300px">
@@ -38,15 +84,16 @@
         </div>
     </div>
     {% endif %}
-    
     {% endif %}
 
     <div class="navigation-buttons">
         {% if previous_id %}
-            <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=previous_id) }}" class="btn btn-secondary float-left">Previous Report</a>
+        <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=previous_id) }}"
+            class="btn btn-secondary float-left">Previous Report</a>
         {% endif %}
         {% if next_id %}
-            <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=next_id) }}" class="btn btn-secondary float-right">Next Report</a>
+        <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=next_id) }}"
+            class="btn btn-secondary float-right">Next Report</a>
         {% endif %}
         <div class="clearfix"></div>
     </div>
@@ -58,7 +105,8 @@
         </div> -->
         <div class="pdf-viewer">
             <h3>Redacted Document</h3>
-            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px"
+                frameborder="0" width="100%"></iframe>
         </div>
     </div>
     {% else %}
@@ -69,29 +117,79 @@
         </div> -->
         <div class="pdf-viewer-2">
             <h3>Redacted Document</h3>
-            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px"
+                frameborder="0" width="100%"></iframe>
         </div>
         <div class="pdf-viewer-2">
             <h3>Annotated Document</h3>
-            <iframe src="{{ url_for('report_redaction.reportredactionfileannotation', id=report_id) }}" height="800px" frameborder="0" width="100%"></iframe>
+            <iframe src="{{ url_for('report_redaction.reportredactionfileannotation', id=report_id) }}" height="800px"
+                frameborder="0" width="100%"></iframe>
         </div>
     </div>
     {% endif %}
     <div class="personal-info-list">
         <h3>Personal Information</h3>
         <div class="btn-group" role="group" aria-label="Personal Information">
-            {% for info in personal_info_list %}
-                <button type="button" class="btn btn-secondary" disabled>{{ info }}</button>
-            {% endfor %}
+            {% for label, list in personal_info_dict.items() %}
+            {% if label != 'personal_info_list' %}
+            {% if label in colormap.keys() %}
+            {% for personal_information in list %}
+            {% set r = colormap[label][0] * 255 %}
+            {% set g = colormap[label][1] * 255 %}
+            {% set b = colormap[label][2] * 255 %}
+            {% set luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 %}
+            {% set text_color = 'white' if luminance < 0.5 else 'black' %} <button type="button" class="btn"
+                style="background-color: rgb({{ r }}, {{ g }}, {{ b }}); color: {{ text_color }};" data-toggle="tooltip"
+                data-placement="top" title="{{ label }}">
+                <b>{{ personal_information }}</b><br>
+                <small>{{ label }}</small>
+                </button>
+                {% endfor %}
+                {% else %}
+                {% for personal_information in list %}
+                <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="{{ label }}">
+                    <b>{{ personal_information }}</b> <br>
+                    <small>{{ label }}</small>
+                </button>
+                {% endfor %}
+                {% endif %}
+                {% endif %}
+                {% endfor %}
         </div>
+
+
     </div>
     {% if enable_fuzzy %}
     <div class="personal-info-list">
         <h3>Fuzzy Matches</h3>
-        <div class="btn-group" id="fuzzy-matches-group" role="group" aria-label="Fuzzy Matches">
-            {% for fuzzy_match in fuzzy_matches %}
-                <button type="button" class="btn btn-secondary" disabled>{{ fuzzy_match[0] }} (Score: {{ fuzzy_match[1] }})</button>
-            {% endfor %}
+        <div class="btn-group" role="group" aria-label="Personal Information">
+            {% for label, list in fuzzy_matches_dict.items() %}
+            {% if label != 'personal_info_list' %}
+            {% if label in colormap.keys() %}
+            {% for personal_information in list %}
+            {% set r = colormap[label][0] * 255 %}
+            {% set g = colormap[label][1] * 255 %}
+            {% set b = colormap[label][2] * 255 %}
+            {% set luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 %}
+            {% set text_color = 'white' if luminance < 0.5 else 'black' %} <button type="button" class="btn"
+                style="background-color: rgb({{ r }}, {{ g }}, {{ b }}); color: {{ text_color }};" data-toggle="tooltip"
+                data-placement="top" title="{{ label }}">
+                <b>{{ personal_information[0] }}</b> <br>
+                <small>Score: {{ personal_information[1] }}</small> <br>
+                <small>{{ label }}</small>
+                </button>
+                {% endfor %}
+                {% else %}
+                {% for personal_information in list %}
+                <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="{{ label }}">
+                    <b>{{ personal_information[0] }}</b> <br>
+                    <small>Score: {{ personal_information[1] }}</small> <br>
+                    <small>{{ label }}</small>
+                </button>
+                {% endfor %}
+                {% endif %}
+                {% endif %}
+                {% endfor %}
         </div>
     </div>
     {% endif %}
@@ -110,15 +208,17 @@
     <!--This should not require Javascript, however: The above code is always shown with errors in vscode because of the jinja variables inside the rgb function-->
 
     {% if colormap %}
+    <h3>Color Map</h3>
     <div class="btn-group" role="group" aria-label="Color Map">
         {% for label, color in colormap.items() %}
-            <button type="button" class="btn color-button" data-color="{{ color }}" data-label="{{ label }}">{{ label }}</button>
+        <button type="button" class="btn color-button" data-color="{{ color }}" data-label="{{ label }}">{{ label
+            }}</button>
         {% endfor %}
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             var buttons = document.querySelectorAll('.color-button');
-            buttons.forEach(function(button) {
+            buttons.forEach(function (button) {
                 var colorStr = button.dataset.color;
                 // Remove parentheses and split the color string
                 var colorValues = colorStr.substring(1, colorStr.length - 1).split(', ');
@@ -153,14 +253,18 @@
     }
 
     .pdf-viewer-2 {
-        width: 48%; /* Adjust width to accommodate spacing */
-        padding: 10px; /* Add spacing between iframes */
+        width: 48%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
         border: 1px solid #ccc;
     }
 
     .pdf-viewer-3 {
-        width: 32%; /* Adjust width to accommodate spacing */
-        padding: 10px; /* Add spacing between iframes */
+        width: 32%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
         border: 1px solid #ccc;
     }
 
@@ -183,10 +287,12 @@
     .float-right {
         float: right;
     }
+
     .report-number {
         display: inline-block;
         margin: 0 10px;
     }
+
     .personal-info-list {
         margin-top: 20px;
         margin-bottom: 50px;
@@ -197,46 +303,48 @@
     }
 
     .nested-container {
-            position: absolute;
-            left: 50%; /* Position the left edge of the container at the horizontal center */
-            transform: translateX(-50%); /* Move the container to the left by half of its width */
-            width: calc(90vw - 30px);
-            padding: 0 15px;
+        position: absolute;
+        left: 50%;
+        /* Position the left edge of the container at the horizontal center */
+        transform: translateX(-50%);
+        /* Move the container to the left by half of its width */
+        width: calc(90vw - 30px);
+        padding: 30px 15px;
     }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
 
 <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    
-    socket.on('reportredaction_done', function(data) {
+
+    socket.on('reportredaction_done', function (data) {
         var fuzzyMatches = data.fuzzy_matches;
-    
+
         // Get the button group element by its id
         var buttonGroup = document.getElementById('fuzzy-matches-group');
-    
+
         // Clear existing buttons
         buttonGroup.innerHTML = '';
-    
+
         // Add buttons for each fuzzy match
-        fuzzyMatches.forEach(function(match) {
+        fuzzyMatches.forEach(function (match) {
             var matchString = match[0];
             var score = match[1];
             var buttonText = matchString + ' (Score: ' + score + ')';
-    
+
             // Create a button element
             var button = document.createElement('button');
             button.setAttribute('type', 'button');
             button.setAttribute('class', 'btn btn-secondary');
             button.setAttribute('disabled', 'disabled');
             button.innerText = buttonText;
-    
+
             // Append the button to the button group
             buttonGroup.appendChild(button);
         });
     });
 
-    socket.on('scores', function(data) {
+    socket.on('scores', function (data) {
         var accuracy = data.accuracy;
         console.log("Received accuracy score:", accuracy);
         // You can use the accuracy score here in your website

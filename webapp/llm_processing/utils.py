@@ -12,6 +12,7 @@ def convert_personal_info_list(personal_info_list) -> None:
     personal_info_list = list(set(personal_info_list))
     personal_info_list = [item for item in personal_info_list if item != ""]
 
+    # TODO include in list comprehension above
     personal_info_list_output = []
     for info in personal_info_list:
         if is_empty_string_nan_or_none(info):
