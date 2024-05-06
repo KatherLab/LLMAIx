@@ -180,7 +180,7 @@ def download():
         def add_files_to_zip(zipf, files, ids):
             for file, file_id in zip(files, ids):
                 zipf.write(file, f"{file_id}.{os.path.basename(file).split('.')[-1]}")
-                os.remove(file)
+                # os.remove(file)sss
 
         # Add dataframe as CSV to zip
         def add_dataframe_to_zip(zipf, df):
