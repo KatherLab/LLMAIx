@@ -426,8 +426,6 @@ def generate_export_df(result_dict: list):
             else:
                 micro_scores[score] = (accumulated_metrics[label]['metrics'][f'micro_{metric}'])
 
-    breakpoint()
-
     # for key in accumulated_metrics:
     #     if key.startswith('macro_'):
     #         macro_scores[key[len('macro_'):]] = float(accumulated_metrics[key])
