@@ -1,15 +1,12 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField, SubmitField, BooleanField, TextAreaField, MultipleFileField, FileField, FloatField, validators, SelectField, IntegerField
-from wtforms.validators import DataRequired, ValidationError
-import os
-from flask import current_app
+from wtforms import SubmitField, BooleanField, FileField, validators, SelectField, IntegerField
 
 
 class ReportRedactionForm(FlaskForm):
 
     file = FileField("File", validators=[
-        FileRequired(),  
+        FileRequired(),
         FileAllowed(['zip'], 'Only .zip file allowed!')
     ])
 
@@ -18,9 +15,11 @@ class ReportRedactionForm(FlaskForm):
     ])
 
     enable_fuzzy = BooleanField("Enable fuzzy matching")
-    threshold = IntegerField("Threshold (0-100):", validators=[validators.NumberRange(0,100)], default=90)
+    threshold = IntegerField(
+        "Threshold (0-100):", validators=[validators.NumberRange(0, 100)], default=90)
 
-    scorer = SelectField("Fuzzy Matching Method:", choices=[('QRatio', 'QRatio'), ('WRatio', 'WRatio')])
+    scorer = SelectField("Fuzzy Matching Method:", choices=[
+                         ('QRatio', 'QRatio'), ('WRatio', 'WRatio')])
 
     exclude_single_chars = BooleanField("Exclude single characters")
 

@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nested-container">
+    <h2>Label Annotation Viewer</h2>
+    <h3>Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
+
+    {% if scores %}
+    <h3>Metrics:</h3>
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane"
+                type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">All Annotations</button>
+        </li>
+        {% for key, value in scores.items() if key != 'personal_info_list' %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
+                data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
+                aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
+            tabindex="0">
+            <div class="btn-group">
+                {% for key, value in scores['personal_info_list'][0].items() %}
+                {% if key == 'false_negatives' %}
+                {% if value == 0 %}
+                <button type="button" class="btn btn-success">{{ key }}: {{ value }}</button>
+                {% else %}
+                <button type="button" class="btn btn-danger">{{ key }}: {{ value }}</button>
+                {% endif %}
+                {% else %}
+                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+        </div>
+        {% for label, value in scores.items() if label != 'personal_info_list' %}
+
+        <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
+            aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+            <div class="btn-group">
+                {% for key, value in scores[label][0].items() %}
+                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="btn-group">
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfMat"
+                aria-expanded="false" aria-controls="collapseConfMat">
+                Confusion Matrix
+            </button>
+        </p>
+        {% if metadata %}
+        <p>
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+                aria-expanded="false" aria-controls="collapseMetadata">
+                Metadata
+            </button>
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="collapse" id="collapseConfMat">
+        <div class="card card-body">
+            <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img" height="300px">
+        </div>
+    </div>
+
+    {% if metadata %}
+    <div class="collapse" id="collapseMetadata">
+        <div class="card card-body">
+            <pre>{{ metadata }}</pre>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="navigation-buttons">
+        {% if previous_id %}
+        <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=previous_id) }}"
+            class="btn btn-secondary float-left">Previous Report</a>
+        {% endif %}
+        {% if next_id %}
+        <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=next_id) }}"
+            class="btn btn-secondary float-right">Next Report</a>
+        {% endif %}
+        <div class="clearfix"></div>
+    </div>
+    <div class="pdf-container">
+        <div class="pdf-viewer">
+            <h3>PDF Document</h3>
+            <iframe src="{{ url_for('labelannotation.labelannotationpdfprovider', report_id=report_id) }}" height="800px" frameborder="0"
+                width="100%"></iframe>
+        </div>
+    </div>
+
+
+</div>
+
+
+<style>
+    .pdf-container {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .pdf-viewer {
+        width: 100%;
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer-2 {
+        width: 48%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer-3 {
+        width: 32%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer iframe {
+        width: 100%;
+    }
+
+    .navigation-buttons {
+        margin-bottom: 20px;
+    }
+
+    .clearfix {
+        clear: both;
+    }
+
+    .float-left {
+        float: left;
+    }
+
+    .float-right {
+        float: right;
+    }
+
+    .report-number {
+        display: inline-block;
+        margin: 0 10px;
+    }
+
+    .personal-info-list {
+        margin-top: 20px;
+        margin-bottom: 50px;
+    }
+
+    .container-custom {
+        max-width: 95%;
+    }
+
+    .nested-container {
+        position: absolute;
+        left: 50%;
+        /* Position the left edge of the container at the horizontal center */
+        transform: translateX(-50%);
+        /* Move the container to the left by half of its width */
+        width: calc(90vw - 30px);
+        padding: 30px 15px;
+    }
+</style>
+
+{% endblock %}

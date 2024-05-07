@@ -12,9 +12,11 @@ def create_app():
     from .input_processing import input_processing
     from .llm_processing import llm_processing
     from .report_redaction import report_redaction
+    from .labelannotation import labelannotation
     app.register_blueprint(input_processing)
     app.register_blueprint(llm_processing)
     app.register_blueprint(report_redaction)
+    app.register_blueprint(labelannotation)
 
     socketio.init_app(app)
     return app

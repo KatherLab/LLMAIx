@@ -134,3 +134,5 @@ ws ::= ([ \t\n])?
 - skip annotation json entry if no label is set
 
 - Select box in the viewer to select a specific case
+
+- Information Extraction: CSV with text label as input, viewer for metrics and pdfs.

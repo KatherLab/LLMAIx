@@ -1,7 +1,6 @@
 from datetime import datetime
 import shutil
 from flask import render_template, request, redirect, url_for, flash, send_file, session
-import io
 import os
 import tempfile
 from werkzeug.utils import secure_filename
@@ -14,7 +13,7 @@ import time
 import subprocess
 from PIL import Image
 from docx import Document
-from odf import text, teletype
+from odf import teletype
 from odf.opendocument import load
 import uuid
 import zipfile
@@ -34,16 +33,20 @@ job_progress = {}
 def handle_connect():
     print("Client Connected")
 
+
 @socketio.on('disconnect')
-def handle_connect():
+def handle_disconnect():
     print("Client Disconnected")
+
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
     global job_progress
-    job_progress[job_id] = progress    
+    job_progress[job_id] = progress
 
     print("Progress: ", progress)
-    socketio.emit('progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
+    socketio.emit('progress_update', {
+                  'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
+
 
 def failed_job(job_id):
     time.sleep(2)
@@ -52,10 +55,12 @@ def failed_job(job_id):
     # wait for 1s
     socketio.emit('progress_failed', {'job_id': job_id})
 
+
 def complete_job(job_id):
     print("COMPLETE")
     global job_progress
     socketio.emit('progress_complete', {'job_id': job_id})
+
 
 def preprocess_input(job_id, file_paths):
     print("PREPROCESS")
@@ -69,7 +74,8 @@ def preprocess_input(job_id, file_paths):
             elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
                 if not file_path.endswith('.pdf'):
                     # Convert JPG/PNG to PDF
-                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"pdf_{os.path.basename(file_path)}.pdf")
+                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"pdf_{
+                                                   os.path.basename(file_path)}.pdf")
                     image = Image.open(file_path)
                     image.save(pdf_output_path)
                     file_path = pdf_output_path
@@ -81,18 +87,22 @@ def preprocess_input(job_id, file_paths):
                         if len(page.extract_text()) > 0:
                             contains_text = True
                             break
-                
+
                 if not contains_text:
-                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
+                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{
+                                                   os.path.basename(file_path)}")
                     if shutil.which("tesseract") is not None:
                         if shutil.which("ocrmypdf") is not None:
                             # Command exists, proceed with subprocess
-                            subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                            subprocess.run(
+                                ['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
                         else:
-                            print(f"OCRMyPDF not found, skipping OCR for {file_path}")
+                            print(f"OCRMyPDF not found, skipping OCR for {
+                                  file_path}")
                             return "OCRMyPDF not found but required for OCR."
                     else:
-                        print(f"Tesseract not found, skipping OCR for {file_path}")
+                        print(f"Tesseract not found, skipping OCR for {
+                              file_path}")
                         return "Tesseract not found but required for OCR."
 
                 else:
@@ -103,7 +113,8 @@ def preprocess_input(job_id, file_paths):
                     for page in ocr_pdf.pages:
                         ocr_text += page.extract_text()
                 print("Save Report as ", ocr_output_path)
-                merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path}))
+                merged_data.append(pd.DataFrame(
+                    {'report': [ocr_text], 'filepath': ocr_output_path}))
 
             elif file_path.endswith('.txt'):
                 with open(file_path, 'r') as f:
@@ -111,7 +122,8 @@ def preprocess_input(job_id, file_paths):
                     merged_data.append(pd.DataFrame({'report': [text]}))
             elif file_path.endswith('.docx'):
                 doc = Document(file_path)
-                doc_text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+                doc_text = '\n'.join(
+                    [paragraph.text for paragraph in doc.paragraphs])
                 merged_data.append(pd.DataFrame({'report': [doc_text]}))
             elif file_path.endswith('.odt'):
                 doc = load(file_path)
@@ -122,8 +134,10 @@ def preprocess_input(job_id, file_paths):
             else:
                 print(f"Unsupported file format: {file_path}")
         except Exception as e:
-            print(f"Error processing file {file_path} (might also be that tesseract / ghostscript / ocrmypdf is not installed or not in PATH): {e}")
-            update_progress(job_id=job_id, progress=(i, len(file_paths), False))
+            print(f"Error processing file {
+                  file_path} (might also be that tesseract / ghostscript / ocrmypdf is not installed or not in PATH): {e}")
+            update_progress(job_id=job_id, progress=(
+                i, len(file_paths), False))
             os.remove(file_path)
             return "Error processing file: " + str(e)
 
@@ -135,7 +149,8 @@ def preprocess_input(job_id, file_paths):
     merged_csv = merged_df.to_csv(index=False)
 
     return merged_csv
-    
+
+
 @input_processing.route("/download", methods=['GET'])
 def download():
     job_id = request.args.get("job")
@@ -152,7 +167,7 @@ def download():
     elif job.done():
         try:
             df = job.result()
-        except Exception as e:
+        except Exception:
             flash("Preprocessing failed / did not output anything useful!", "danger")
             return redirect(url_for('input_processing.main'))
 
@@ -167,19 +182,22 @@ def download():
         # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
 
         df['filename'] = df['filepath'].apply(lambda x: os.path.basename(x))
-        df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4()), axis=1)
-        
+        df['id'] = df.apply(lambda x: x['filename'] +
+                            '$' + str(uuid.uuid4()), axis=1)
+
         # add metadata column with json structure. Add the current date and time as preprocessing key in the json structure
-        df['metadata'] = df.apply(lambda x: {'preprocessing': {'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}, axis=1)
+        df['metadata'] = df.apply(lambda x: {'preprocessing': {
+                                  'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}, axis=1)
 
         # Optionally, you can drop the 'filename' column if you don't need it anymore
         df.drop(columns=['filename'], inplace=True)
 
-
         # Function to add files to a zip file
+
         def add_files_to_zip(zipf, files, ids):
             for file, file_id in zip(files, ids):
-                zipf.write(file, f"{file_id}.{os.path.basename(file).split('.')[-1]}")
+                zipf.write(file, f"{file_id}.{
+                           os.path.basename(file).split('.')[-1]}")
                 # os.remove(file)sss
 
         # Add dataframe as CSV to zip
@@ -188,26 +206,27 @@ def download():
             with tempfile.TemporaryDirectory() as temp_dir:
                 csv_filename = f'preprocessed_{job_id}.csv'
                 csv_filepath = os.path.join(temp_dir, csv_filename)
-                
+
                 # Drop unnecessary columns and save the dataframe to a CSV file
                 df.drop(columns=['filepath'], inplace=True)
                 df.to_csv(csv_filepath, index=False)
-                
+
                 # Write the CSV file to the zip archive
                 zipf.write(csv_filepath, arcname=csv_filename)
 
         files_to_zip = df['filepath'].tolist()
         ids = df['id'].tolist()
 
-
         # Split rows containing more than max_length letters
         split_rows = []
         for index, row in df.iterrows():
             if len(row['report']) > max_length:
-                num_splits = (len(row['report']) + max_length - 1) // max_length
+                num_splits = (len(row['report']) +
+                              max_length - 1) // max_length
                 for i in range(num_splits):
                     split_row = row.copy()
-                    split_row['report'] = row['report'][i * max_length: (i + 1) * max_length]
+                    split_row['report'] = row['report'][i *
+                                                        max_length: (i + 1) * max_length]
                     split_row['id'] = f'{row["id"]}_{i}'
                     split_rows.append(split_row)
             else:
@@ -224,7 +243,6 @@ def download():
             add_dataframe_to_zip(zipf, df_split)
 
         zip_buffer.seek(0)
-
 
         # result_io = io.BytesIO()
         # df_split.to_csv(result_io, index=False)
@@ -245,7 +263,7 @@ def download():
     else:
         flash(f"Job {job}: An unknown error occurred!", "danger")
         return redirect(url_for('input_processing.main'))
-    
+
 
 @input_processing.route("/", methods=['GET', 'POST'])
 def main():
@@ -255,7 +273,10 @@ def main():
 
     if form.validate_on_submit():
 
-        job_id = secrets.token_urlsafe()
+        current_datetime = datetime.now()
+        prefix = current_datetime.strftime("%Y%m%d%H%M")
+
+        job_id = f"{form.text_split.data}-{prefix}-" + secrets.token_urlsafe(8)
 
         temp_dir = tempfile.mkdtemp()
 
@@ -271,7 +292,8 @@ def main():
                 print("File saved:", file_path)
                 file_paths.append(file_path)
 
-        update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
+        update_progress(job_id=job_id, progress=(
+            0, len(form.files.data), True))
 
         global jobs
         jobs[job_id] = executor.submit(
@@ -284,8 +306,7 @@ def main():
 
         flash('Upload Successful!', "success")
         return redirect(url_for('input_processing.main'))
-    
+
     global job_progress
 
     return render_template("index.html", title="LLM Anonymizer", form=form, progress=job_progress)
-
