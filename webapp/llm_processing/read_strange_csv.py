@@ -13,7 +13,6 @@ def read_and_save_csv(input_file, output_file_path):
     data = []
     print(type(input_file))
     # Get the path of the input file
-    input_file_path = input_file
 
     # Read the file line by line directly from the FileStorage object
     input_file.stream.seek(0)  # Ensure we're reading from the beginning
@@ -29,5 +28,3 @@ def read_and_save_csv(input_file, output_file_path):
     # Save the DataFrame to a new CSV file
     df.to_csv(output_file_path, index=False, encoding='utf-8')
     print(f'File saved successfully to {output_file_path}')
-
-

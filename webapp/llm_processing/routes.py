@@ -3,7 +3,7 @@ import tempfile
 import zipfile
 from . import llm_processing
 from .. import socketio
-from flask import render_template, current_app, flash, request, redirect, send_file, url_for, session
+from flask import render_template, current_app, flash, request, redirect, send_file, url_for
 from .forms import LLMPipelineForm
 import requests
 import pandas as pd
@@ -55,7 +55,7 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
     global llm_progress
 
     # Initialize llm_progress dictionary if not already initialized
-    if not 'llm_progress' in globals():
+    if 'llm_progress' not in globals():
         llm_progress = {}
 
     # Update progress dictionary
@@ -278,7 +278,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                     info_dict[key] = value
 
             print(f"Successfully parsed LLM output. ({content=})")
-        except Exception as e:
+        except Exception:
             print(
                 f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
             print(f"Will ignore the error for report {i} and continue.")

@@ -1,8 +1,13 @@
+import math
+from thefuzz.fuzz import QRatio, WRatio
+from thefuzz import process
+import re
 import zipfile
 import fitz
 import io
 
 import pandas as pd
+
 
 def convert_personal_info_list(personal_info_list) -> None:
     import ast
@@ -19,8 +24,9 @@ def convert_personal_info_list(personal_info_list) -> None:
             continue
 
         personal_info_list_output.append(info)
-    
+
     return personal_info_list_output
+
 
 def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None, fuzzy_matches: list[tuple[str, int]] = []) -> io.BytesIO | None:
     """
@@ -43,7 +49,8 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
     elif isinstance(input_pdf, io.BytesIO):
         pdf_document = fitz.open(stream=input_pdf.read(), filetype="pdf")
     else:
-        raise ValueError("Input PDF must be either a file path or a BytesIO object.")
+        raise ValueError(
+            "Input PDF must be either a file path or a BytesIO object.")
 
     # Iterate through each page of the PDF
     for page_number in range(len(pdf_document)):
@@ -87,31 +94,27 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
         pdf_document.save(output_pdf_path)
         pdf_document.close()
 
-import math
-def is_empty_string_nan_or_none(variable) -> bool:
-        """
-        Check if the input variable is None, an empty string, or a string containing only whitespace or '?', or a NaN float value.
-        
-        :param variable: The input variable to check.
-        :return: True if the variable is None, an empty string, a string with only whitespace or '?', or a NaN float value, False otherwise.
-        :rtype: bool
-        """
-        if variable is None:
-            return True
-        elif isinstance(variable, str) and ( variable.strip() == "" or variable.isspace() or variable == "?"):
-            return True
-        elif isinstance(variable, float) and math.isnan(variable):
-            return True
-        elif isinstance(variable, str):
-            return False
-        else:
-            print(f"WARNING: Removed {variable} from list.")
-            return True
-        
 
-import re
-from thefuzz import process
-from thefuzz.fuzz import QRatio, WRatio
+def is_empty_string_nan_or_none(variable) -> bool:
+    """
+    Check if the input variable is None, an empty string, or a string containing only whitespace or '?', or a NaN float value.
+
+    :param variable: The input variable to check.
+    :return: True if the variable is None, an empty string, a string with only whitespace or '?', or a NaN float value, False otherwise.
+    :rtype: bool
+    """
+    if variable is None:
+        return True
+    elif isinstance(variable, str) and (variable.strip() == "" or variable.isspace() or variable == "?"):
+        return True
+    elif isinstance(variable, float) and math.isnan(variable):
+        return True
+    elif isinstance(variable, str):
+        return False
+    else:
+        print(f"WARNING: Removed {variable} from list.")
+        return True
+
 
 def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'):
     # Create a list to store tuples of match positions
@@ -131,7 +134,8 @@ def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'
 
     return text
 
-def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_matches: list[str,int], fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■", ignore_short_sequences: int = 0) -> str:
+
+def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_matches: list[str, int], fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■", ignore_short_sequences: int = 0) -> str:
     """
     Replace personal information in the given text with asterisks.
 
@@ -149,7 +153,8 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_m
     personal_info_list = [item for item in personal_info_list if item != ""]
     masked_text = text
 
-    assert len(replacement_char) == 1, "replacement_char must be a single character"
+    assert len(
+        replacement_char) == 1, "replacement_char must be a single character"
 
     # Replace remaining personal information with asterisks (*)
     # for info in personal_info_list:
@@ -186,29 +191,32 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_m
     #                 # else:
     #                 #     # masked_text = re.sub(f"\\b{re.escape(match)}\\b", replacement_char * len(match), masked_text)
     #                 #     masked_text = re.sub(re.escape(match_text), lambda match: replacement_char * len(match.group(0)), masked_text)
-    
+
     # breakpoint()
 
     personal_info_list = personal_info_list + fuzzy_list
 
     print("PERSONAL INFORMATION LIST: " + ', '.join(personal_info_list))
-    print("FUZZY LIST: "+ ', '.join(fuzzy_list))
+    print("FUZZY LIST: " + ', '.join(fuzzy_list))
 
     if ignore_short_sequences > 0:
         print("IGNORE SEQUENCES SHORTER THAN ", ignore_short_sequences)
-        personal_info_list = [item for item in personal_info_list if len(item) > ignore_short_sequences]
+        personal_info_list = [item for item in personal_info_list if len(
+            item) > ignore_short_sequences]
 
-    masked_text = replace_text_with_placeholder(masked_text, personal_info_list, replacement_char=replacement_char)
+    masked_text = replace_text_with_placeholder(
+        masked_text, personal_info_list, replacement_char=replacement_char)
 
     return masked_text
+
 
 def read_preprocessed_csv_from_zip(zip_file: str) -> pd.DataFrame | None:
     """
     A function that reads a preprocessed CSV file from a zip file and returns it as a Pandas DataFrame.
-    
+
     Parameters:
     zip_file (str): The path to the zip file containing the preprocessed CSV file.
-    
+
     Returns:
     pandas.DataFrame or None: The preprocessed CSV data as a DataFrame if found, else None.
     """
@@ -220,12 +228,14 @@ def read_preprocessed_csv_from_zip(zip_file: str) -> pd.DataFrame | None:
                 return df
     return None
 
-def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int = 90, scorer = "WRatio") -> list[str]:
+
+def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int = 90, scorer="WRatio") -> list[str]:
     fuzzy_matches = []
+
     def meets_split_criteria(substring):
         # Split if substring has at least 3 characters or at least 4 digits
         return len(substring) >= 3 or (len(re.findall(r'\d', substring)) >= 4)
-    
+
     if scorer == "QRatio":
         scorer = QRatio
     elif scorer == "WRatio":
@@ -237,16 +247,16 @@ def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int 
         if is_empty_string_nan_or_none(info):
             continue
 
-        for substring in re.findall(r'\b\w+\b', info):  # Using regex to split by word boundaries
+        # Using regex to split by word boundaries
+        for substring in re.findall(r'\b\w+\b', info):
             if meets_split_criteria(substring):
                 # Get a list of best matches for the current personal information from the text
-                best_matches = process.extract(substring, text.split(), scorer=scorer)
+                best_matches = process.extract(
+                    substring, text.split(), scorer=scorer)
                 best_score = best_matches[0][1]
                 for match, score in best_matches:
                     if score == best_score and score >= threshold:
                         print(f"match: {match}, score: {score}")
                         fuzzy_matches.append((match, score))
 
-            
-        
     return list(set(fuzzy_matches))  # remove duplicates

@@ -1,4 +1,5 @@
 from concurrent import futures
+from datetime import datetime
 import io
 import json
 import os
@@ -148,7 +149,13 @@ def main():
                 flash('No CSV file found in the uploaded file!', 'danger')
                 return redirect(request.url)
 
-            job_id = secrets.token_urlsafe()
+            current_datetime = datetime.now()
+            prefix = current_datetime.strftime("%Y%m%d%H%M")
+
+            import ast
+            model_name = ast.literal_eval(df['metadata'].iloc[0])['llm_processing']['model_name']
+
+            job_id = "reportredaction_" + model_name.replace('_', '-').replace(' ', '') + "_" + prefix + "_" + secrets.token_urlsafe(8)
             update_progress(job_id=job_id, progress=(0, len(df), True))
 
             # report_list = generate_report_list(df, job_id, session['pdf_file_zip'], session['annotation_file'])
@@ -303,7 +310,7 @@ def accumulate_metrics(report_list):
                'recall', 'accuracy', 'f1_score', 'specificity', 'false_positive_rate', 'false_negative_rate']
 
     for index, report_dict in enumerate(report_list):
-        if not 'scores' in report_dict:
+        if 'scores' not in report_dict:
             print("No scores in report ", index, ". Skip")
             breakpoint()
             continue
@@ -499,8 +506,18 @@ def download_all():
 
         # Redirect to the generated URL
         return redirect(request.url)
+    
+    job_result = report_redaction_jobs[job_id].result()
 
-    df = generate_export_df(report_redaction_jobs[job_id].result())
+    df = generate_export_df(job_result)
+
+    column_names = df.columns.tolist()
+
+    # Create a DataFrame with the metadata and dictionary as a row
+    metadata_row = pd.DataFrame([["metadata", job_result['metadata']]], columns=column_names[:2])
+
+    # Concatenate the new row DataFrame with the original DataFrame
+    df = pd.concat([df, metadata_row], ignore_index=True)
 
     csv_buffer = io.BytesIO()
     df.to_csv(csv_buffer, index=False, float_format='%.4f')
@@ -510,7 +527,7 @@ def download_all():
     return send_file(
         csv_buffer,
         as_attachment=True,
-        download_name=f'report_redaction_job_{job_id}.csv',
+        download_name=f'{job_id}.csv',
         mimetype='text/csv'
     )
 
