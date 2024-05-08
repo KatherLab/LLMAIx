@@ -1,0 +1,3066 @@
+{
+  "%TYPES" : {
+    "custom.Span" : {
+      "%NAME" : "custom.Span",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "label" : {
+        "%NAME" : "label",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.clarin.webanno.api.type.FeatureDefinition" : {
+      "%NAME" : "de.tudarmstadt.ukp.clarin.webanno.api.type.FeatureDefinition",
+      "%SUPER_TYPE" : "uima.cas.TOP",
+      "layer" : {
+        "%NAME" : "layer",
+        "%RANGE" : "de.tudarmstadt.ukp.clarin.webanno.api.type.LayerDefinition"
+      },
+      "name" : {
+        "%NAME" : "name",
+        "%RANGE" : "uima.cas.String"
+      },
+      "uiName" : {
+        "%NAME" : "uiName",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.clarin.webanno.api.type.LayerDefinition" : {
+      "%NAME" : "de.tudarmstadt.ukp.clarin.webanno.api.type.LayerDefinition",
+      "%SUPER_TYPE" : "uima.cas.TOP",
+      "name" : {
+        "%NAME" : "name",
+        "%RANGE" : "uima.cas.String"
+      },
+      "uiName" : {
+        "%NAME" : "uiName",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.morph.MorphologicalFeatures" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.morph.MorphologicalFeatures",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "gender" : {
+        "%NAME" : "gender",
+        "%RANGE" : "uima.cas.String"
+      },
+      "number" : {
+        "%NAME" : "number",
+        "%RANGE" : "uima.cas.String"
+      },
+      "case" : {
+        "%NAME" : "case",
+        "%RANGE" : "uima.cas.String"
+      },
+      "degree" : {
+        "%NAME" : "degree",
+        "%RANGE" : "uima.cas.String"
+      },
+      "verbForm" : {
+        "%NAME" : "verbForm",
+        "%RANGE" : "uima.cas.String"
+      },
+      "tense" : {
+        "%NAME" : "tense",
+        "%RANGE" : "uima.cas.String"
+      },
+      "mood" : {
+        "%NAME" : "mood",
+        "%RANGE" : "uima.cas.String"
+      },
+      "voice" : {
+        "%NAME" : "voice",
+        "%RANGE" : "uima.cas.String"
+      },
+      "definiteness" : {
+        "%NAME" : "definiteness",
+        "%RANGE" : "uima.cas.String"
+      },
+      "value" : {
+        "%NAME" : "value",
+        "%RANGE" : "uima.cas.String"
+      },
+      "person" : {
+        "%NAME" : "person",
+        "%RANGE" : "uima.cas.String"
+      },
+      "aspect" : {
+        "%NAME" : "aspect",
+        "%RANGE" : "uima.cas.String"
+      },
+      "animacy" : {
+        "%NAME" : "animacy",
+        "%RANGE" : "uima.cas.String"
+      },
+      "negative" : {
+        "%NAME" : "negative",
+        "%RANGE" : "uima.cas.String"
+      },
+      "numType" : {
+        "%NAME" : "numType",
+        "%RANGE" : "uima.cas.String"
+      },
+      "possessive" : {
+        "%NAME" : "possessive",
+        "%RANGE" : "uima.cas.String"
+      },
+      "pronType" : {
+        "%NAME" : "pronType",
+        "%RANGE" : "uima.cas.String"
+      },
+      "reflex" : {
+        "%NAME" : "reflex",
+        "%RANGE" : "uima.cas.String"
+      },
+      "transitivity" : {
+        "%NAME" : "transitivity",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "PosValue" : {
+        "%NAME" : "PosValue",
+        "%RANGE" : "uima.cas.String"
+      },
+      "coarseValue" : {
+        "%NAME" : "coarseValue",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData",
+      "%SUPER_TYPE" : "uima.tcas.DocumentAnnotation",
+      "documentTitle" : {
+        "%NAME" : "documentTitle",
+        "%RANGE" : "uima.cas.String"
+      },
+      "documentId" : {
+        "%NAME" : "documentId",
+        "%RANGE" : "uima.cas.String"
+      },
+      "documentUri" : {
+        "%NAME" : "documentUri",
+        "%RANGE" : "uima.cas.String"
+      },
+      "collectionId" : {
+        "%NAME" : "collectionId",
+        "%RANGE" : "uima.cas.String"
+      },
+      "documentBaseUri" : {
+        "%NAME" : "documentBaseUri",
+        "%RANGE" : "uima.cas.String"
+      },
+      "isLastSegment" : {
+        "%NAME" : "isLastSegment",
+        "%RANGE" : "uima.cas.Boolean"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagDescription" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagDescription",
+      "%SUPER_TYPE" : "uima.cas.TOP",
+      "name" : {
+        "%NAME" : "name",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagsetDescription" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagsetDescription",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "layer" : {
+        "%NAME" : "layer",
+        "%RANGE" : "uima.cas.String"
+      },
+      "name" : {
+        "%NAME" : "name",
+        "%RANGE" : "uima.cas.String"
+      },
+      "tags" : {
+        "%NAME" : "tags",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagDescription[]"
+      },
+      "componentName" : {
+        "%NAME" : "componentName",
+        "%RANGE" : "uima.cas.String"
+      },
+      "modelLocation" : {
+        "%NAME" : "modelLocation",
+        "%RANGE" : "uima.cas.String"
+      },
+      "modelVariant" : {
+        "%NAME" : "modelVariant",
+        "%RANGE" : "uima.cas.String"
+      },
+      "modelLanguage" : {
+        "%NAME" : "modelLanguage",
+        "%RANGE" : "uima.cas.String"
+      },
+      "modelVersion" : {
+        "%NAME" : "modelVersion",
+        "%RANGE" : "uima.cas.String"
+      },
+      "input" : {
+        "%NAME" : "input",
+        "%RANGE" : "uima.cas.Boolean"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "value" : {
+        "%NAME" : "value",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "id" : {
+        "%NAME" : "id",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Stem" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Stem",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "value" : {
+        "%NAME" : "value",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "parent" : {
+        "%NAME" : "parent",
+        "%RANGE" : "uima.tcas.Annotation"
+      },
+      "lemma" : {
+        "%NAME" : "lemma",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Lemma"
+      },
+      "stem" : {
+        "%NAME" : "stem",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Stem"
+      },
+      "pos" : {
+        "%NAME" : "pos",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.pos.POS"
+      },
+      "morph" : {
+        "%NAME" : "morph",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.lexmorph.type.morph.MorphologicalFeatures"
+      },
+      "id" : {
+        "%NAME" : "id",
+        "%RANGE" : "uima.cas.String"
+      },
+      "form" : {
+        "%NAME" : "form",
+        "%RANGE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.TokenForm"
+      },
+      "syntacticFunction" : {
+        "%NAME" : "syntacticFunction",
+        "%RANGE" : "uima.cas.String"
+      },
+      "order" : {
+        "%NAME" : "order",
+        "%RANGE" : "uima.cas.Integer"
+      }
+    },
+    "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.TokenForm" : {
+      "%NAME" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.TokenForm",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "value" : {
+        "%NAME" : "value",
+        "%RANGE" : "uima.cas.String"
+      }
+    },
+    "org.dkpro.core.api.pdf.type.PdfChunk" : {
+      "%NAME" : "org.dkpro.core.api.pdf.type.PdfChunk",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "d" : {
+        "%NAME" : "d",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "x" : {
+        "%NAME" : "x",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "y" : {
+        "%NAME" : "y",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "w" : {
+        "%NAME" : "w",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "h" : {
+        "%NAME" : "h",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "c" : {
+        "%NAME" : "c",
+        "%RANGE" : "uima.cas.IntegerArray",
+        "%ELEMENT_TYPE" : "uima.cas.Integer"
+      },
+      "g" : {
+        "%NAME" : "g",
+        "%RANGE" : "uima.cas.FloatArray",
+        "%ELEMENT_TYPE" : "uima.cas.Float"
+      }
+    },
+    "org.dkpro.core.api.pdf.type.PdfPage" : {
+      "%NAME" : "org.dkpro.core.api.pdf.type.PdfPage",
+      "%SUPER_TYPE" : "uima.tcas.Annotation",
+      "width" : {
+        "%NAME" : "width",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "height" : {
+        "%NAME" : "height",
+        "%RANGE" : "uima.cas.Float"
+      },
+      "pageNumber" : {
+        "%NAME" : "pageNumber",
+        "%RANGE" : "uima.cas.Integer"
+      }
+    }
+  },
+  "%FEATURE_STRUCTURES" : [ {
+    "%ID" : 1,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 159,
+    "end" : 164,
+    "label" : "patientenvorname"
+  }, {
+    "%ID" : 3,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 165,
+    "end" : 169,
+    "label" : "patientennachname"
+  }, {
+    "%ID" : 4,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 179,
+    "end" : 193,
+    "label" : "patientengeburtsdatum"
+  }, {
+    "%ID" : 5,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 207,
+    "end" : 216,
+    "label" : "patientenstrasse"
+  }, {
+    "%ID" : 6,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 217,
+    "end" : 218,
+    "label" : "patientenhausnummer"
+  }, {
+    "%ID" : 7,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 220,
+    "end" : 225,
+    "label" : "patientenpostleitzahl"
+  }, {
+    "%ID" : 8,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 226,
+    "end" : 232,
+    "label" : "patientenstadt"
+  }, {
+    "%ID" : 9,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 251,
+    "end" : 257,
+    "label" : "patientenid"
+  }, {
+    "%ID" : 10,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 368,
+    "end" : 372,
+    "label" : "patientennachname"
+  }, {
+    "%ID" : 11,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 159,
+    "end" : 169,
+    "label" : "patientenname"
+  }, {
+    "%ID" : 12,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 961,
+    "end" : 965,
+    "label" : "patientennachname"
+  }, {
+    "%ID" : 13,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 1142,
+    "end" : 1146,
+    "label" : "patientennachname"
+  }, {
+    "%ID" : 14,
+    "%TYPE" : "custom.Span",
+    "@sofa" : 2,
+    "begin" : 1248,
+    "end" : 1252,
+    "label" : "patientennachname"
+  }, {
+    "%ID" : 15,
+    "%TYPE" : "de.tudarmstadt.ukp.clarin.webanno.api.type.FeatureDefinition",
+    "@layer" : 16,
+    "name" : "label",
+    "uiName" : "Label"
+  }, {
+    "%ID" : 17,
+    "%TYPE" : "de.tudarmstadt.ukp.clarin.webanno.api.type.FeatureDefinition",
+    "@layer" : 18,
+    "name" : "label",
+    "uiName" : "Label"
+  }, {
+    "%ID" : 16,
+    "%TYPE" : "de.tudarmstadt.ukp.clarin.webanno.api.type.LayerDefinition",
+    "name" : "custom.Relation",
+    "uiName" : "Relation"
+  }, {
+    "%ID" : 18,
+    "%TYPE" : "de.tudarmstadt.ukp.clarin.webanno.api.type.LayerDefinition",
+    "name" : "custom.Span",
+    "uiName" : "Span"
+  }, {
+    "%ID" : 19,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData",
+    "@sofa" : 2,
+    "begin" : 0,
+    "end" : 1529,
+    "language" : "x-unspecified",
+    "documentTitle" : "Report_AlenaBank.pdf",
+    "documentId" : "Report_AlenaBank.pdf",
+    "documentUri" : "file:/C:/Users/lessmanma/.inception/repository/project/2/document/515/source/Report_AlenaBank.pdf",
+    "collectionId" : "file:/C:/Users/lessmanma/.inception/repository/project/2/document/515/source/",
+    "documentBaseUri" : "file:/C:/Users/lessmanma/.inception/repository/project/2/document/515/source/",
+    "isLastSegment" : false
+  }, {
+    "%ID" : 20,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagsetDescription",
+    "@sofa" : 2,
+    "begin" : 0,
+    "end" : 0,
+    "layer" : "custom.Relation",
+    "name" : "Relation labels",
+    "input" : false
+  }, {
+    "%ID" : 21,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.metadata.type.TagsetDescription",
+    "@sofa" : 2,
+    "begin" : 0,
+    "end" : 0,
+    "layer" : "custom.Span",
+    "name" : "Span labels",
+    "input" : false
+  }, {
+    "%ID" : 22,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 4,
+    "end" : 19
+  }, {
+    "%ID" : 23,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 20,
+    "end" : 158
+  }, {
+    "%ID" : 24,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 159,
+    "end" : 346
+  }, {
+    "%ID" : 25,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 351,
+    "end" : 367
+  }, {
+    "%ID" : 26,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 368,
+    "end" : 467
+  }, {
+    "%ID" : 27,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 468,
+    "end" : 523
+  }, {
+    "%ID" : 28,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 524,
+    "end" : 579
+  }, {
+    "%ID" : 29,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 584,
+    "end" : 709
+  }, {
+    "%ID" : 30,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 710,
+    "end" : 766
+  }, {
+    "%ID" : 31,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 771,
+    "end" : 812
+  }, {
+    "%ID" : 32,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 817,
+    "end" : 902
+  }, {
+    "%ID" : 33,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 903,
+    "end" : 960
+  }, {
+    "%ID" : 34,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 961,
+    "end" : 1000
+  }, {
+    "%ID" : 35,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1005,
+    "end" : 1136
+  }, {
+    "%ID" : 36,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1137,
+    "end" : 1141
+  }, {
+    "%ID" : 37,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1142,
+    "end" : 1218
+  }, {
+    "%ID" : 38,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1223,
+    "end" : 1247
+  }, {
+    "%ID" : 39,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1248,
+    "end" : 1448
+  }, {
+    "%ID" : 40,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1453,
+    "end" : 1474
+  }, {
+    "%ID" : 41,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1475,
+    "end" : 1510
+  }, {
+    "%ID" : 42,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Sentence",
+    "@sofa" : 2,
+    "begin" : 1511,
+    "end" : 1517
+  }, {
+    "%ID" : 43,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 4,
+    "end" : 5,
+    "order" : 0
+  }, {
+    "%ID" : 44,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 5,
+    "end" : 15,
+    "order" : 0
+  }, {
+    "%ID" : 45,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 16,
+    "end" : 18,
+    "order" : 0
+  }, {
+    "%ID" : 46,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 18,
+    "end" : 19,
+    "order" : 0
+  }, {
+    "%ID" : 47,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 20,
+    "end" : 26,
+    "order" : 0
+  }, {
+    "%ID" : 48,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 26,
+    "end" : 27,
+    "order" : 0
+  }, {
+    "%ID" : 49,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 31,
+    "end" : 32,
+    "order" : 0
+  }, {
+    "%ID" : 50,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 32,
+    "end" : 41,
+    "order" : 0
+  }, {
+    "%ID" : 51,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 42,
+    "end" : 45,
+    "order" : 0
+  }, {
+    "%ID" : 52,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 45,
+    "end" : 46,
+    "order" : 0
+  }, {
+    "%ID" : 53,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 47,
+    "end" : 49,
+    "order" : 0
+  }, {
+    "%ID" : 54,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 49,
+    "end" : 50,
+    "order" : 0
+  }, {
+    "%ID" : 55,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 54,
+    "end" : 55,
+    "order" : 0
+  }, {
+    "%ID" : 56,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 55,
+    "end" : 60,
+    "order" : 0
+  }, {
+    "%ID" : 57,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 61,
+    "end" : 67,
+    "order" : 0
+  }, {
+    "%ID" : 58,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 67,
+    "end" : 68,
+    "order" : 0
+  }, {
+    "%ID" : 59,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 72,
+    "end" : 73,
+    "order" : 0
+  }, {
+    "%ID" : 60,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 73,
+    "end" : 76,
+    "order" : 0
+  }, {
+    "%ID" : 61,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 76,
+    "end" : 77,
+    "order" : 0
+  }, {
+    "%ID" : 62,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 78,
+    "end" : 83,
+    "order" : 0
+  }, {
+    "%ID" : 63,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 83,
+    "end" : 84,
+    "order" : 0
+  }, {
+    "%ID" : 64,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 84,
+    "end" : 89,
+    "order" : 0
+  }, {
+    "%ID" : 65,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 89,
+    "end" : 90,
+    "order" : 0
+  }, {
+    "%ID" : 66,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 94,
+    "end" : 95,
+    "order" : 0
+  }, {
+    "%ID" : 67,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 95,
+    "end" : 101,
+    "order" : 0
+  }, {
+    "%ID" : 68,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 101,
+    "end" : 102,
+    "order" : 0
+  }, {
+    "%ID" : 69,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 103,
+    "end" : 107,
+    "order" : 0
+  }, {
+    "%ID" : 70,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 107,
+    "end" : 108,
+    "order" : 0
+  }, {
+    "%ID" : 71,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 108,
+    "end" : 120,
+    "order" : 0
+  }, {
+    "%ID" : 72,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 120,
+    "end" : 121,
+    "order" : 0
+  }, {
+    "%ID" : 73,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 126,
+    "end" : 133,
+    "order" : 0
+  }, {
+    "%ID" : 74,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 134,
+    "end" : 140,
+    "order" : 0
+  }, {
+    "%ID" : 75,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 145,
+    "end" : 152,
+    "order" : 0
+  }, {
+    "%ID" : 76,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 152,
+    "end" : 153,
+    "order" : 0
+  }, {
+    "%ID" : 77,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 154,
+    "end" : 157,
+    "order" : 0
+  }, {
+    "%ID" : 78,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 157,
+    "end" : 158,
+    "order" : 0
+  }, {
+    "%ID" : 79,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 159,
+    "end" : 164,
+    "order" : 0
+  }, {
+    "%ID" : 80,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 165,
+    "end" : 169,
+    "order" : 0
+  }, {
+    "%ID" : 81,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 169,
+    "end" : 170,
+    "order" : 0
+  }, {
+    "%ID" : 82,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 171,
+    "end" : 175,
+    "order" : 0
+  }, {
+    "%ID" : 83,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 176,
+    "end" : 178,
+    "order" : 0
+  }, {
+    "%ID" : 84,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 179,
+    "end" : 184,
+    "order" : 0
+  }, {
+    "%ID" : 85,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 185,
+    "end" : 187,
+    "order" : 0
+  }, {
+    "%ID" : 86,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 187,
+    "end" : 188,
+    "order" : 0
+  }, {
+    "%ID" : 87,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 189,
+    "end" : 193,
+    "order" : 0
+  }, {
+    "%ID" : 88,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 193,
+    "end" : 194,
+    "order" : 0
+  }, {
+    "%ID" : 89,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 195,
+    "end" : 203,
+    "order" : 0
+  }, {
+    "%ID" : 90,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 204,
+    "end" : 206,
+    "order" : 0
+  }, {
+    "%ID" : 91,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 207,
+    "end" : 216,
+    "order" : 0
+  }, {
+    "%ID" : 92,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 217,
+    "end" : 218,
+    "order" : 0
+  }, {
+    "%ID" : 93,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 218,
+    "end" : 219,
+    "order" : 0
+  }, {
+    "%ID" : 94,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 220,
+    "end" : 225,
+    "order" : 0
+  }, {
+    "%ID" : 95,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 226,
+    "end" : 232,
+    "order" : 0
+  }, {
+    "%ID" : 96,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 232,
+    "end" : 233,
+    "order" : 0
+  }, {
+    "%ID" : 97,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 236,
+    "end" : 243,
+    "order" : 0
+  }, {
+    "%ID" : 98,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 244,
+    "end" : 250,
+    "order" : 0
+  }, {
+    "%ID" : 99,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 251,
+    "end" : 257,
+    "order" : 0
+  }, {
+    "%ID" : 100,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 257,
+    "end" : 258,
+    "order" : 0
+  }, {
+    "%ID" : 101,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 259,
+    "end" : 262,
+    "order" : 0
+  }, {
+    "%ID" : 102,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 263,
+    "end" : 271,
+    "order" : 0
+  }, {
+    "%ID" : 103,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 272,
+    "end" : 274,
+    "order" : 0
+  }, {
+    "%ID" : 104,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 275,
+    "end" : 278,
+    "order" : 0
+  }, {
+    "%ID" : 105,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 279,
+    "end" : 287,
+    "order" : 0
+  }, {
+    "%ID" : 106,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 288,
+    "end" : 291,
+    "order" : 0
+  }, {
+    "%ID" : 107,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 292,
+    "end" : 293,
+    "order" : 0
+  }, {
+    "%ID" : 108,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 294,
+    "end" : 309,
+    "order" : 0
+  }, {
+    "%ID" : 109,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 310,
+    "end" : 313,
+    "order" : 0
+  }, {
+    "%ID" : 110,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 314,
+    "end" : 316,
+    "order" : 0
+  }, {
+    "%ID" : 111,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 319,
+    "end" : 330,
+    "order" : 0
+  }, {
+    "%ID" : 112,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 331,
+    "end" : 345,
+    "order" : 0
+  }, {
+    "%ID" : 113,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 345,
+    "end" : 346,
+    "order" : 0
+  }, {
+    "%ID" : 114,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 351,
+    "end" : 358,
+    "order" : 0
+  }, {
+    "%ID" : 115,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 358,
+    "end" : 359,
+    "order" : 0
+  }, {
+    "%ID" : 116,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 363,
+    "end" : 366,
+    "order" : 0
+  }, {
+    "%ID" : 117,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 366,
+    "end" : 367,
+    "order" : 0
+  }, {
+    "%ID" : 118,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 368,
+    "end" : 372,
+    "order" : 0
+  }, {
+    "%ID" : 119,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 373,
+    "end" : 383,
+    "order" : 0
+  }, {
+    "%ID" : 120,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 384,
+    "end" : 386,
+    "order" : 0
+  }, {
+    "%ID" : 121,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 387,
+    "end" : 396,
+    "order" : 0
+  }, {
+    "%ID" : 122,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 397,
+    "end" : 402,
+    "order" : 0
+  }, {
+    "%ID" : 123,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 403,
+    "end" : 408,
+    "order" : 0
+  }, {
+    "%ID" : 124,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 409,
+    "end" : 417,
+    "order" : 0
+  }, {
+    "%ID" : 125,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 418,
+    "end" : 427,
+    "order" : 0
+  }, {
+    "%ID" : 126,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 428,
+    "end" : 432,
+    "order" : 0
+  }, {
+    "%ID" : 127,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 432,
+    "end" : 433,
+    "order" : 0
+  }, {
+    "%ID" : 128,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 434,
+    "end" : 446,
+    "order" : 0
+  }, {
+    "%ID" : 129,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 447,
+    "end" : 452,
+    "order" : 0
+  }, {
+    "%ID" : 130,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 455,
+    "end" : 460,
+    "order" : 0
+  }, {
+    "%ID" : 131,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 461,
+    "end" : 466,
+    "order" : 0
+  }, {
+    "%ID" : 132,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 466,
+    "end" : 467,
+    "order" : 0
+  }, {
+    "%ID" : 133,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 468,
+    "end" : 473,
+    "order" : 0
+  }, {
+    "%ID" : 134,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 474,
+    "end" : 482,
+    "order" : 0
+  }, {
+    "%ID" : 135,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 483,
+    "end" : 491,
+    "order" : 0
+  }, {
+    "%ID" : 136,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 492,
+    "end" : 498,
+    "order" : 0
+  }, {
+    "%ID" : 137,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 499,
+    "end" : 502,
+    "order" : 0
+  }, {
+    "%ID" : 138,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 503,
+    "end" : 513,
+    "order" : 0
+  }, {
+    "%ID" : 139,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 514,
+    "end" : 522,
+    "order" : 0
+  }, {
+    "%ID" : 140,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 522,
+    "end" : 523,
+    "order" : 0
+  }, {
+    "%ID" : 141,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 524,
+    "end" : 527,
+    "order" : 0
+  }, {
+    "%ID" : 142,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 528,
+    "end" : 536,
+    "order" : 0
+  }, {
+    "%ID" : 143,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 537,
+    "end" : 540,
+    "order" : 0
+  }, {
+    "%ID" : 144,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 543,
+    "end" : 554,
+    "order" : 0
+  }, {
+    "%ID" : 145,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 555,
+    "end" : 559,
+    "order" : 0
+  }, {
+    "%ID" : 146,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 560,
+    "end" : 563,
+    "order" : 0
+  }, {
+    "%ID" : 147,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 564,
+    "end" : 568,
+    "order" : 0
+  }, {
+    "%ID" : 148,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 569,
+    "end" : 572,
+    "order" : 0
+  }, {
+    "%ID" : 149,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 573,
+    "end" : 578,
+    "order" : 0
+  }, {
+    "%ID" : 150,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 578,
+    "end" : 579,
+    "order" : 0
+  }, {
+    "%ID" : 151,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 584,
+    "end" : 592,
+    "order" : 0
+  }, {
+    "%ID" : 152,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 592,
+    "end" : 593,
+    "order" : 0
+  }, {
+    "%ID" : 153,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 597,
+    "end" : 599,
+    "order" : 0
+  }, {
+    "%ID" : 154,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 600,
+    "end" : 610,
+    "order" : 0
+  }, {
+    "%ID" : 155,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 611,
+    "end" : 622,
+    "order" : 0
+  }, {
+    "%ID" : 156,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 623,
+    "end" : 625,
+    "order" : 0
+  }, {
+    "%ID" : 157,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 626,
+    "end" : 629,
+    "order" : 0
+  }, {
+    "%ID" : 158,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 630,
+    "end" : 637,
+    "order" : 0
+  }, {
+    "%ID" : 159,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 638,
+    "end" : 647,
+    "order" : 0
+  }, {
+    "%ID" : 160,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 648,
+    "end" : 656,
+    "order" : 0
+  }, {
+    "%ID" : 161,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 657,
+    "end" : 667,
+    "order" : 0
+  }, {
+    "%ID" : 162,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 668,
+    "end" : 672,
+    "order" : 0
+  }, {
+    "%ID" : 163,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 673,
+    "end" : 678,
+    "order" : 0
+  }, {
+    "%ID" : 164,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 679,
+    "end" : 681,
+    "order" : 0
+  }, {
+    "%ID" : 165,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 684,
+    "end" : 695,
+    "order" : 0
+  }, {
+    "%ID" : 166,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 696,
+    "end" : 708,
+    "order" : 0
+  }, {
+    "%ID" : 167,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 708,
+    "end" : 709,
+    "order" : 0
+  }, {
+    "%ID" : 168,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 710,
+    "end" : 715,
+    "order" : 0
+  }, {
+    "%ID" : 169,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 716,
+    "end" : 720,
+    "order" : 0
+  }, {
+    "%ID" : 170,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 721,
+    "end" : 723,
+    "order" : 0
+  }, {
+    "%ID" : 171,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 724,
+    "end" : 729,
+    "order" : 0
+  }, {
+    "%ID" : 172,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 730,
+    "end" : 732,
+    "order" : 0
+  }, {
+    "%ID" : 173,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 733,
+    "end" : 737,
+    "order" : 0
+  }, {
+    "%ID" : 174,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 738,
+    "end" : 742,
+    "order" : 0
+  }, {
+    "%ID" : 175,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 743,
+    "end" : 749,
+    "order" : 0
+  }, {
+    "%ID" : 176,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 750,
+    "end" : 752,
+    "order" : 0
+  }, {
+    "%ID" : 177,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 753,
+    "end" : 765,
+    "order" : 0
+  }, {
+    "%ID" : 178,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 765,
+    "end" : 766,
+    "order" : 0
+  }, {
+    "%ID" : 179,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 771,
+    "end" : 780,
+    "order" : 0
+  }, {
+    "%ID" : 180,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 780,
+    "end" : 781,
+    "order" : 0
+  }, {
+    "%ID" : 181,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 785,
+    "end" : 796,
+    "order" : 0
+  }, {
+    "%ID" : 182,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 797,
+    "end" : 811,
+    "order" : 0
+  }, {
+    "%ID" : 183,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 811,
+    "end" : 812,
+    "order" : 0
+  }, {
+    "%ID" : 184,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 817,
+    "end" : 826,
+    "order" : 0
+  }, {
+    "%ID" : 185,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 826,
+    "end" : 827,
+    "order" : 0
+  }, {
+    "%ID" : 186,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 831,
+    "end" : 832,
+    "order" : 0
+  }, {
+    "%ID" : 187,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 833,
+    "end" : 845,
+    "order" : 0
+  }, {
+    "%ID" : 188,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 846,
+    "end" : 861,
+    "order" : 0
+  }, {
+    "%ID" : 189,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 862,
+    "end" : 865,
+    "order" : 0
+  }, {
+    "%ID" : 190,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 866,
+    "end" : 875,
+    "order" : 0
+  }, {
+    "%ID" : 191,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 876,
+    "end" : 878,
+    "order" : 0
+  }, {
+    "%ID" : 192,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 879,
+    "end" : 885,
+    "order" : 0
+  }, {
+    "%ID" : 193,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 886,
+    "end" : 889,
+    "order" : 0
+  }, {
+    "%ID" : 194,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 890,
+    "end" : 901,
+    "order" : 0
+  }, {
+    "%ID" : 195,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 901,
+    "end" : 902,
+    "order" : 0
+  }, {
+    "%ID" : 196,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 903,
+    "end" : 906,
+    "order" : 0
+  }, {
+    "%ID" : 197,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 907,
+    "end" : 916,
+    "order" : 0
+  }, {
+    "%ID" : 198,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 919,
+    "end" : 928,
+    "order" : 0
+  }, {
+    "%ID" : 199,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 929,
+    "end" : 936,
+    "order" : 0
+  }, {
+    "%ID" : 200,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 937,
+    "end" : 950,
+    "order" : 0
+  }, {
+    "%ID" : 201,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 950,
+    "end" : 951,
+    "order" : 0
+  }, {
+    "%ID" : 202,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 952,
+    "end" : 955,
+    "order" : 0
+  }, {
+    "%ID" : 203,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 956,
+    "end" : 959,
+    "order" : 0
+  }, {
+    "%ID" : 204,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 959,
+    "end" : 960,
+    "order" : 0
+  }, {
+    "%ID" : 205,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 961,
+    "end" : 965,
+    "order" : 0
+  }, {
+    "%ID" : 206,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 966,
+    "end" : 975,
+    "order" : 0
+  }, {
+    "%ID" : 207,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 976,
+    "end" : 980,
+    "order" : 0
+  }, {
+    "%ID" : 208,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 981,
+    "end" : 985,
+    "order" : 0
+  }, {
+    "%ID" : 209,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 986,
+    "end" : 989,
+    "order" : 0
+  }, {
+    "%ID" : 210,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 990,
+    "end" : 999,
+    "order" : 0
+  }, {
+    "%ID" : 211,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 999,
+    "end" : 1000,
+    "order" : 0
+  }, {
+    "%ID" : 212,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1005,
+    "end" : 1014,
+    "order" : 0
+  }, {
+    "%ID" : 213,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1014,
+    "end" : 1015,
+    "order" : 0
+  }, {
+    "%ID" : 214,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1021,
+    "end" : 1034,
+    "order" : 0
+  }, {
+    "%ID" : 215,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1035,
+    "end" : 1043,
+    "order" : 0
+  }, {
+    "%ID" : 216,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1044,
+    "end" : 1047,
+    "order" : 0
+  }, {
+    "%ID" : 217,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1048,
+    "end" : 1055,
+    "order" : 0
+  }, {
+    "%ID" : 218,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1056,
+    "end" : 1058,
+    "order" : 0
+  }, {
+    "%ID" : 219,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1059,
+    "end" : 1066,
+    "order" : 0
+  }, {
+    "%ID" : 220,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1067,
+    "end" : 1070,
+    "order" : 0
+  }, {
+    "%ID" : 221,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1071,
+    "end" : 1078,
+    "order" : 0
+  }, {
+    "%ID" : 222,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1079,
+    "end" : 1086,
+    "order" : 0
+  }, {
+    "%ID" : 223,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1087,
+    "end" : 1090,
+    "order" : 0
+  }, {
+    "%ID" : 224,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1091,
+    "end" : 1097,
+    "order" : 0
+  }, {
+    "%ID" : 225,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1098,
+    "end" : 1102,
+    "order" : 0
+  }, {
+    "%ID" : 226,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1103,
+    "end" : 1105,
+    "order" : 0
+  }, {
+    "%ID" : 227,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1108,
+    "end" : 1115,
+    "order" : 0
+  }, {
+    "%ID" : 228,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1116,
+    "end" : 1129,
+    "order" : 0
+  }, {
+    "%ID" : 229,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1130,
+    "end" : 1135,
+    "order" : 0
+  }, {
+    "%ID" : 230,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1135,
+    "end" : 1136,
+    "order" : 0
+  }, {
+    "%ID" : 231,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1137,
+    "end" : 1140,
+    "order" : 0
+  }, {
+    "%ID" : 232,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1140,
+    "end" : 1141,
+    "order" : 0
+  }, {
+    "%ID" : 233,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1142,
+    "end" : 1146,
+    "order" : 0
+  }, {
+    "%ID" : 234,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1147,
+    "end" : 1149,
+    "order" : 0
+  }, {
+    "%ID" : 235,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1150,
+    "end" : 1157,
+    "order" : 0
+  }, {
+    "%ID" : 236,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1158,
+    "end" : 1160,
+    "order" : 0
+  }, {
+    "%ID" : 237,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1161,
+    "end" : 1167,
+    "order" : 0
+  }, {
+    "%ID" : 238,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1168,
+    "end" : 1171,
+    "order" : 0
+  }, {
+    "%ID" : 239,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1172,
+    "end" : 1176,
+    "order" : 0
+  }, {
+    "%ID" : 240,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1177,
+    "end" : 1179,
+    "order" : 0
+  }, {
+    "%ID" : 241,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1180,
+    "end" : 1187,
+    "order" : 0
+  }, {
+    "%ID" : 242,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1188,
+    "end" : 1194,
+    "order" : 0
+  }, {
+    "%ID" : 243,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1197,
+    "end" : 1208,
+    "order" : 0
+  }, {
+    "%ID" : 244,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1209,
+    "end" : 1217,
+    "order" : 0
+  }, {
+    "%ID" : 245,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1217,
+    "end" : 1218,
+    "order" : 0
+  }, {
+    "%ID" : 246,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1223,
+    "end" : 1238,
+    "order" : 0
+  }, {
+    "%ID" : 247,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1238,
+    "end" : 1239,
+    "order" : 0
+  }, {
+    "%ID" : 248,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1243,
+    "end" : 1246,
+    "order" : 0
+  }, {
+    "%ID" : 249,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1246,
+    "end" : 1247,
+    "order" : 0
+  }, {
+    "%ID" : 250,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1248,
+    "end" : 1252,
+    "order" : 0
+  }, {
+    "%ID" : 251,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1253,
+    "end" : 1255,
+    "order" : 0
+  }, {
+    "%ID" : 252,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1256,
+    "end" : 1263,
+    "order" : 0
+  }, {
+    "%ID" : 253,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1264,
+    "end" : 1266,
+    "order" : 0
+  }, {
+    "%ID" : 254,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1267,
+    "end" : 1273,
+    "order" : 0
+  }, {
+    "%ID" : 255,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1274,
+    "end" : 1275,
+    "order" : 0
+  }, {
+    "%ID" : 256,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1276,
+    "end" : 1283,
+    "order" : 0
+  }, {
+    "%ID" : 257,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1284,
+    "end" : 1288,
+    "order" : 0
+  }, {
+    "%ID" : 258,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1289,
+    "end" : 1292,
+    "order" : 0
+  }, {
+    "%ID" : 259,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1293,
+    "end" : 1302,
+    "order" : 0
+  }, {
+    "%ID" : 260,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1303,
+    "end" : 1310,
+    "order" : 0
+  }, {
+    "%ID" : 261,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1311,
+    "end" : 1320,
+    "order" : 0
+  }, {
+    "%ID" : 262,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1321,
+    "end" : 1333,
+    "order" : 0
+  }, {
+    "%ID" : 263,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1334,
+    "end" : 1336,
+    "order" : 0
+  }, {
+    "%ID" : 264,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1339,
+    "end" : 1342,
+    "order" : 0
+  }, {
+    "%ID" : 265,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1343,
+    "end" : 1351,
+    "order" : 0
+  }, {
+    "%ID" : 266,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1352,
+    "end" : 1354,
+    "order" : 0
+  }, {
+    "%ID" : 267,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1355,
+    "end" : 1362,
+    "order" : 0
+  }, {
+    "%ID" : 268,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1363,
+    "end" : 1366,
+    "order" : 0
+  }, {
+    "%ID" : 269,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1367,
+    "end" : 1374,
+    "order" : 0
+  }, {
+    "%ID" : 270,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1375,
+    "end" : 1381,
+    "order" : 0
+  }, {
+    "%ID" : 271,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1382,
+    "end" : 1388,
+    "order" : 0
+  }, {
+    "%ID" : 272,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1389,
+    "end" : 1392,
+    "order" : 0
+  }, {
+    "%ID" : 273,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1393,
+    "end" : 1401,
+    "order" : 0
+  }, {
+    "%ID" : 274,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1402,
+    "end" : 1405,
+    "order" : 0
+  }, {
+    "%ID" : 275,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1406,
+    "end" : 1410,
+    "order" : 0
+  }, {
+    "%ID" : 276,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1411,
+    "end" : 1413,
+    "order" : 0
+  }, {
+    "%ID" : 277,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1414,
+    "end" : 1421,
+    "order" : 0
+  }, {
+    "%ID" : 278,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1422,
+    "end" : 1434,
+    "order" : 0
+  }, {
+    "%ID" : 279,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1437,
+    "end" : 1447,
+    "order" : 0
+  }, {
+    "%ID" : 280,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1447,
+    "end" : 1448,
+    "order" : 0
+  }, {
+    "%ID" : 281,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1453,
+    "end" : 1457,
+    "order" : 0
+  }, {
+    "%ID" : 282,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1458,
+    "end" : 1465,
+    "order" : 0
+  }, {
+    "%ID" : 283,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1465,
+    "end" : 1466,
+    "order" : 0
+  }, {
+    "%ID" : 284,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1471,
+    "end" : 1473,
+    "order" : 0
+  }, {
+    "%ID" : 285,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1473,
+    "end" : 1474,
+    "order" : 0
+  }, {
+    "%ID" : 286,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1475,
+    "end" : 1479,
+    "order" : 0
+  }, {
+    "%ID" : 287,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1480,
+    "end" : 1486,
+    "order" : 0
+  }, {
+    "%ID" : 288,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1490,
+    "end" : 1497,
+    "order" : 0
+  }, {
+    "%ID" : 289,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1498,
+    "end" : 1506,
+    "order" : 0
+  }, {
+    "%ID" : 290,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1507,
+    "end" : 1509,
+    "order" : 0
+  }, {
+    "%ID" : 291,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1509,
+    "end" : 1510,
+    "order" : 0
+  }, {
+    "%ID" : 292,
+    "%TYPE" : "de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token",
+    "@sofa" : 2,
+    "begin" : 1511,
+    "end" : 1517,
+    "order" : 0
+  }, {
+    "%ID" : 293,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 4,
+    "end" : 29,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 88.70001220703125,
+    "w" : 113.87801361083984,
+    "h" : 12.0,
+    "@c" : 294,
+    "@g" : 295
+  }, {
+    "%ID" : 296,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 31,
+    "end" : 52,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 103.3399658203125,
+    "w" : 98.03800201416016,
+    "h" : 12.0,
+    "@c" : 297,
+    "@g" : 298
+  }, {
+    "%ID" : 299,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 54,
+    "end" : 70,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 117.97998046875,
+    "w" : 74.49800872802734,
+    "h" : 12.0,
+    "@c" : 300,
+    "@g" : 301
+  }, {
+    "%ID" : 302,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 72,
+    "end" : 92,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 132.64996337890625,
+    "w" : 97.79801177978516,
+    "h" : 12.0,
+    "@c" : 303,
+    "@g" : 304
+  }, {
+    "%ID" : 305,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 94,
+    "end" : 122,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 147.28997802734375,
+    "w" : 140.27801513671875,
+    "h" : 12.0,
+    "@c" : 306,
+    "@g" : 307
+  }, {
+    "%ID" : 308,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 126,
+    "end" : 141,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 177.04998779296875,
+    "w" : 79.53800201416016,
+    "h" : 12.0,
+    "@c" : 309,
+    "@g" : 310
+  }, {
+    "%ID" : 311,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 145,
+    "end" : 234,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 207.04998779296875,
+    "w" : 437.9882507324219,
+    "h" : 12.0,
+    "@c" : 312,
+    "@g" : 313
+  }, {
+    "%ID" : 314,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 236,
+    "end" : 317,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 221.7099609375,
+    "w" : 408.7559509277344,
+    "h" : 12.0,
+    "@c" : 315,
+    "@g" : 316
+  }, {
+    "%ID" : 317,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 319,
+    "end" : 347,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 236.3499755859375,
+    "w" : 134.99801635742188,
+    "h" : 12.0,
+    "@c" : 318,
+    "@g" : 319
+  }, {
+    "%ID" : 320,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 351,
+    "end" : 361,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 266.3499755859375,
+    "w" : 44.977996826171875,
+    "h" : 12.0,
+    "@c" : 321,
+    "@g" : 322
+  }, {
+    "%ID" : 323,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 363,
+    "end" : 453,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 281.22998046875,
+    "w" : 443.5557556152344,
+    "h" : 12.0,
+    "@c" : 324,
+    "@g" : 325
+  }, {
+    "%ID" : 326,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 455,
+    "end" : 541,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 295.8699951171875,
+    "w" : 444.2398986816406,
+    "h" : 12.0,
+    "@c" : 327,
+    "@g" : 328
+  }, {
+    "%ID" : 329,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 543,
+    "end" : 580,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 310.53997802734375,
+    "w" : 175.10800170898438,
+    "h" : 12.0,
+    "@c" : 330,
+    "@g" : 331
+  }, {
+    "%ID" : 332,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 584,
+    "end" : 595,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 340.29998779296875,
+    "w" : 50.25799560546875,
+    "h" : 12.0,
+    "@c" : 333,
+    "@g" : 334
+  }, {
+    "%ID" : 335,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 597,
+    "end" : 682,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 355.17999267578125,
+    "w" : 427.43798828125,
+    "h" : 12.0,
+    "@c" : 336,
+    "@g" : 337
+  }, {
+    "%ID" : 338,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 684,
+    "end" : 767,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 370.05999755859375,
+    "w" : 397.89801025390625,
+    "h" : 12.0,
+    "@c" : 339,
+    "@g" : 340
+  }, {
+    "%ID" : 341,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 771,
+    "end" : 783,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 399.8399963378906,
+    "w" : 56.49799346923828,
+    "h" : 12.0,
+    "@c" : 342,
+    "@g" : 343
+  }, {
+    "%ID" : 344,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 785,
+    "end" : 813,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 414.719970703125,
+    "w" : 135.718017578125,
+    "h" : 12.0,
+    "@c" : 345,
+    "@g" : 346
+  }, {
+    "%ID" : 347,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 817,
+    "end" : 829,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 444.719970703125,
+    "w" : 61.77800750732422,
+    "h" : 12.0,
+    "@c" : 348,
+    "@g" : 349
+  }, {
+    "%ID" : 350,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 831,
+    "end" : 917,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 459.5999755859375,
+    "w" : 438.756103515625,
+    "h" : 12.0,
+    "@c" : 351,
+    "@g" : 352
+  }, {
+    "%ID" : 353,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 919,
+    "end" : 1001,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 474.239990234375,
+    "w" : 419.0379943847656,
+    "h" : 12.0,
+    "@c" : 354,
+    "@g" : 355
+  }, {
+    "%ID" : 356,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1005,
+    "end" : 1017,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 504.0199890136719,
+    "w" : 58.89800262451172,
+    "h" : 12.000030517578125,
+    "@c" : 357,
+    "@g" : 358
+  }, {
+    "%ID" : 359,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1021,
+    "end" : 1106,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 519.1399536132812,
+    "w" : 421.2120056152344,
+    "h" : 12.0,
+    "@c" : 360,
+    "@g" : 361
+  }, {
+    "%ID" : 362,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1108,
+    "end" : 1195,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 533.7799682617188,
+    "w" : 415.4040222167969,
+    "h" : 12.0,
+    "@c" : 363,
+    "@g" : 364
+  }, {
+    "%ID" : 365,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1197,
+    "end" : 1219,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 548.4199829101562,
+    "w" : 109.07801055908203,
+    "h" : 12.0,
+    "@c" : 366,
+    "@g" : 367
+  }, {
+    "%ID" : 368,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1223,
+    "end" : 1241,
+    "d" : 0.0,
+    "x" : 71.06400299072266,
+    "y" : 578.2099609375,
+    "w" : 102.3580093383789,
+    "h" : 12.0,
+    "@c" : 369,
+    "@g" : 370
+  }, {
+    "%ID" : 371,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1243,
+    "end" : 1337,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 593.0899658203125,
+    "w" : 455.1858825683594,
+    "h" : 12.0,
+    "@c" : 372,
+    "@g" : 373
+  }, {
+    "%ID" : 374,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1339,
+    "end" : 1435,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 607.72998046875,
+    "w" : 452.8659362792969,
+    "h" : 12.0,
+    "@c" : 375,
+    "@g" : 376
+  }, {
+    "%ID" : 377,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1437,
+    "end" : 1449,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 622.3699951171875,
+    "w" : 59.37799835205078,
+    "h" : 12.0,
+    "@c" : 378,
+    "@g" : 379
+  }, {
+    "%ID" : 380,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1453,
+    "end" : 1467,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 652.1300048828125,
+    "w" : 66.81800079345703,
+    "h" : 12.0,
+    "@c" : 381,
+    "@g" : 382
+  }, {
+    "%ID" : 383,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1471,
+    "end" : 1488,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 681.6699829101562,
+    "w" : 82.89800262451172,
+    "h" : 12.0,
+    "@c" : 384,
+    "@g" : 385
+  }, {
+    "%ID" : 386,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1490,
+    "end" : 1518,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 696.3099975585938,
+    "w" : 135.47799682617188,
+    "h" : 12.0,
+    "@c" : 387,
+    "@g" : 388
+  }, {
+    "%ID" : 389,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfChunk",
+    "@sofa" : 2,
+    "begin" : 1522,
+    "end" : 1523,
+    "d" : 0.0,
+    "x" : 70.8239974975586,
+    "y" : 726.0700073242188,
+    "w" : 2.7119979858398438,
+    "h" : 12.0,
+    "@c" : 390,
+    "@g" : 391
+  }, {
+    "%ID" : 392,
+    "%TYPE" : "org.dkpro.core.api.pdf.type.PdfPage",
+    "@sofa" : 2,
+    "begin" : 0,
+    "end" : 1529,
+    "width" : 595.2000122070312,
+    "height" : 841.9199829101562,
+    "pageNumber" : 0
+  }, {
+    "%ID" : 295,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42399597167969, 81.37199401855469, 85.46399688720703, 90.25199127197266, 94.31998443603516, 100.55998992919922, 104.6399917602539, 110.38799285888672, 115.6679916381836, 118.30799102783203, 123.09599304199219, 125.73599243164062, 133.16400146484375, 137.24400329589844, 140.3520050048828, 142.99200439453125, 153.3000030517578, 159.54000854492188, 162.4080047607422, 165.04800415039062, 171.0240020751953, 175.1280059814453, 178.9560089111328, 181.99000549316406 ]
+  }, {
+    "%ID" : 298,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42399597167969, 81.85198974609375, 85.93199157714844, 91.90798950195312, 96.7199935913086, 102.95999908447266, 108.93599700927734, 115.19999694824219, 121.17599487304688, 125.27999877929688, 127.91999816894531, 133.42799377441406, 137.50799560546875, 141.58799743652344, 144.6959991455078, 147.33599853515625, 153.56399536132812, 159.56399536132812, 163.16400146484375, 166.14999389648438 ]
+  }, {
+    "%ID" : 301,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42399597167969, 80.42399597167969, 86.42399597167969, 92.65199279785156, 98.65199279785156, 104.65199279785156, 107.51998901367188, 113.99999237060547, 119.97599029541016, 124.07999420166016, 126.947998046875, 129.58799743652344, 135.8280029296875, 139.656005859375, 142.61000061035156 ]
+  }, {
+    "%ID" : 304,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42399597167969, 80.18399810791016, 86.15999603271484, 88.8239974975586, 92.17200469970703, 94.81200408935547, 100.81200408935547, 107.04000091552734, 113.04000091552734, 119.04000091552734, 125.33000183105469, 128.92999267578125, 134.92999267578125, 141.15798950195312, 147.15798950195312, 153.15798950195312, 159.385986328125, 162.98599243164062, 165.91000366210938 ]
+  }, {
+    "%ID" : 307,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42399597167969, 80.18399810791016, 83.78399658203125, 94.09199523925781, 99.83999633789062, 102.72000122070312, 105.36000061035156, 108.4800033569336, 111.3479995727539, 113.98799896240234, 120.2280044555664, 124.0560073852539, 130.29600524902344, 141.08399963378906, 147.32400512695312, 151.4040069580078, 160.99200439453125, 167.24400329589844, 173.4720001220703, 176.22999572753906, 178.8699951171875, 184.8459930419922, 188.9499969482422, 192.05799865722656, 198.29800415039062, 204.5260009765625, 208.38999938964844 ]
+  }, {
+    "%ID" : 310,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 81.61199951171875, 87.61199951171875, 94.08000183105469, 96.96000671386719, 101.97600555419922, 107.98800659179688, 110.93000030517578, 113.56999969482422, 120.29000091552734, 126.29000091552734, 132.7580108642578, 139.21400451660156, 143.54600524902344, 147.88999938964844 ]
+  }, {
+    "%ID" : 313,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.02799987792969, 82.81200408935547, 86.87999725341797, 89.5199966430664, 95.4959945678711, 101.75999450683594, 105.82798767089844, 108.94799041748047, 111.5879898071289, 121.89598846435547, 125.97599029541016, 130.76397705078125, 133.87197875976562, 136.51197814941406, 143.45997619628906, 146.11196899414062, 152.0879669189453, 158.3519744873047, 164.0999755859375, 166.75198364257812, 173.2319793701172, 178.97998046875, 185.2319793701172, 190.97998046875, 193.8599853515625, 196.49998474121094, 202.96798706054688, 209.20799255371094, 213.28799438476562, 219.75599670410156, 222.39599609375, 228.63600158691406, 234.87600708007812, 237.51600646972656, 247.82400512695312, 253.81201171875, 257.8919982910156, 262.9319763183594, 269.1719665527344, 272.03997802734375, 278.03997802734375, 284.03997802734375, 287.1479797363281, 289.7879943847656, 295.7879943847656, 302.0160217285156, 308.0160217285156, 314.2440490722656, 317.1240539550781, 319.7640686035156, 323.84405517578125, 329.820068359375, 334.6320495605469, 337.2720642089844, 343.74005126953125, 346.38006591796875, 352.62005615234375, 358.3680725097656, 361.0080871582031, 366.7560729980469, 370.8360595703125, 373.47607421875, 379.4640808105469, 385.7040710449219, 388.3440856933594, 394.5840759277344, 400.5600891113281, 406.8240661621094, 415.4520568847656, 421.4280700683594, 427.2000732421875, 429.840087890625, 436.068115234375, 438.9481201171875, 441.588134765625, 447.816162109375, 453.816162109375, 459.816162109375, 466.044189453125, 472.044189453125, 474.6842041015625, 481.1642150878906, 487.1402282714844, 491.47222900390625, 494.11224365234375, 496.9802551269531, 503.2202453613281, 506.1002502441406 ]
+  }, {
+    "%ID" : 316,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.06400299072266, 82.81200408935547, 86.89199829101562, 89.53199768066406, 95.50799560546875, 101.7719955444336, 105.8399887084961, 108.47998809814453, 114.7199935913086, 120.95999908447266, 130.54800415039062, 136.8000030517578, 143.0279998779297, 147.10800170898438, 149.7480010986328, 155.9759979248047, 161.9759979248047, 167.9759979248047, 174.20399475097656, 180.20399475097656, 186.20399475097656, 189.31199645996094, 191.95199584960938, 200.5800018310547, 206.3280029296875, 211.1280059814453, 213.76800537109375, 219.51600646972656, 225.76800537109375, 235.3560028076172, 238.00799560546875, 242.0760040283203, 246.14401245117188, 252.12001037597656, 258.3840026855469, 261.0240173339844, 265.0920104980469, 271.3320007324219, 274.20001220703125, 280.44000244140625, 286.67999267578125, 290.98797607421875, 293.62799072265625, 299.86798095703125, 303.9479675292969, 309.6959533691406, 314.9759521484375, 319.0439453125, 321.6839599609375, 326.72393798828125, 332.699951171875, 335.36395263671875, 338.9639587402344, 345.4319763183594, 349.511962890625, 352.1519775390625, 357.89996337890625, 360.5519714355469, 365.8199462890625, 372.0599365234375, 378.2999267578125, 380.93994140625, 386.91595458984375, 391.991943359375, 397.4879455566406, 402.27593994140625, 406.34393310546875, 412.3199462890625, 417.39593505859375, 421.4519348144531, 427.6919250488281, 437.2799377441406, 442.7999572753906, 445.4399719238281, 451.6799621582031, 457.9199523925781, 463.8959655761719, 466.5599670410156, 470.6279602050781, 476.8679504394531 ]
+  }, {
+    "%ID" : 319,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 75.61199951171875, 81.1199951171875, 90.70799255371094, 96.95999908447266, 101.02799224853516, 107.26799011230469, 116.85598754882812, 122.60398864746094, 126.69598388671875, 129.3359832763672, 134.37599182128906, 137.0159912109375, 142.05599975585938, 148.29600524902344, 154.5360107421875, 157.17601013183594, 163.4040069580078, 166.04400634765625, 168.6840057373047, 172.75201416015625, 179.2200164794922, 181.86001586914062, 187.60801696777344, 192.40802001953125, 195.0480194091797, 199.8360137939453, 203.11000061035156 ]
+  }, {
+    "%ID" : 322,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 78.73200225830078, 81.61200714111328, 86.40000915527344, 90.49201202392578, 96.94801330566406, 101.28001403808594, 107.02801513671875, 110.69000244140625, 113.33000183105469 ]
+  }, {
+    "%ID" : 325,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 81.13199615478516, 85.21199798583984, 90.0, 93.10800170898438, 95.74800109863281, 102.2280044555664, 107.97600555419922, 114.22801208496094, 119.73600769042969, 122.37600708007812, 127.41600799560547, 133.656005859375, 143.24400329589844, 149.49600219726562, 152.13600158691406, 158.12400817871094, 160.76400756835938, 167.00401306152344, 172.98001098632812, 179.2440185546875, 182.11203002929688, 188.35203552246094, 191.95204162597656, 194.82005310058594, 198.90005493164062, 204.8760528564453, 209.95205688476562, 216.1800537109375, 220.48805236816406, 224.56805419921875, 230.54405212402344, 236.8080596923828, 240.87606811523438, 243.5160675048828, 247.82406616210938, 250.4640655517578, 256.2120666503906, 262.4520568847656, 266.5200500488281, 269.1600646972656, 275.4000549316406, 281.8680419921875, 288.1080322265625, 294.08404541015625, 298.1880187988281, 300.8280334472656, 307.2960205078125, 313.7640075683594, 319.79998779296875, 326.03997802734375, 330.1199645996094, 335.8679504394531, 342.11993408203125, 346.18792724609375, 348.82794189453125, 354.575927734375, 360.8279113769531, 367.2958984375, 373.535888671875, 383.1239013671875, 385.7759094238281, 392.0158996582031, 398.0038757324219, 400.6438903808594, 403.2839050292969, 409.5238952636719, 415.5118713378906, 418.1518859863281, 424.619873046875, 427.4998779296875, 430.139892578125, 436.3798828125, 442.36785888671875, 446.4478454589844, 450.5158386230469, 453.1558532714844, 458.1958312988281, 464.663818359375, 467.3038330078125, 473.05181884765625, 477.143798828125, 479.7838134765625, 485.29180908203125, 487.93182373046875, 493.9197998046875, 497.5198059082031, 501.5877990722656, 507.5638122558594, 511.66778564453125 ]
+  }, {
+    "%ID" : 328,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42400360107422, 80.17200469970703, 84.25199890136719, 88.31999206542969, 93.82798767089844, 96.46798706054688, 106.05598449707031, 112.031982421875, 117.81598663330078, 120.45598602294922, 125.24398803710938, 128.35198974609375, 130.9919891357422, 138.9359893798828, 142.97999572753906, 149.22000122070312, 155.1959991455078, 159.3000030517578, 161.94000244140625, 166.72799682617188, 172.2360076904297, 181.82400512695312, 188.0760040283203, 192.14401245117188, 198.38401794433594, 207.97201538085938, 212.7720184326172, 215.41201782226562, 218.05201721191406, 224.29202270507812, 229.33203125, 231.97203063964844, 238.2120361328125, 244.45204162597656, 250.42803955078125, 256.9200134277344, 259.5600280761719, 265.8000183105469, 271.5480041503906, 277.79998779296875, 282.5879821777344, 288.5639953613281, 294.3359680175781, 296.9759826660156, 302.7239685058594, 308.9759521484375, 315.4439392089844, 318.0839538574219, 324.3239440917969, 329.3639221191406, 334.4039001464844, 340.1518859863281, 344.9518737792969, 347.5918884277344, 354.0599060058594, 360.2998962402344, 366.0478820800781, 368.69989013671875, 371.33990478515625, 376.8479309082031, 383.0879211425781, 392.9159240722656, 395.5559387207031, 399.6239318847656, 402.2639465332031, 408.5039367675781, 414.251953125, 417.3599548339844, 419.9999694824219, 425.75994873046875, 431.99993896484375, 437.9759521484375, 440.63995361328125, 445.4279479980469, 450.9359436035156, 460.5239562988281, 466.77593994140625, 470.84393310546875, 477.08392333984375, 486.67193603515625, 491.471923828125, 494.1119384765625, 500.3519287109375, 506.09991455078125, 512.3519287109375 ]
+  }, {
+    "%ID" : 331,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 73.46399688720703, 79.7040023803711, 83.7719955444336, 89.74799346923828, 96.01199340820312, 100.79999542236328, 103.43999481201172, 107.04000091552734, 109.68000030517578, 115.90799713134766, 122.14800262451172, 124.78800201416016, 131.0279998779297, 136.53599548339844, 142.51199340820312, 146.61599731445312, 149.25599670410156, 153.32400512695312, 159.5640106201172, 165.79200744628906, 168.4320068359375, 171.07200622558594, 176.82000732421875, 181.62001037597656, 185.68801879882812, 188.32801818847656, 191.9280242919922, 197.90402221679688, 206.5560302734375, 209.19602966308594, 217.82403564453125, 223.80003356933594, 229.81202697753906, 235.32003784179688, 240.1080322265625, 243.22000122070312 ]
+  }, {
+    "%ID" : 334,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 76.57200622558594, 79.4640121459961, 85.93201446533203, 92.40001678466797, 95.28002166748047, 101.7480239868164, 107.49602508544922, 112.28402709960938, 115.97000122070312, 118.61000061035156 ]
+  }, {
+    "%ID" : 337,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.7719955444336, 84.02400207519531, 86.66400146484375, 92.90400695800781, 95.54400634765625, 99.61199951171875, 103.69200134277344, 109.44000244140625, 114.24000549316406, 120.70800018310547, 126.94800567626953, 133.18800354003906, 139.42800903320312, 142.06800842285156, 148.04400634765625, 153.33599853515625, 159.08399963378906, 168.6719970703125, 171.56399536132812, 177.8040008544922, 183.552001953125, 187.6320037841797, 190.27200317382812, 196.5120086669922, 202.98001098632812, 205.62001037597656, 211.86001586914062, 215.68801879882812, 218.32801818847656, 222.39602661132812, 228.6360321044922, 234.61203002929688, 237.27603149414062, 243.02403259277344, 249.27603149414062, 255.74403381347656, 261.9840087890625, 271.572021484375, 277.54803466796875, 283.8480224609375, 286.4640197753906, 291.5039978027344, 297.9720153808594, 304.2120056152344, 307.81201171875, 310.6800231933594, 314.9880065917969, 324.5760192871094, 330.5520324707031, 336.8520202636719, 339.468017578125, 349.0560302734375, 355.3080139160156, 357.9480285644531, 362.0160217285156, 364.884033203125, 371.1240234375, 373.7640380859375, 379.74005126953125, 382.404052734375, 388.1520690917969, 393.9000549316406, 396.7800598144531, 399.4200744628906, 404.20806884765625, 408.27606201171875, 414.51605224609375, 420.75604248046875, 426.7320556640625, 431.5440368652344, 434.1840515136719, 442.8120422363281, 445.4520568847656, 449.5200500488281, 455.7600402832031, 458.4000549316406, 463.18804931640625, 465.82806396484375, 471.5760803222656, 477.8160705566406, 482.60406494140625, 485.7099914550781, 491.9499816894531, 495.54998779296875 ]
+  }, {
+    "%ID" : 340,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 76.5719985961914, 82.31999969482422, 84.97200012207031, 87.61199951171875, 93.85200500488281, 96.49200439453125, 102.24000549316406, 108.72000885009766, 114.96001434326172, 120.9360122680664, 125.0400161743164, 127.90801239013672, 130.5480194091797, 136.78802490234375, 140.61602783203125, 143.2560272216797, 149.0040283203125, 158.59202575683594, 168.18002319335938, 173.96401977539062, 178.0320281982422, 180.67202758789062, 186.9120330810547, 193.15203857421875, 196.26004028320312, 199.1280517578125, 204.88804626464844, 211.1280517578125, 217.1040496826172, 221.2080535888672, 227.18405151367188, 229.84805297851562, 238.47605895996094, 244.45205688476562, 248.55606079101562, 254.7840576171875, 257.424072265625, 263.6640625, 269.904052734375, 272.5440673828125, 277.5720520019531, 280.2120666503906, 285.9600830078125, 292.2000732421875, 296.9880676269531, 299.6280822753906, 305.8680725097656, 309.46807861328125, 312.3360900878906, 318.5760803222656, 321.2160949707031, 323.8561096191406, 329.8321228027344, 332.72412109375, 338.964111328125, 345.2041015625, 350.24407958984375, 354.31207275390625, 356.95208740234375, 361.7400817871094, 365.8080749511719, 372.0480651855469, 378.2880554199219, 384.2640686035156, 389.0760498046875, 391.716064453125, 398.18408203125, 402.2640686035156, 404.9040832519531, 411.1440734863281, 416.8920593261719, 423.14404296875, 428.4120178222656, 432.49200439453125, 438.468017578125, 444.239990234375, 448.3079833984375, 450.947998046875, 455.0159912109375, 457.656005859375, 462.4440002441406, 466.010009765625 ]
+  }, {
+    "%ID" : 343,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 78.73200225830078, 81.61200714111328, 87.60000610351562, 93.34800720214844, 99.81600952148438, 106.27201080322266, 111.08401489257812, 113.96401977539062, 118.75202178955078, 122.44999694824219, 124.8499984741211 ]
+  }, {
+    "%ID" : 346,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 76.33200073242188, 81.85199737548828, 91.43999481201172, 97.69200134277344, 101.75999450683594, 107.99999237060547, 117.5879898071289, 123.33599090576172, 127.42798614501953, 130.0679931640625, 135.10800170898438, 137.7480010986328, 142.7880096435547, 149.02801513671875, 155.4960174560547, 158.13601684570312, 164.1120147705078, 167.00401306152344, 169.64401245117188, 173.71202087402344, 179.9520263671875, 182.59202575683594, 188.34002685546875, 193.14002990722656, 195.780029296875, 200.56802368164062, 203.8300018310547 ]
+  }, {
+    "%ID" : 349,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 77.052001953125, 81.36000061035156, 87.36000061035156, 93.3479995727539, 97.4280014038086, 107.2560043334961, 113.2560043334961, 119.72400665283203, 123.80400848388672, 127.48999786376953, 130.1300048828125 ]
+  }, {
+    "%ID" : 352,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.7719955444336, 80.42399597167969, 83.06399536132812, 88.81199645996094, 95.06400299072266, 100.81200408935547, 105.13201141357422, 111.37200927734375, 116.1600112915039, 121.20000457763672, 127.44000244140625, 133.6800079345703, 136.54800415039062, 141.5880126953125, 144.22801208496094, 149.2680206298828, 155.73602294921875, 161.9760284423828, 164.61602783203125, 170.59202575683594, 175.66802978515625, 181.16403198242188, 185.9520263671875, 190.02003479003906, 195.99603271484375, 201.07203674316406, 205.12803649902344, 211.3680419921875, 220.95603942871094, 226.47604370117188, 229.1160430908203, 237.74404907226562, 243.49205017089844, 248.29205322265625, 250.9320526123047, 257.17205810546875, 263.1480712890625, 267.2520446777344, 270.85205078125, 277.092041015625, 281.1720275878906, 290.7600402832031, 296.7360534667969, 303.24005126953125, 305.88006591796875, 309.94805908203125, 316.18804931640625, 318.82806396484375, 322.9080505371094, 328.8840637207031, 338.4720764160156, 344.7480773925781, 350.256103515625, 356.23211669921875, 358.8961181640625, 362.964111328125, 369.2041015625, 375.18011474609375, 377.8441162109375, 383.5921325683594, 389.3401184082031, 392.2201232910156, 394.8601379394531, 401.1001281738281, 403.7401428222656, 409.7281188964844, 415.9681091308594, 422.2080993652344, 428.1841125488281, 432.2880859375, 435.3960876464844, 438.0361022949219, 444.02410888671875, 450.26409912109375, 456.2401123046875, 458.90411376953125, 465.37213134765625, 471.61212158203125, 477.588134765625, 481.6921081542969, 487.4400939941406, 491.52008056640625, 494.16009521484375, 500.62811279296875, 506.86810302734375 ]
+  }, {
+    "%ID" : 355,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.06400299072266, 81.14400482177734, 87.38400268554688, 92.42400360107422, 98.4000015258789, 104.41200256347656, 110.65200805664062, 116.62800598144531, 123.12001037597656, 125.760009765625, 134.3880157470703, 137.02801513671875, 141.0960235595703, 147.33602905273438, 153.8040313720703, 160.04403686523438, 164.11204528808594, 166.75204467773438, 171.79205322265625, 178.0320587158203, 187.62005615234375, 194.1000518798828, 196.74005126953125, 199.3800506591797, 204.42005920410156, 210.16806030273438, 214.48806762695312, 217.12806701660156, 223.36807250976562, 229.6080780029297, 234.3960723876953, 237.2760772705078, 239.91607666015625, 246.10000610351562, 252.3400115966797, 258.58001708984375, 261.22003173828125, 271.5280456542969, 275.6080322265625, 280.3960266113281, 283.5040283203125, 286.14404296875, 292.6240539550781, 298.3720397949219, 304.6240234375, 310.13201904296875, 313.0000305175781, 317.08001708984375, 323.0560302734375, 328.13201904296875, 334.3600158691406, 339.8680419921875, 345.84405517578125, 349.9480285644531, 355.9240417480469, 362.1880187988281, 364.8280334472656, 373.4560241699219, 379.4320373535156, 382.32403564453125, 384.96405029296875, 387.60406494140625, 391.43206787109375, 395.5120544433594, 401.7520446777344, 411.3400573730469, 413.9920654296875, 418.06005859375, 424.300048828125, 430.27606201171875, 433.1680603027344, 439.4080505371094, 443.7160339355469, 449.9560241699219, 454.9960021972656, 460.9720153808594, 467.2359924316406, 473.4759826660156, 477.55596923828125, 483.531982421875, 487.1499938964844 ]
+  }, {
+    "%ID" : 358,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 76.57200622558594, 83.05200958251953, 85.93201446533203, 88.81201934814453, 95.26802062988281, 104.20999908447266, 107.80999755859375, 114.29000091552734, 120.77000427246094, 124.37000274658203, 127.25 ]
+  }, {
+    "%ID" : 361,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.02799987792969, 83.30400085449219, 88.09200286865234, 92.15999603271484, 98.39999389648438, 104.63999938964844, 110.61599731445312, 114.72000122070312, 120.46800231933594, 124.5479965209961, 127.18799591064453, 132.6959991455078, 138.6719970703125, 141.33599853515625, 146.37600708007812, 152.6160125732422, 158.85601806640625, 162.9240264892578, 167.23202514648438, 173.47203063964844, 176.11203002929688, 180.9000244140625, 183.54002380371094, 189.28802490234375, 193.38003540039062, 199.6080322265625, 202.24803161621094, 208.488037109375, 211.12803649902344, 216.87603759765625, 223.3560333251953, 229.59603881835938, 235.57203674316406, 241.83604431152344, 244.47604370117188, 248.54405212402344, 255.01205444335938, 257.6520690917969, 267.2400817871094, 273.4920959472656, 279.9600830078125, 282.60009765625, 286.6680908203125, 292.9080810546875, 296.9880676269531, 299.6280822753906, 303.6960754394531, 309.9360656738281, 316.1640930175781, 318.8041076660156, 325.0440979003906, 331.0201110839844, 336.7920837402344, 339.4320983886719, 342.30010986328125, 348.54010009765625, 354.2881164550781, 356.9281311035156, 363.1681213378906, 367.24810791015625, 373.71612548828125, 378.756103515625, 384.73211669921875, 389.5440979003906, 394.33209228515625, 396.97210693359375, 402.7200927734375, 408.9720764160156, 415.2120666503906, 417.8520812988281, 423.8280944824219, 430.0920715332031, 434.88006591796875, 441.12005615234375, 445.2000427246094, 451.1760559082031, 453.8400573730469, 457.9080505371094, 464.1480407714844, 469.8960266113281, 473.97601318359375, 476.8440246582031, 483.0840148925781, 489.3240051269531 ]
+  }, {
+    "%ID" : 364,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 74.42400360107422, 80.66400909423828, 84.74401092529297, 88.81200408935547, 95.05200958251953, 101.02800750732422, 105.3600082397461, 108.00000762939453, 113.04000091552734, 119.27999877929688, 128.8679962158203, 135.34799194335938, 137.9879913330078, 140.62799072265625, 145.66799926757812, 151.41600036621094, 155.7360076904297, 158.37600708007812, 164.6160125732422, 170.85601806640625, 175.64401245117188, 178.2840118408203, 184.75201416015625, 189.79202270507812, 194.83203125, 201.07203674316406, 205.15203857421875, 208.26004028320312, 210.90003967285156, 221.20803833007812, 225.2880401611328, 230.07603454589844, 233.1840362548828, 235.82403564453125, 242.3040313720703, 248.05203247070312, 254.3040313720703, 259.8120422363281, 262.6800537109375, 265.320068359375, 270.1080627441406, 272.7480773925781, 278.4960632324219, 284.748046875, 290.2560729980469, 292.8960876464844, 297.68408203125, 303.66009521484375, 309.924072265625, 312.7920837402344, 316.8600769042969, 323.1000671386719, 325.7400817871094, 331.4880676269531, 337.74005126953125, 340.6080627441406, 346.86004638671875, 351.6480407714844, 355.7160339355469, 358.3560485839844, 364.5960388183594, 370.5720520019531, 374.676025390625, 377.5440368652344, 383.7840270996094, 386.4240417480469, 392.4000549316406, 396.4920349121094, 399.1320495605469, 403.2000427246094, 409.4400329589844, 412.30804443359375, 418.54803466796875, 422.6280212402344, 428.6040344238281, 434.13604736328125, 440.112060546875, 446.37603759765625, 450.44403076171875, 453.08404541015625, 456.6840515136719, 462.9240417480469, 466.9920349121094, 473.46002197265625, 477.5400085449219, 483.5160217285156 ]
+  }, {
+    "%ID" : 367,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 76.5719985961914, 82.31999969482422, 84.97200012207031, 87.61199951171875, 93.85200500488281, 96.49200439453125, 102.24000549316406, 108.72000885009766, 114.96001434326172, 120.9360122680664, 125.0400161743164, 127.90801239013672, 134.14801025390625, 138.22801208496094, 144.69601440429688, 150.93601989746094, 153.57601928710938, 159.55201721191406, 169.1400146484375, 173.96401977539062, 177.19000244140625 ]
+  }, {
+    "%ID" : 370,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 71.06400299072266, 77.78400421142578, 83.78400421142578, 88.8239974975586, 95.27999877929688, 105.13199615478516, 114.95999908447266, 120.95999908447266, 127.4280014038086, 133.89601135253906, 139.88400268554688, 143.96400451660156, 146.843994140625, 153.29998779296875, 159.7919921875, 164.57998657226562, 168.30999755859375, 170.7100067138672 ]
+  }, {
+    "%ID" : 373,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 81.13199615478516, 85.21199798583984, 90.0, 93.10800170898438, 95.74800109863281, 102.2280044555664, 107.97600555419922, 114.22801208496094, 119.73600769042969, 122.37600708007812, 125.01600646972656, 129.8040008544922, 132.44400024414062, 138.19200134277344, 144.44400024414062, 149.95199584960938, 152.5919952392578, 157.37998962402344, 163.35598754882812, 169.6199951171875, 172.25999450683594, 176.3280029296875, 182.56800842285156, 185.2080078125, 189.0360107421875, 195.27601623535156, 198.14401245117188, 200.7840118408203, 207.02401733398438, 215.6520233154297, 218.29202270507812, 224.04002380371094, 226.92002868652344, 229.56002807617188, 235.80003356933594, 244.66000366210938, 248.25999450683594, 251.86000061035156, 257.6080017089844, 261.68798828125, 264.5559997558594, 270.7959899902344, 273.4360046386719, 279.4120178222656, 283.5039978027344, 286.1440124511719, 291.8919982910156, 298.3719787597656, 304.6119689941406, 307.2519836425781, 311.5599670410156, 317.5359802246094, 323.3079833984375, 329.5479736328125, 332.18798828125, 337.93597412109375, 342.0279541015625, 344.66796875, 350.17596435546875, 352.81597900390625, 359.05596923828125, 365.5239562988281, 371.7639465332031, 377.7399597167969, 381.84393310546875, 387.5919494628906, 393.8319396972656, 396.4719543457031, 400.2999572753906, 406.5399475097656, 409.407958984375, 412.0479736328125, 418.2879638671875, 427.1300048828125, 430.7300109863281, 437.197998046875, 443.43798828125, 446.0780029296875, 452.05401611328125, 457.3460388183594, 463.0940246582031, 472.6820373535156, 475.3460388183594, 481.5860290527344, 487.3340148925781, 491.41400146484375, 494.2820129394531, 500.5220031738281, 506.7619934082031, 511.54998779296875, 514.18994140625, 517.0579223632812, 523.2979125976562 ]
+  }, {
+    "%ID" : 376,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.06399536132812, 83.30400085449219, 87.38400268554688, 90.25199890136719, 96.49200439453125, 100.57200622558594, 106.32000732421875, 111.39601135253906, 115.44001007080078, 118.08000946044922, 123.12000274658203, 129.34800720214844, 131.98800659179688, 136.05601501464844, 142.2960205078125, 144.93601989746094, 154.52401733398438, 161.0040283203125, 167.24403381347656, 169.884033203125, 173.95204162597656, 180.4200439453125, 184.5000457763672, 187.14004516601562, 193.3800506591797, 199.60804748535156, 203.68804931640625, 206.3280487060547, 212.56805419921875, 218.0760498046875, 224.0520477294922, 228.1560516357422, 233.904052734375, 236.78404235839844, 239.42404174804688, 242.29205322265625, 248.5320587158203, 254.508056640625, 260.280029296875, 262.9200439453125, 266.988037109375, 273.22802734375, 275.8680419921875, 280.6560363769531, 284.7240295410156, 290.4720153808594, 294.552001953125, 300.7919921875, 305.5799865722656, 308.2200012207031, 313.9679870605469, 320.219970703125, 326.4599609375, 329.0999755859375, 338.68798828125, 341.5679931640625, 347.8079833984375, 350.447998046875, 360.0360107421875, 362.6880187988281, 367.47601318359375, 373.4520263671875, 376.11602783203125, 380.18402099609375, 386.42401123046875, 392.4000244140625, 395.2920227050781, 399.37200927734375, 402.01202392578125, 406.8000183105469, 412.3080139160156, 414.9480285644531, 421.4160461425781, 425.01605224609375, 427.65606689453125, 431.2560729980469, 437.72406005859375, 441.8040466308594, 445.8720397949219, 452.1120300292969, 458.0880432128906, 462.1920166015625, 464.83203125, 470.5800476074219, 476.3280334472656, 479.2080383300781, 482.3500061035156, 486.19000244140625, 490.2699890136719, 496.2460021972656, 498.9100036621094, 504.6579895019531, 508.73797607421875, 514.7139892578125, 520.9779663085938 ]
+  }, {
+    "%ID" : 379,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 75.8639907836914, 82.10398864746094, 91.69198608398438, 97.9439926147461, 100.58399200439453, 106.57199096679688, 109.21199035644531, 115.45199584960938, 119.51998901367188, 124.30799102783203, 127.48999786376953 ]
+  }, {
+    "%ID" : 382,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 77.06399536132812, 79.70399475097656, 85.94400024414062, 92.18400573730469, 95.052001953125, 99.13200378417969, 105.10800170898438, 110.8800048828125, 116.62800598144531, 120.72000885009766, 126.96001434326172, 131.7480010986328, 134.92999267578125 ]
+  }, {
+    "%ID" : 385,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 78.25199127197266, 82.33199310302734, 85.43999481201172, 88.07999420166016, 95.02799224853516, 101.27999877929688, 107.52000427246094, 113.26800537109375, 115.92000579833984, 126.2280044555664, 132.46800231933594, 135.33599853515625, 137.9759979248047, 143.95199584960938, 148.05599975585938, 151.00999450683594 ]
+  }, {
+    "%ID" : 388,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586, 81.13199615478516, 87.10799407958984, 93.37199401855469, 96.01199340820312, 101.05199432373047, 106.79999542236328, 109.45199584960938, 112.09199523925781, 118.2959976196289, 122.44999694824219, 128.43800354003906, 133.47801208496094, 137.5460205078125, 140.18601989746094, 145.2260284423828, 151.2020263671875, 153.86602783203125, 161.29403686523438, 165.37403869628906, 168.48204040527344, 171.12203979492188, 181.43003845214844, 187.89804077148438, 190.5380401611328, 193.17803955078125, 199.15403747558594, 203.58999633789062 ]
+  }, {
+    "%ID" : 391,
+    "%TYPE" : "uima.cas.FloatArray",
+    "%ELEMENTS" : [ 70.8239974975586 ]
+  }, {
+    "%ID" : 294,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 297,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 300,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 303,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 306,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 309,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 312,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 315,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 318,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 321,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 324,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 327,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 330,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 333,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 336,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 339,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 342,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 345,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 348,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 351,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 354,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 357,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 360,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 363,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 366,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 369,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 372,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 375,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 378,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 381,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 384,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 387,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+  }, {
+    "%ID" : 390,
+    "%TYPE" : "uima.cas.IntegerArray",
+    "%ELEMENTS" : [ 1 ]
+  }, {
+    "%ID" : 2,
+    "%TYPE" : "uima.cas.Sofa",
+    "sofaNum" : 1,
+    "sofaID" : "_InitialView",
+    "mimeType" : "text",
+    "sofaString" : "\r\n\r\n[Arztpraxis Dr. Müller]  \r\n[Dresdener Str. 17]  \r\n[45678 Berlin]  \r\n[Tel: 03520-55428]  \r\n[E-Mail: info@drmueller.de] \r\n\r\nMedical Report \r\n\r\nPatient: Mrs. Alena Bank, born on March 25, 1978, residing at Tulpenweg 3, 10115 Berlin, \r\npatient number 235987, was admitted to our practice for a cholecystectomy due to \r\nsymptomatic cholelithiasis. \r\n\r\nHistory:  \r\nMrs. Bank complained of recurrent right upper quadrant abdominal pain, particularly after \r\nfatty meals. Other symptoms included nausea and occasional vomiting. The symptoms had \r\nintensified over the last few weeks. \r\n\r\nFindings:  \r\nAn ultrasound examination of the abdomen confirmed multiple gallstones with signs of \r\ngallbladder inflammation. There were no signs of bile duct stones or pancreatitis. \r\n\r\nDiagnosis:  \r\nSymptomatic cholelithiasis. \r\n\r\nTreatment:  \r\nA laparoscopic cholecystectomy was performed to remove the gallbladder. The operation \r\nproceeded without complications, and Mrs. Bank recovered well from the procedure. \r\n\r\nFollow-up:  \r\n\r\nPostoperative controls are planned to monitor the healing process and ensure that no \r\nfurther complications occur. Mrs. Bank is advised to adjust her diet to prevent future \r\ngallbladder problems. \r\n\r\nRecommendations:  \r\nMrs. Bank is advised to follow a low-fat diet and regularly undergo follow-up examinations in \r\nour practice to monitor her overall health status and minimize the risk of further gall-related \r\ncomplaints. \r\n\r\nKind regards, \r\n\r\nDr. Anna Müller  \r\nMedical Practice Dr. Müller \r\n\r\n \r\n\r\n\r\n"
+  } ],
+  "%VIEWS" : {
+    "_InitialView" : {
+      "%SOFA" : 2,
+      "%MEMBERS" : [ 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 296, 299, 302, 305, 308, 311, 314, 317, 320, 323, 326, 329, 332, 335, 338, 341, 344, 347, 350, 353, 356, 359, 362, 365, 368, 371, 374, 377, 380, 383, 386, 389, 392 ]
+    }
+  }
+}
