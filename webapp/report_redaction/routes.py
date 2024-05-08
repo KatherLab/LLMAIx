@@ -564,14 +564,14 @@ def report_redaction_viewer(report_id):
         except FileNotFoundError as e:
             flash("File Not Found: " + str(e), 'danger')
             print("File Not Found: " + str(e))
-            scores = None
+            scores_dict = {}
             colormap = {}
 
             session['annotation_pdf_filepath'] = None
             session["confusion_matrix_filepath"] = None
 
     else:
-        scores = None
+        scores_dict = {}
         colormap = {}
 
     import ast
