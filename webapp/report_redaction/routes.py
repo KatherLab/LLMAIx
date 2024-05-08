@@ -573,6 +573,7 @@ def report_redaction_viewer(report_id):
     else:
         scores_dict = {}
         colormap = {}
+        fuzzy_matches_dict = {}
 
     import ast
 
