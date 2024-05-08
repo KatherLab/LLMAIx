@@ -140,7 +140,8 @@ def extract_from_report(
                 "--n-gpu-layers",
                 str(n_gpu_layers),
                 "--port",
-                str(llamacpp_port)
+                str(llamacpp_port),
+                "-fa" # flash attention # use new llama cpp version
                 # "--verbose",
             ],
         )

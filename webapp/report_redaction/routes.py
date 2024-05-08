@@ -9,13 +9,12 @@ import time
 import traceback
 import zipfile
 from cassis import *
-import os
 from flask import render_template, session
 import pandas as pd
 from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list, find_fuzzy_matches, replace_personal_info
 from webapp.report_redaction.utils import InceptionAnnotationParser, find_llm_output_csv, generate_confusion_matrix_from_counts, generate_score_dict, get_pymupdf_text_wordwise
 from . import report_redaction
-from flask import abort, render_template, request, redirect, send_file, url_for, session, flash
+from flask import abort, request, redirect, send_file, url_for, flash
 from .forms import ReportRedactionForm
 from .. import socketio
 
@@ -199,7 +198,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
             try:
                 report_dict['personal_info_list'] = convert_personal_info_list(
                     row['personal_info_list'])
-            except Exception as e:
+            except Exception:
                 breakpoint()
 
             try:
@@ -234,12 +233,12 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
             print("Generate Score Dict")
 
             for key in report_dict['annotated_text_labelwise'].keys():
-                if not key in report_dict['dollartext_redacted_dict'].keys():
+                if key not in report_dict['dollartext_redacted_dict'].keys():
                     warning_job(job_id, "For Report " + row['id'] + ", '" + key +
                                 "' was not found in the llm output. Is the grammar compatible with the annotation?")
 
             for key in report_dict['dollartext_redacted_dict'].keys():
-                if not key in report_dict['annotated_text_labelwise'].keys():
+                if key not in report_dict['annotated_text_labelwise'].keys():
                     warning_job(job_id, "For Report " + row['id'] + ", '" + key +
                                 "' was not found in the annotation. Is the grammar compatible with the annotation? Skipping.")
 
@@ -292,7 +291,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
                 'metrics': report_summary_dict['accumulated_metrics'][label]
             }
 
-    except Exception as e:
+    except Exception:
         print(traceback.print_exc())
         failed_job(job_id)
         return
@@ -353,51 +352,6 @@ def accumulate_metrics(report_list):
 
     return labelwise_metrics
 
-    macro_precision = total_precision / num_samples
-    macro_recall = total_recall / num_samples
-    macro_accuracy = total_accuracy / num_samples
-    macro_f1_score = total_f1_score / num_samples
-    macro_specificity = total_specificity / num_samples
-    macro_false_positive_rate = total_false_positive_rate / num_samples
-    macro_false_negative_rate = total_false_negative_rate / num_samples
-
-    micro_precision = total_tp / \
-        (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
-    micro_recall = total_tp / \
-        (total_tp + total_fn) if (total_tp + total_fn) != 0 else 0
-    micro_accuracy = (total_tp + total_tn) / \
-        (total_tp + total_fp + total_tn + total_fn)
-    micro_f1_score = 2 * (micro_precision * micro_recall) / (micro_precision +
-                                                             micro_recall) if (micro_precision + micro_recall) != 0 else 0
-    micro_specificity = total_tn / \
-        (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
-    micro_false_positive_rate = total_fp / \
-        (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
-    micro_false_negative_rate = total_fn / \
-        (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
-
-    metrics_dict = {
-        'macro_precision': macro_precision,
-        'macro_recall': macro_recall,
-        'macro_accuracy': macro_accuracy,
-        'macro_f1_score': macro_f1_score,
-        'macro_specificity': macro_specificity,
-        'macro_false_positive_rate': macro_false_positive_rate,
-        'macro_false_negative_rate': macro_false_negative_rate,
-        'micro_precision': micro_precision,
-        'micro_recall': micro_recall,
-        'micro_accuracy': micro_accuracy,
-        'micro_f1_score': micro_f1_score,
-        'micro_specificity': micro_specificity,
-        'micro_false_positive_rate': micro_false_positive_rate,
-        'micro_false_negative_rate': micro_false_negative_rate,
-        'total_true_positives': total_tp,
-        'total_false_positives': total_fp,
-        'total_true_negatives': total_tn,
-        'total_false_negatives': total_fn
-    }
-
-    return round_values(metrics_dict, round_digits=4)
 
 
 @report_redaction.route("/reportredactionmetrics/<string:job_id>", methods=['GET'])
@@ -610,14 +564,14 @@ def report_redaction_viewer(report_id):
         except FileNotFoundError as e:
             flash("File Not Found: " + str(e), 'danger')
             print("File Not Found: " + str(e))
-            scores = None
+            scores_dict = {}
             colormap = {}
 
             session['annotation_pdf_filepath'] = None
             session["confusion_matrix_filepath"] = None
 
     else:
-        scores = None
+        scores_dict = {}
         colormap = {}
 
     import ast
