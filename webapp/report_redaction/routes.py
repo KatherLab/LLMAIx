@@ -9,6 +9,7 @@ import time
 import traceback
 import zipfile
 from cassis import *
+import fitz
 from flask import render_template, session
 import pandas as pd
 from webapp.llm_processing.utils import anonymize_pdf, convert_personal_info_list, find_fuzzy_matches, replace_personal_info
@@ -451,39 +452,56 @@ def generate_export_df(result_dict: list):
     return df
 
 
+
 @report_redaction.route("/downloadall", methods=['GET'])
 def download_all():
     job_id = request.args.get('job_id', None)
     if not job_id:
-        # Handle the case where the path to the zip file is not found
         flash('No job ID found!', 'danger')
-
-        # Redirect to the generated URL
         return redirect(request.url)
     
     job_result = report_redaction_jobs[job_id].result()
-
     df = generate_export_df(job_result)
-
     column_names = df.columns.tolist()
 
-    # Create a DataFrame with the metadata and dictionary as a row
-    metadata_row = pd.DataFrame([["metadata", job_result['metadata']]], columns=column_names[:2])
+    # Create a zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        # Add the CSV file to the zip
+        csv_buffer = io.BytesIO()
+        df.to_csv(csv_buffer, index=False, float_format='%.4f')
+        csv_buffer.seek(0)
+        zip_file.writestr(f'{job_id}.csv', csv_buffer.getvalue())
 
-    # Concatenate the new row DataFrame with the original DataFrame
-    df = pd.concat([df, metadata_row], ignore_index=True)
+        # Loop through redacted PDFs
+        for report_dict in job_result['report_list']:  # Corrected variable name
+            redacted_pdf_filename = report_dict['redacted_pdf_filepath']
+            # Apply redactions using PyMuPDF
+            with fitz.open(redacted_pdf_filename) as pdf:
+                for page in pdf:
+                    page.apply_redactions()
 
-    csv_buffer = io.BytesIO()
-    df.to_csv(csv_buffer, index=False, float_format='%.4f')
-    csv_buffer.seek(0)
+                # Store the redacted PDF content in memory
+                redacted_pdf_buffer = io.BytesIO()
+                pdf.save(redacted_pdf_buffer)
+                redacted_pdf_buffer.seek(0)
 
-    # Send the CSV file as an attachment
+                # Add redacted PDF to the zip
+                zip_file.writestr(os.path.basename(redacted_pdf_filename), redacted_pdf_buffer.getvalue())
+
+    # Send the zip file as an attachment
+    zip_buffer.seek(0)
     return send_file(
-        csv_buffer,
+        zip_buffer,
         as_attachment=True,
-        download_name=f'{job_id}.csv',
-        mimetype='text/csv'
+        download_name=f'{job_id}.zip',
+        mimetype='application/zip'
     )
+
+
+
+
+
 
 
 @report_redaction.route("/reportredactionviewer/<string:report_id>", methods=['GET'])

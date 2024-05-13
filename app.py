@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_predict", type=int, default=384)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--mode", type=str, default="choice", choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
 
     args = parser.parse_args()
 
@@ -56,6 +57,8 @@ if __name__ == "__main__":
     app.config["N_PREDICT"] = args.n_predict
     app.config["LLAMACPP_PORT"] = args.llamacpp_port
     app.config["DEBUG"] = args.debug
+
+    app.config["MODE"] = args.mode
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
 
