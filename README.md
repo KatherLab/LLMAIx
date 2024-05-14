@@ -4,7 +4,7 @@
 
 Tool to anonymize medical reports removing person-related information.
 
-Features:
+**Features**:
 
 - Supports various input formats like pdf, images and text documents
 - Performs OCR if necessary
@@ -12,9 +12,9 @@ Features:
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance
 - Compare documents and calculate metrics using annotated pdf files ([Inception](https://inception-project.github.io/))
 
-New:
+**New**:
 
-Information Extraction using LLMs and Calculate Metrics on Label-basis
+- Information Extraction using LLMs and Calculate Metrics on Label-basis
 
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
 
