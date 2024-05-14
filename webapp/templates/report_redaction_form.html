@@ -9,7 +9,7 @@
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3">
-            <legend>Input zip with LLM output.</legend>
+            <legend>LLM Output File (.zip)</legend>
             
             <div class="row">
                 <div class="form-group col-md-12">
@@ -30,7 +30,7 @@
         </fieldset>
 
         <fieldset class="form-control p-3">
-            <legend>Optional: Annotation zip file</legend>
+            <legend>Optional: Annotation File (.zip)</legend>
             
             <div class="row">
                 <div class="form-group col-md-12">
@@ -123,18 +123,20 @@
             
         </fieldset>
 
-        <div class="row">
+        <div class="row p-3">
             <div class="form-group col-md-6">
-                <button type="submit" name="submit-metrics" class="form-control form-control-lg btn btn-secondary">Report Redaction Metrics</button>
+                <button type="submit" name="submit-metrics" class="form-control form-control-lg btn btn-secondary">Report Redaction Metrics Summary</button>
             </div>
             <div class="form-group col-md-6">
-                <button type="submit" name="submit-viewer" class="form-control form-control-lg btn btn-secondary">Report Redaction Viewer</button>
+                <button type="submit" name="submit-viewer" class="form-control form-control-lg btn btn-secondary">Report Redaction Viewer (document-wise)</button>
             </div>
         </div>
 
     </form>
+</div>
+<div class="content-section pt-3">
 
-    <h1>Job Progress</h1>
+    <h1>Report Redaction Progress</h1>
     {% for job_id, progress_tuple in progress.items() %}
     <div class="container p-2 mb-3">
         <h3>Job {{ job_id }}</h3>
@@ -163,9 +165,6 @@
     {% endfor %}
 
     <div id="flash-messages" class="container"></div>
-
-
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>

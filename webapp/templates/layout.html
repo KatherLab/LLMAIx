@@ -25,8 +25,8 @@
     <div class="overlay-content">
       <form action="/set_mode" method="GET">
         <h2>Choose Mode</h2>
-        <button type="submit" class="btn btn-primary" name="mode" value="anonymizer">LLM Anonymizer</button>
-        <button type="submit" class="btn btn-primary" name="mode" value="informationextraction">Information
+        <button type="submit" class="btn btn-outline-danger" name="mode" value="anonymizer">LLM Anonymizer</button>
+        <button type="submit" class="btn btn-outline-success" name="mode" value="informationextraction">LLM Information
           Extraction</button>
       </form>
     </div>
@@ -35,7 +35,7 @@
 
   <header class="site-header">
     {% if session['mode'] == 'anonymizer' %}
-    <nav class="navbar navbar-expand-lg bg-info-subtle bg-gradient shadow-sm pb-0 pt-0">
+    <nav class="navbar navbar-expand-lg bg-danger-subtle bg-gradient shadow-sm pb-0 pt-0">
       {% elif session['mode'] == 'informationextraction' %}
       <nav class="navbar navbar-expand-lg bg-success-subtle bg-gradient shadow-sm pb-0 pt-0">
         {% else %}
@@ -43,9 +43,11 @@
           {% endif %}
           <div class="container-fluid">
             {% if session['mode'] == 'anonymizer' %}
-            <a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Anonymizer</a>
+            <span class="navbar-brand mb-0 h1">LLM Anonymizer</span>
+            <!--<a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Anonymizer</a>-->
             {% elif session['mode'] == 'informationextraction' %}
-            <a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Information Extraction</a>
+            <span class="navbar-brand mb-0 h1">LLM Anonymizer</span>
+            <!--<a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Information Extraction</a>-->
             {% endif %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
               data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"

@@ -2,222 +2,301 @@
 
 {% block content %}
 <div class="nested-container">
-    <h2>Report Redaction Metrics</h2>
+    <h2>Report Redaction Summary</h2>
 
-    <div class="d-flex justify-content-between align-items-center">
-        <p>Total reports: {{ total_reports }}</p>
-        <div>
-            {% if metadata %}
-            <span class="badge rounded-pill text-bg-info">{{ metadata['llm_processing']['model_name']}}</span>
-            {% endif %}
-            {% if session.get('enable_fuzzy', False) %}
-            <span class="badge rounded-pill text-bg-success ml-1">Fuzzy Matching</span>
-            {% else %}
-            <span class="badge rounded-pill text-bg-secondary ml-1">Default Matching</span>
-            {% endif %}
-        </div>
-    </div>
+    <div class="card mt-3 mb-3 shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Metrics</h3>
 
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane"
-                type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">All Labels</button>
-        </li>
-        {% for key, value in report_list['accumulated_metrics'].items() if key != 'personal_info_list' %}
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
-                data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
-                aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
-        </li>
-        {% endfor %}
-    </ul>
-    <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
-            tabindex="0">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Macro Score</th>
-                                    <th>Micro Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Precision</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['precision'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_precision'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Recall</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['recall'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_recall'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Accuracy</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['accuracy'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_accuracy'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>F1 Score</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['f1_score'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_f1_score'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Specificity</td> 
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['specificity'] }}</td> 
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_specificity'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>False Positive Rate</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['false_positive_rate'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_false_positive_rate'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>False Negative Rate</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['false_negative_rate'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_false_negative_rate'] }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id) }}" class="img" height="300px">
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        {% for label in report_list['accumulated_metrics'].keys() if label != 'personal_info_list' %}
-
-        <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
-            aria-labelledby="scores-tab-{{ label }}" tabindex="0">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Metrics for {{ label }}</th>
-                                    <th>Macro Score</th>
-                                    <th>Micro Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Precision</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['precision'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_precision'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Recall</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['recall'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_recall'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Accuracy</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['accuracy'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_accuracy'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>F1 Score</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['f1_score'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_f1_score'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Specificity</td> 
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['specificity'] }}</td> 
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_specificity'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>False Positive Rate</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['false_positive_rate'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_false_positive_rate'] }}</td>
-                                </tr>
-                                <tr>
-                                    <td>False Negative Rate</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['false_negative_rate'] }}</td>
-                                    <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_false_negative_rate'] }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id, label=label) }}" class="img" height="300px">
-                    </div>
+                <div>
+                    <span class="badge rounded-pill text-bg-primary">Total Reports: {{ total_reports }}</span>
+                    {% if metadata %}
+                    <span class="badge rounded-pill text-bg-info">{{ metadata['llm_processing']['model_name']}}</span>
+                    {% endif %}
+                    {% if session.get('enable_fuzzy', False) %}
+                    <span class="badge rounded-pill text-bg-success ml-1">Fuzzy Matching</span>
+                    {% else %}
+                    <span class="badge rounded-pill text-bg-secondary ml-1">Default Matching</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
-        {% endfor %}
+
+        <div class="card-body">
+
+            <nav>
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
+                            data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane"
+                            aria-selected="true">All Labels</button>
+                    </li>
+                    {% for key, value in report_list['accumulated_metrics'].items() if key != 'personal_info_list' %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
+                            data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
+                            aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <div class="tab-content mt-3" id="myTabContent">
+                <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
+                    tabindex="0">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Metric</th>
+                                            <th scope="col">Macro Score</th>
+                                            <th scope="col">Micro Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Precision</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['precision']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_precision']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Recall</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['recall']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_recall']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Accuracy</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['accuracy']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_accuracy']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">F1 Score</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['f1_score']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_f1_score']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Specificity</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['specificity']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_specificity']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Positive Rate</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['false_positive_rate']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_false_positive_rate']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Negative Rate</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['false_negative_rate']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics']['personal_info_list']['metrics']['micro_false_negative_rate']
+                                                }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id) }}"
+                                    class="img" height="300px">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                {% for label in report_list['accumulated_metrics'].keys() if label != 'personal_info_list' %}
+
+                <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
+                    aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Metrics for {{ label }}</th>
+                                            <th scope="col">Macro Score</th>
+                                            <th scope="col">Micro Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Precision</th>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['precision'] }}
+                                            </td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_precision']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Recall</th>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['recall'] }}
+                                            </td>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['micro_recall']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Accuracy</th>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['accuracy'] }}
+                                            </td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_accuracy']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">F1 Score</th>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['f1_score'] }}
+                                            </td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_f1_score']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Specificity</th>
+                                            <td>{{ report_list['accumulated_metrics'][label]['metrics']['specificity']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_specificity']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Positive Rate</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['false_positive_rate']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_false_positive_rate']
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Negative Rate</th>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['false_negative_rate']
+                                                }}</td>
+                                            <td>{{
+                                                report_list['accumulated_metrics'][label]['metrics']['micro_false_negative_rate']
+                                                }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id, label=label) }}"
+                                    class="img" height="300px">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
 
     </div>
-    
 
-    <div class="btn-group">
-        <p>
-            <a href="{{ url_for('report_redaction.download_all', job_id=job_id) }}" class="btn btn-secondary">Download All</a>
-        </p>
+
+    <div class="btn-group mb-3">
+        <a href="{{ url_for('report_redaction.download_all', job_id=job_id) }}"
+            class="btn btn-outline-secondary">Download All</a>
 
         {% if metadata %}
-          <p>
-            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="false" aria-controls="collapseMetadata">
-              Metadata
-            </button>
-          </p>
-          {% endif %}
+
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+            aria-expanded="false" aria-controls="collapseMetadata">
+            Show Metadata
+        </button>
+
+        {% endif %}
     </div>
 
     {% if metadata %}
     <div class="collapse" id="collapseMetadata">
-        <div class="card card-body">
-            <h3>Experiment Metadata</h3>
-            <table class="table table-bordered">
-                <tbody>
-                    <tr>
-                        <td><b>Preprocessing Date</b></td>
-                        <td>{{ metadata['preprocessing']['date']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>LLM Processing Date</b></td>
-                        <td>{{ metadata['llm_processing']['date']}}</td> 
-                    </tr>
-                    <tr>
-                        <td><b>Model Name</b></td>
-                        <td>{{ metadata['llm_processing']['model_name']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Prompt</b></td>
-                        <td>{{ metadata['llm_processing']['prompt']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Symptoms</b></td>
-                        <td>{{ metadata['llm_processing']['symptoms']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Temperature</b></td>
-                        <td>{{ metadata['llm_processing']['temperature']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>N Predict</b></td>
-                        <td>{{ metadata['llm_processing']['n_predict']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>CTX size</b></td>
-                        <td>{{ metadata['llm_processing']['ctx_size']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Grammar</b></td>
-                        <td>{{ metadata['llm_processing']['grammar']}}</td>
-                    </tr>
-                    <tr>
-                        <td><b>Fuzzy Matching</b></td>
-                        <td>{% if session.get('enable_fuzzy', False) %}Enabled, Threshold: {{ session['threshold'] }}, Scorer: {{ session['scorer'] }}, Exclude Single Chars: {% if session.get('exclude_single_chars', False) %}Yes{% else %}No{% endif %} {% else %}No{% endif %}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>Experiment Metadata</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <tbody>
+                        <tr>
+                            <th>Preprocessing Date</th>
+                            <td>{{ metadata['preprocessing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>LLM Processing Date</th>
+                            <td>{{ metadata['llm_processing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Model Name</th>
+                            <td>{{ metadata['llm_processing']['model_name']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Prompt</th>
+                            <td style="overflow:hidden">{{ metadata['llm_processing']['prompt']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Symptoms</th>
+                            <td>{{ metadata['llm_processing']['symptoms']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Temperature</th>
+                            <td>{{ metadata['llm_processing']['temperature']}}</td>
+                        </tr>
+                        <tr>
+                            <th>N Predict</th>
+                            <td>{{ metadata['llm_processing']['n_predict']}}</td>
+                        </tr>
+                        <tr>
+                            <th>CTX size</th>
+                            <td>{{ metadata['llm_processing']['ctx_size']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Grammar</th>
+                            <td style="overflow: hidden;">{{ metadata['llm_processing']['grammar']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Fuzzy Matching</th>
+                            <td>{% if session.get('enable_fuzzy', False) %}Enabled, Threshold: {{ session['threshold']
+                                }},
+                                Scorer: {{ session['scorer'] }}, Exclude Single Chars: {% if
+                                session.get('exclude_single_chars', False) %}Yes{% else %}No{% endif %} {% else %}No{%
+                                endif
+                                %}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <!--<pre>{{ metadata }}</pre>-->
         </div>
     </div>
@@ -228,7 +307,8 @@
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">{{report['id']}}</div>
-                <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}" class="btn btn-light float-right">🔎</a>
+                <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}"
+                    class="btn btn-light float-right">🔎</a>
 
                 F1: {{report['scores']['personal_info_list'][0]['f1_score']}}
                 Acc: {{report['scores']['personal_info_list'][0]['accuracy']}}
@@ -239,9 +319,11 @@
                 FNR: {{report['scores']['personal_info_list'][0]['false_negative_rate']}}
             </div>
             {% if report['scores']['personal_info_list'][0]['false_negative_rate'] == 0 %}
-                <span class="badge text-bg-success rounded-pill">FNR: {{report['scores']['personal_info_list'][0]['false_negative_rate']}}</span>
+            <span class="badge text-bg-success rounded-pill">FNR:
+                {{report['scores']['personal_info_list'][0]['false_negative_rate']}}</span>
             {% else %}
-                <span class="badge text-bg-danger rounded-pill">FNR: {{report['scores']['personal_info_list'][0]['false_negative_rate']}}</span>
+            <span class="badge text-bg-danger rounded-pill">FNR:
+                {{report['scores']['personal_info_list'][0]['false_negative_rate']}}</span>
             {% endif %}
         </li>
         {% endfor %}

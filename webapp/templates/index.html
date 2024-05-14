@@ -2,13 +2,13 @@
 {% block content %}
 
 <div class="content-section">
-    <h1>Upload your Documents!</h1>
+    <h1>Document Preprocessing</h1>
 
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3 mb-3">
-            <legend>Select Raw Reports (pdf, png, jpg, jpeg, docx, odf, txt)</legend>
+            <legend>Select Documents (pdf, png, jpg, jpeg, docx, odf, txt)</legend>
 
             <div class="row">
                 <div class="form-group col-md-8">
@@ -47,7 +47,7 @@
         </fieldset>
     </form>
 
-    <h1>Job Progress</h1>
+    <h1>Document Preprocessing Progress</h1>
     {% for job_id, progress_tuple in progress.items() %}
     <div class="container p-2 mb-3">
         <h3>Job {{ job_id }}</h3>

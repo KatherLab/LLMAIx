@@ -3,78 +3,14 @@
 {% block content %}
 <div class="nested-container">
     <h2>Report Redaction Viewer</h2>
-    <h3>Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
-
-    {% if scores %}
-    <h3>Metrics:</h3>
-
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane"
-                type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">All Annotations</button>
-        </li>
-        {% for key, value in scores.items() if key != 'personal_info_list' %}
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
-                data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
-                aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
-        </li>
-        {% endfor %}
-    </ul>
-    <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
-            tabindex="0">
-            <div class="btn-group">
-                {% for key, value in scores['personal_info_list'][0].items() %}
-                {% if key == 'false_negatives' %}
-                {% if value == 0 %}
-                <button type="button" class="btn btn-success">{{ key }}: {{ value }}</button>
-                {% else %}
-                <button type="button" class="btn btn-danger">{{ key }}: {{ value }}</button>
-                {% endif %}
-                {% else %}
-                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
-                {% endif %}
-                {% endfor %}
-            </div>
-
-        </div>
-        {% for label, value in scores.items() if label != 'personal_info_list' %}
-
-        <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
-            aria-labelledby="scores-tab-{{ label }}" tabindex="0">
-            <div class="btn-group">
-                {% for key, value in scores[label][0].items() %}
-                <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
-                {% endfor %}
-
-            </div>
-        </div>
-        {% endfor %}
-
-    </div>
-
-    <div class="btn-group">
-        <p>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfMat"
-                aria-expanded="false" aria-controls="collapseConfMat">
-                Confusion Matrix
-            </button>
-        </p>
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
         {% if metadata %}
-        <p>
-            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
-                aria-expanded="false" aria-controls="collapseMetadata">
-                Metadata
-            </button>
-        </p>
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+            aria-expanded="false" aria-controls="collapseMetadata">
+            Metadata
+        </button>
         {% endif %}
-    </div>
-
-    <div class="collapse" id="collapseConfMat">
-        <div class="card card-body">
-            <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img" height="300px">
-        </div>
     </div>
 
     {% if metadata %}
@@ -84,16 +20,90 @@
         </div>
     </div>
     {% endif %}
+
+
+    {% if scores %}
+    <div class="card mt-3 mb-3">
+
+        <div class="d-flex justify-content-between align-items-center card-header">
+            <h3 class="card-title">Metrics</h3>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseConfMat" aria-expanded="false" aria-controls="collapseConfMat">
+                <span style="vertical-align: middle;">Confusion Matrix</span> <span
+                    style="vertical-align: middle;">▦</span>
+            </button>
+
+        </div>
+
+        <div class="card-body shadow-sm">
+
+            <div class="collapse" id="collapseConfMat">
+                <div class="card card-body">
+                    <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix') }}" class="img"
+                        height="300px">
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane"
+                        type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">All
+                        Annotations</button>
+                </li>
+                {% for key, value in scores.items() if key != 'personal_info_list' %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
+                        data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
+                        aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
+                    tabindex="0">
+                    <div class="btn-group">
+                        {% for key, value in scores['personal_info_list'][0].items() %}
+                        {% if key == 'false_negatives' %}
+                        {% if value == 0 %}
+                        <button type="button" class="btn btn-success">{{ key }}: {{ value }}</button>
+                        {% else %}
+                        <button type="button" class="btn btn-danger">{{ key }}: {{ value }}</button>
+                        {% endif %}
+                        {% else %}
+                        <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                </div>
+                {% for label, value in scores.items() if label != 'personal_info_list' %}
+
+                <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
+                    aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+                    <div class="btn-group">
+                        {% for key, value in scores[label][0].items() %}
+                        <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                        {% endfor %}
+
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
     {% endif %}
+
+
 
     <div class="navigation-buttons">
         {% if previous_id %}
         <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=previous_id) }}"
-            class="btn btn-secondary float-left">Previous Report</a>
+            class="btn btn-secondary float-left">⇦ Previous Report</a>
         {% endif %}
         {% if next_id %}
         <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=next_id) }}"
-            class="btn btn-secondary float-right">Next Report</a>
+            class="btn btn-secondary float-right">Next Report ⇨</a>
         {% endif %}
         <div class="clearfix"></div>
     </div>
@@ -103,7 +113,7 @@
             <h3>Original Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileoriginal', id=report_id) }}" height="800px" frameborder="0"></iframe>
         </div> -->
-        <div class="pdf-viewer">
+        <div class="pdf-viewer shadow-sm">
             <h3>Redacted Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px"
                 frameborder="0" width="100%"></iframe>
@@ -115,12 +125,12 @@
             <h3>Original Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileoriginal', id=report_id) }}" height="800px" frameborder="0"></iframe>
         </div> -->
-        <div class="pdf-viewer-2">
+        <div class="pdf-viewer-2 shadow-sm">
             <h3>Redacted Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileredacted', id=report_id) }}" height="800px"
                 frameborder="0" width="100%"></iframe>
         </div>
-        <div class="pdf-viewer-2">
+        <div class="pdf-viewer-2 shadow-sm">
             <h3>Annotated Document</h3>
             <iframe src="{{ url_for('report_redaction.reportredactionfileannotation', id=report_id) }}" height="800px"
                 frameborder="0" width="100%"></iframe>
@@ -129,7 +139,7 @@
     {% endif %}
     <div class="personal-info-list">
         <h3>Personal Information</h3>
-        <div class="btn-group" role="group" aria-label="Personal Information">
+        <div class="btn-group flex-wrap" role="group" aria-label="Personal Information">
             {% for label, list in personal_info_dict.items() %}
             {% if label != 'personal_info_list' %}
             {% if label in colormap.keys() %}
@@ -147,7 +157,8 @@
                 {% endfor %}
                 {% else %}
                 {% for personal_information in list %}
-                <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="{{ label }}">
+                <button type="button" class="btn btn-outline-dark" data-toggle="tooltip" data-placement="top"
+                    title="{{ label }}">
                     <b>{{ personal_information }}</b> <br>
                     <small>{{ label }}</small>
                 </button>
@@ -162,7 +173,7 @@
     {% if enable_fuzzy %}
     <div class="personal-info-list">
         <h3>Fuzzy Matches</h3>
-        <div class="btn-group" role="group" aria-label="Personal Information">
+        <div class="btn-group flex-wrap" role="group" aria-label="Personal Information">
             {% for label, list in fuzzy_matches_dict.items() %}
             {% if label != 'personal_info_list' %}
             {% if label in colormap.keys() %}
@@ -209,7 +220,7 @@
 
     {% if colormap %}
     <h3>Color Map</h3>
-    <div class="btn-group" role="group" aria-label="Color Map">
+    <div class="btn-group flex-wrap" role="group" aria-label="Color Map">
         {% for label, color in colormap.items() %}
         <button type="button" class="btn color-button" data-color="{{ color }}" data-label="{{ label }}">{{ label
             }}</button>
@@ -250,22 +261,27 @@
     .pdf-viewer {
         width: 100%;
         border: 1px solid #ccc;
+        border-radius: 5px;
     }
 
     .pdf-viewer-2 {
-        width: 48%;
+        width: 49%;
         /* Adjust width to accommodate spacing */
         padding: 10px;
+        margin: 0px;
         /* Add spacing between iframes */
         border: 1px solid #ccc;
+        border-radius: 5px;
     }
 
     .pdf-viewer-3 {
-        width: 32%;
+        width: 33%;
         /* Adjust width to accommodate spacing */
         padding: 10px;
+        margin: 0px;
         /* Add spacing between iframes */
         border: 1px solid #ccc;
+        border-radius: 5px;
     }
 
     .pdf-viewer iframe {
