@@ -2,13 +2,17 @@ import os
 import tempfile
 import zipfile
 
-from flask import flash, redirect, render_template, request, send_file, session, url_for
+from flask import flash, redirect, render_template, request, send_file, session, url_for, current_app
 
 from webapp.report_redaction.utils import find_llm_output_csv
 
 from . import labelannotation
 from .form import LLMAnnotationResultsForm
+from .. import set_mode
 
+@labelannotation.before_request
+def before_request():
+    set_mode(session, current_app.config['MODE'])
 
 @labelannotation.route("/labelannotation", methods=["GET", "POST"])
 def main():

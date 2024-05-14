@@ -1,0 +1,34 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9); /* Make the overlay non-transparent */
+    z-index: 9999; /* Ensure the overlay is on top of everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    width: 50%; /* Make the overlay content occupy 50% of the screen width */
+    max-width: 600px; /* Set maximum width to limit content size */
+}
+
+/* Custom CSS for navbar */
+.navbar-nav .nav-item .nav-link {
+    padding: 10px 15px; /* Adjust padding for larger clickable area */
+    border-radius: 5px; /* Add border-radius for rounded corners */
+}
+
+.navbar-nav .nav-item .nav-link.active,
+.navbar-nav .nav-item .nav-link:hover {
+    background-color: #f8f9fa; /* Change background color on hover and when active */
+    color: #000000; /* Change text color on hover and when active */
+}
+

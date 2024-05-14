@@ -13,10 +13,15 @@ def create_app():
     from .llm_processing import llm_processing
     from .report_redaction import report_redaction
     from .labelannotation import labelannotation
+    from .main import main
     app.register_blueprint(input_processing)
     app.register_blueprint(llm_processing)
     app.register_blueprint(report_redaction)
     app.register_blueprint(labelannotation)
+    app.register_blueprint(main)
 
     socketio.init_app(app)
     return app
+
+def set_mode(session, mode):
+    session['mode'] = mode

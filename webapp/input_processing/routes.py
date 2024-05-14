@@ -1,6 +1,6 @@
 from datetime import datetime
 import shutil
-from flask import render_template, request, redirect, url_for, flash, send_file, session
+from flask import render_template, request, redirect, url_for, flash, send_file, session, current_app
 import os
 import tempfile
 from werkzeug.utils import secure_filename
@@ -20,6 +20,8 @@ import zipfile
 from io import BytesIO
 from . import input_processing
 from .. import socketio
+from .. import set_mode
+
 
 
 JobID = str
@@ -146,10 +148,14 @@ def preprocess_input(job_id, file_paths):
     merged_df = pd.concat(merged_data)
     complete_job(job_id)
     return merged_df
-    merged_csv = merged_df.to_csv(index=False)
+    # merged_csv = merged_df.to_csv(index=False)
 
-    return merged_csv
+    # return merged_csv
 
+
+@input_processing.before_request
+def before_request():
+    set_mode(session, current_app.config['MODE'])
 
 @input_processing.route("/download", methods=['GET'])
 def download():

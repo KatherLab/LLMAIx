@@ -3,7 +3,7 @@ import tempfile
 import zipfile
 from . import llm_processing
 from .. import socketio
-from flask import render_template, current_app, flash, request, redirect, send_file, url_for
+from flask import render_template, current_app, flash, request, redirect, send_file, url_for, session
 from .forms import LLMPipelineForm
 import requests
 import pandas as pd
@@ -18,6 +18,7 @@ from concurrent import futures
 import io
 from .utils import read_preprocessed_csv_from_zip, replace_personal_info, is_empty_string_nan_or_none
 from io import BytesIO
+from .. import set_mode
 
 server_connection: Optional[subprocess.Popen[Any]] = None
 current_model = None
@@ -97,6 +98,11 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print("Client Disconnected")
+
+
+@llm_processing.before_request
+def before_request():
+    set_mode(session, current_app.config['MODE'])
 
 
 def extract_from_report(
