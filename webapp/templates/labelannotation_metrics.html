@@ -1,0 +1,215 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nested-container">
+    <h2>Label Annotation Summary</h2>
+
+    <div class="card mt-3 mb-3 shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Metrics</h3>
+
+                <div>
+                    <span class="badge rounded-pill text-bg-primary">Total Reports: {{ report_summary_dict['report_list']|count }}</span>
+                    <span class="badge rounded-pill text-bg-info">{{ report_summary_dict['metadata']['llm_processing']['model_name']}}</span>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <nav>
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
+                            data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane"
+                            aria-selected="true">All Labels</button>
+                    </li>
+                    {% for key, value in report_summary_dict['accumulated_metrics']['label_wise'].items() %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="scores-tab-{{ key }}" data-bs-toggle="tab"
+                            data-bs-target="#scores-tab-{{ key }}-pane" type="button" role="tab"
+                            aria-controls="scores-tab-{{ key }}-pane" aria-selected="false">{{ key }}</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <div class="tab-content mt-3" id="myTabContent">
+                <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab"
+                    tabindex="0">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Metric</th>
+                                            <th scope="col">Macro Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Accuracy</th>
+                                            <td>{{
+                                                report_summary_dict['accumulated_metrics']['overall']['accuracy']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">F1 Score</th>
+                                            <td>{{
+                                                report_summary_dict['accumulated_metrics']['overall']['f1']
+                                                }}
+                                            </td>
+                                        </tr>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- <div class="col-md-6">
+                                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id) }}"
+                                    class="img" height="300px">
+                            </div> -->
+                        </div>
+                    </div>
+
+                </div>
+                {% for label in report_summary_dict['accumulated_metrics']['label_wise'].keys() %}
+
+                <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
+                    aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Metrics for {{ label }}</th>
+                                            <th scope="col">Macro Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Accuracy</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['accuracy'] }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">F1 Score</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['f1'] }}
+                                            </td>
+                                        </tr>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- <div class="col-md-6">
+                                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id, label=label) }}"
+                                    class="img" height="300px">
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="btn-group mb-3">
+        <a href="#"
+            class="btn btn-outline-secondary" aria-disabled="true">Download All</a>
+
+
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+            aria-expanded="false" aria-controls="collapseMetadata">
+            Show Metadata
+        </button>
+
+    </div>
+
+    <div class="collapse" id="collapseMetadata">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>Experiment Metadata</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <tbody>
+                        <tr>
+                            <th>Preprocessing Date</th>
+                            <td>{{ report_summary_dict['metadata']['preprocessing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>LLM Processing Date</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Model Name</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['model_name']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Prompt</th>
+                            <td style="overflow:hidden">{{ report_summary_dict['metadata']['llm_processing']['prompt']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Symptoms</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['symptoms']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Temperature</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['temperature']}}</td>
+                        </tr>
+                        <tr>
+                            <th>N Predict</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['n_predict']}}</td>
+                        </tr>
+                        <tr>
+                            <th>CTX size</th>
+                            <td>{{ report_summary_dict['metadata']['llm_processing']['ctx_size']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Grammar</th>
+                            <td style="overflow: hidden;">{{ report_summary_dict['metadata']['llm_processing']['grammar']}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <ol class="list-group list-group-numbered">
+        {% for report in report_summary_dict['report_list'] %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">{{report['id']}}</div>
+                <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}"
+                    class="btn btn-light float-right">🔎</a>
+
+                F1: {{report['metrics']['overall']['f1']}}
+                Acc: {{report['metrics']['overall']['accuracy']}}
+            </div>
+            {% if report['metrics']['overall']['f1'] == 1 %}
+            <span class="badge text-bg-success rounded-pill">F1:
+                {{report['metrics']['overall']['f1']}}</span>
+            {% else %}
+            <span class="badge text-bg-danger rounded-pill">F1:
+                {{report['metrics']['overall']['f1']}}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</div>
+
+
+<style>
+    .nested-container {
+        padding: 30px 15px;
+    }
+</style>
+</style>
+{% endblock %}

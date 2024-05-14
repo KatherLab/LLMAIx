@@ -9,7 +9,7 @@
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3">
-            <legend>Input zip with LLM output.</legend>
+            <legend>LLM Output File (.zip)</legend>
 
             <div class="row">
                 <div class="form-group col-md-12">
@@ -50,13 +50,13 @@
             </div>
         </fieldset>
 
-        <div class="row">
+        <div class="row p-3">
             <div class="form-group col-md-6">
                 <button type="submit" name="submit-metrics"
-                    class="form-control form-control-lg btn btn-secondary">Label Annotation Metrics</button>
+                    class="form-control form-control-lg btn btn-secondary">Label Annotation Metrics Summary</button>
             </div>
             <div class="form-group col-md-6">
-                <button type="submit" name="submit-viewer" class="form-control form-control-lg btn btn-secondary">Label Annotation Viewer</button>
+                <button type="submit" name="submit-viewer" class="form-control form-control-lg btn btn-secondary">Label Annotation Viewer (document-wise)</button>
             </div>
         </div>
 
