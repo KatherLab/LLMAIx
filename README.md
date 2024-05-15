@@ -113,30 +113,7 @@ ws ::= ([ \t\n])?
 
 ## TODO
 
-- IDs in csv
-- Schätzung / automatisches Split bei zu vielen Token
-- PDF schwärzen (side-by-side display)
-- replace_personal_info anpassen (linked #TODO)
-- raw LLM output download
-- settings for postprocessing
-- add metadata file to zip
-- fix error when old csv are used for llm
-- report error in viewer warning
-- support UIMA CAS JSON 0.4.0
 - dockerize
-- put original filename in csv
 
-- variable ctx size (automatically adjust if not set manually)
 - make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
 - When reports are split, put the already extracted information in the input for the next part.
-
-- page for general metrics
-- classwise metrics
-- Download all metrics
-
-- Executor Fehler durchreichen
-- skip annotation json entry if no label is set
-
-- Select box in the viewer to select a specific case
-
-- Information Extraction: CSV with text label as input, viewer for metrics and pdfs.
