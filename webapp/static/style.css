@@ -32,3 +32,6 @@
     color: #000000; /* Change text color on hover and when active */
 }
 
+.nested-container {
+    padding: 30px 15px;
+}

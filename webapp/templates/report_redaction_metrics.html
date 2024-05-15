@@ -2,6 +2,11 @@
 
 {% block content %}
 <div class="nested-container">
+
+
+    <a class="btn btn-info mb-3" href="{{ url_for('report_redaction.main') }}">↩ Back to Report Redaction Form</a>
+
+
     <h2>Report Redaction Summary</h2>
 
     <div class="card mt-3 mb-3 shadow-sm">
@@ -331,10 +336,5 @@
 </div>
 
 
-<style>
-    .nested-container {
-        padding: 30px 15px;
-    }
-</style>
-</style>
+
 {% endblock %}

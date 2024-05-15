@@ -137,6 +137,8 @@ def main():
 
         session["report_list"] = []
 
+        global job_progress
+
         # First report id
 
         df = find_llm_output_csv(content_temp_dir)
@@ -147,14 +149,20 @@ def main():
         if "submit-viewer" in request.form:
             report_id = df["id"].iloc[0]
 
+            session['current_redaction_job'] = None
+
             return redirect(
                 url_for("report_redaction.report_redaction_viewer", report_id=report_id)
             )
 
         elif "submit-metrics" in request.form:
+            
             if session["annotation_file"] is None:
-                flash("No annotation file was sent!", "danger")
-                return redirect(request.url)
+                form.annotation_file.errors.append(
+                    "For the metrics summary page, please upload an annotation file."
+                )  
+
+                return render_template("report_redaction_form.html", form=form, progress=job_progress)
 
             print("Metrics Page")
 
@@ -206,7 +214,7 @@ def main():
                 else:
                     flash("Upload Successful! Job is running!", "success")
 
-    global job_progress
+    
     return render_template(
         "report_redaction_form.html", form=form, progress=job_progress
     )
@@ -501,6 +509,8 @@ def report_redaction_metrics(job_id: str):
     if result is None:
         flash(f"Job {job_id} not found or not finished yet!", "danger")
         return redirect(request.url)
+    
+    session['current_redaction_job'] = job_id
 
     return render_template(
         "report_redaction_metrics.html",

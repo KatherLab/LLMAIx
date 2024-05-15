@@ -14,7 +14,7 @@
   {% elif session['mode'] == 'informationextraction' %}
   <title>LLM Information Extraction</title>
   {% endif %}
-  <link href="static/style.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 
 <body>
@@ -55,44 +55,48 @@
               <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'input_processing.main' %}active{% endif %}" aria-current="page"
-                            href="{{ url_for('input_processing.main') }}">Preprocessing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'llm_processing.main' %}active{% endif %}" href="{{ url_for('llm_processing.main') }}">LLM Information Extraction</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'llm_processing.llm_results' %}active{% endif %}" href="{{ url_for('llm_processing.llm_results') }}">LLM Results</a>
-                    </li>
-                    {% if session['mode'] == 'anonymizer' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'report_redaction.main' %}active{% endif %}" href="{{ url_for('report_redaction.main') }}">Report Redaction</a>
-                    </li>
-                    {% endif %}
-                    {% if session['mode'] == 'informationextraction' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'labelannotation.main' %}active{% endif %}" href="{{ url_for('labelannotation.main') }}">Label Annotation Viewer</a>
-                    </li>
-                    {% endif %}
-                </ul>
-                <form id="modeForm" action="/set_mode" method="GET" class="d-flex">
-                    <select id="modeSelect" class="form-select" aria-label="Default select example" name="mode">
-                        {% if session['mode'] == 'anonymizer' %}
-                        <option selected>LLM Anonymizer</option>
-                        <option value="informationextraction">LLM Information Extraction</option>
-                        {% elif session['mode'] == 'informationextraction' %}
-                        <option selected>LLM Information Extraction</option>
-                        <option value="anonymizer">LLM Anonymizer</option>
-                        {% else %}
-                        <option selected disabled></option>
-                        {% endif %}
-                    </select>
-                </form>
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'input_processing.main' %}active{% endif %}"
+                    aria-current="page" href="{{ url_for('input_processing.main') }}">Preprocessing</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'llm_processing.main' %}active{% endif %}"
+                    href="{{ url_for('llm_processing.main') }}">LLM Information Extraction</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'llm_processing.llm_results' %}active{% endif %}"
+                    href="{{ url_for('llm_processing.llm_results') }}">LLM Results</a>
+                </li>
+                {% if session['mode'] == 'anonymizer' %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'report_redaction.main' or request.endpoint == 'report_redaction.report_redaction_viewer' or request.endpoint == 'report_redaction.report_redaction_metrics' %}active{% endif %}"
+                    href="{{ url_for('report_redaction.main') }}">Report Redaction</a>
+                </li>
+                {% endif %}
+                {% if session['mode'] == 'informationextraction' %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'labelannotation.main' or request.endpoint == 'labelannotation.labelannotationviewer' or request.endpoint == 'labelannotation.labelannotationmetrics' %}active{% endif %}"
+                    href="{{ url_for('labelannotation.main') }}">Label Annotation Viewer</a>
+                </li>
+                {% endif %}
+              </ul>
+              <form id="modeForm" action="/set_mode" method="GET" class="d-flex">
+                <select id="modeSelect" class="form-select" aria-label="Default select example" name="mode">
+                  {% if session['mode'] == 'anonymizer' %}
+                  <option selected>LLM Anonymizer</option>
+                  <option value="informationextraction">LLM Information Extraction</option>
+                  {% elif session['mode'] == 'informationextraction' %}
+                  <option selected>LLM Information Extraction</option>
+                  <option value="anonymizer">LLM Anonymizer</option>
+                  {% else %}
+                  <option selected disabled></option>
+                  {% endif %}
+                </select>
+              </form>
             </div>
-        </div>
-        
+          </div>
+
         </nav>
 
   </header>
@@ -122,10 +126,10 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script>
-    $(".nav-link").on("click", function () {
-      $(".nav-link.active").removeClass("active");
-      $(this).addClass("active");
-    });
+    //$(".nav-link").on("click", function () {
+    //  $(".nav-link.active").removeClass("active");
+    //  $(this).addClass("active");
+    //});
 
     document.addEventListener("DOMContentLoaded", function () {
       // Add event listener to mode select element
