@@ -117,3 +117,5 @@ ws ::= ([ \t\n])?
 
 - make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
 - When reports are split, put the already extracted information in the input for the next part.
+
+- Multiple Grammars
