@@ -126,7 +126,7 @@
         <div class="row p-3">
             <div class="form-group col-md-6">
                 <button type="submit" name="submit-metrics"
-                    class="form-control form-control-lg btn btn-secondary">Report Redaction Metrics Summary</button>
+                    class="form-control form-control-lg btn btn-secondary">Calculate Report Redaction Metrics Summary</button>
             </div>
             <div class="form-group col-md-6">
                 <button type="submit" name="submit-viewer" class="form-control form-control-lg btn btn-secondary">Report
@@ -143,7 +143,7 @@
     <div class="container p-2 mb-3">
         <h3>Job {{ job_id }}</h3>
         <div class="row">
-            <div class="col-md-11">
+            <div class="col">
 
                 <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
                     aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
@@ -157,7 +157,7 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="col-md-1">
+            <div class="col-auto">
                 {% if progress_tuple[0] == progress_tuple[1] %}
                 <a id="download-{{ job_id }}" href="/reportredactionmetrics/{{ job_id }}" class="btn btn-success">View
                     Metrics</a>
@@ -170,6 +170,9 @@
         </div>
     </div>
     {% endfor %}
+
+
+
 
     <div id="flash-messages" class="container"></div>
 </div>

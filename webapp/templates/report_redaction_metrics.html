@@ -4,7 +4,7 @@
 <div class="nested-container">
 
 
-    <a class="btn btn-info mb-3" href="{{ url_for('report_redaction.main') }}">↩ Back to Report Redaction Form</a>
+    <a class="btn btn-outline-info mb-3" href="{{ url_for('report_redaction.main') }}">↩ <i><b>Back to Report Redaction Form</b></i></a>
 
 
     <h2>Report Redaction Summary</h2>
@@ -307,13 +307,15 @@
     </div>
     {% endif %}
 
-    <ol class="list-group list-group-numbered">
+    <h3>Individual Reports: </h3>
+
+    <div class="list-group list-group-numbered">
         {% for report in report_list['report_list'] %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
+        <a class="list-group-item d-flex justify-content-between align-items-start list-group-item-action" href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">{{report['id']}}</div>
-                <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}"
-                    class="btn btn-light float-right">🔎</a>
+                <!-- <a href="{{ url_for('report_redaction.report_redaction_viewer', report_id=report['id']) }}"
+                    class="btn btn-light float-right">🔎</a> -->
 
                 F1: {{report['scores']['personal_info_list'][0]['f1_score']}}
                 Acc: {{report['scores']['personal_info_list'][0]['accuracy']}}
@@ -330,9 +332,9 @@
             <span class="badge text-bg-danger rounded-pill">FNR:
                 {{report['scores']['personal_info_list'][0]['false_negative_rate']}}</span>
             {% endif %}
-        </li>
+        </a>
         {% endfor %}
-    </ol>
+    </div>
 </div>
 
 

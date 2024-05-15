@@ -5,11 +5,11 @@
 
     {% if session["current_redaction_job"] %}
     <!-- Button to go back to metrics page with job_id -->
-    <a class="btn btn-info mb-3" href="{{ url_for('report_redaction.report_redaction_metrics', job_id=session['current_redaction_job']) }}">↩ Back to Metrics Summary Page</a>
+    <a class="btn btn-outline-info mb-3" href="{{ url_for('report_redaction.report_redaction_metrics', job_id=session['current_redaction_job']) }}">↩ <i><b>Back to Metrics Summary Page</b></i></a>
     {% endif %}
     <h2>Report Redaction Viewer</h2>
     <div class="d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h3>
+        <h4 class="mb-0">Report {{ report_number }}/{{ total_reports }}: {{ report_id }}</h4>
         {% if metadata %}
         <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
             aria-expanded="false" aria-controls="collapseMetadata">
