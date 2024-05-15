@@ -83,6 +83,7 @@ def main():
         report_id = df["id"].iloc[0]
 
         if "submit-viewer" in request.form:
+            session["current_labelannotation_job"] = None
             return redirect(
                 url_for("labelannotation.labelannotationviewer", report_id=report_id)
             )
@@ -106,7 +107,6 @@ def main():
             )
 
     return render_template("labelannotation_form.html", form=form)
-
 
 def calculate_metrics(annotation_labels, llm_output_labels):
 
@@ -219,7 +219,80 @@ def accumulate_metrics(data_list):
 
     return accumulated_metrics
 
+def generate_report_dict(row, df_annotation) -> dict:
+    report_dict = {}
 
+    report_dict["id"] = row.id
+    report_dict["report"] = row.report
+    report_dict['metadata'] = row.metadata
+    # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
+    report_dict["annotation_labels"] = df_annotation[
+        df_annotation["report"].str.startswith(row.report_id_short)
+    ].to_dict("list")
+
+    if len(df_annotation[df_annotation["report"].str.startswith(row.report_id_short)]) == 0:
+        raise Exception("No annotation found for report " + row.report_id_short)
+    
+    if len(df_annotation[df_annotation["report"].str.startswith(row.report_id_short)]) > 1:
+        raise Exception("Multiple annotations found for report " + row.report_id_short)
+
+    del report_dict["annotation_labels"]["report"]
+    # similar with llm output labels from the row, excluding id, report, metadata, matching_report, no_matching_report, report_redacted
+    report_dict["llm_output_labels"] = {
+        k: v
+        for k, v in row._asdict().items()
+        if k
+        not in [
+            "id",
+            "report",
+            "report_id_short",
+            "metadata",
+            "matching_report",
+            "no_matching_report",
+            "report_redacted",
+            "Index",
+            "personal_info_list",
+            "masked_report",
+        ]
+    }
+
+    if (
+        not report_dict["llm_output_labels"].keys()
+        == report_dict["annotation_labels"].keys()
+    ):
+        raise Exception("Mismatch in label keys in annotation and llm output: " + str(
+            report_dict["llm_output_labels"].keys())
+            + " vs "
+            + str(report_dict["annotation_labels"].keys())
+        )
+
+    # go trough values of annotation labels and use the first list element as value
+    for k, v in report_dict["annotation_labels"].items():
+        if len(v) == 0:
+            raise Exception("No value in annotation for key: " + k + " for report: " + row.id)
+        report_dict["annotation_labels"][k] = v[0]
+
+    # the same for llm output labels
+    for k, v in report_dict["llm_output_labels"].items():
+        value_list = ast.literal_eval(v)
+        # choose the first none-empty value or "" if all values are empty
+        report_dict["llm_output_labels"][k] = value_list[0]
+        for value in value_list:
+            if value != "":
+                report_dict["llm_output_labels"][k] = value
+                break
+    
+    report_dict['metrics'] = calculate_metrics(report_dict['annotation_labels'], report_dict['llm_output_labels'])
+
+    return report_dict
+
+def generate_report_list(df, df_annotation) -> list:
+    report_list = []
+
+    for row in df.itertuples():
+        report_list.append(generate_report_dict(row, df_annotation))
+    
+    return report_list
 
 @labelannotation.route("/labelannotationmetrics", methods=["GET"])
 def labelannotationmetrics():
@@ -237,21 +310,21 @@ def labelannotationmetrics():
         return redirect(request.url)
 
     # Extract report names from the 'id' column in df1
-    df["report"] = (
+    df["report_id_short"] = (
         df["id"].str.split(".pdf", expand=True)[0].str.split("$", expand=True)[0]
     )
 
     # Check if the extracted report names from df1 are present in df2
-    df["matching_report"] = df["report"].isin(df_annotation["report"])
+    df["matching_report"] = df["report_id_short"].isin(df_annotation["report"])
 
     # Find IDs with no matching report
     df["no_matching_report"] = ~df["matching_report"]
 
-    print(df[df["no_matching_report"]][["id", "report"]])
+    print(df[df["no_matching_report"]][["id", "report_id_short"]])
 
-    if len(df[df["no_matching_report"]][["id", "report"]]) > 0:
+    if len(df[df["no_matching_report"]][["id", "report_id_short"]]) > 0:
         flash(
-            f"Reports not found in the annotation file: {df[df['no_matching_report']][['id', 'report']]}",
+            f"Reports not found in the annotation file: {df[df['no_matching_report']][['id', 'report_id_short']]}",
             "danger",
         )
         return redirect(url_for("labelannotation.main"))
@@ -268,77 +341,16 @@ def labelannotationmetrics():
         return redirect(url_for("labelannotation.main"))
 
     report_summary_dict["metadata"] = metadata
-
-    report_list = []
-
-    for row in df.itertuples():
-        report_dict = {}
-
-        report_dict["id"] = row.id
-        report_dict["report"] = row.report
-        # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
-        report_dict["annotation_labels"] = df_annotation[
-            df_annotation["report"].str.startswith(row.report)
-        ].to_dict("list")
-        del report_dict["annotation_labels"]["report"]
-        # similar with llm output labels from the row, excluding id, report, metadata, matching_report, no_matching_report, report_redacted
-        report_dict["llm_output_labels"] = {
-            k: v
-            for k, v in row._asdict().items()
-            if k
-            not in [
-                "id",
-                "report",
-                "metadata",
-                "matching_report",
-                "no_matching_report",
-                "report_redacted",
-                "Index",
-                "personal_info_list",
-                "masked_report",
-            ]
-        }
-
-        if (
-            not report_dict["llm_output_labels"].keys()
-            == report_dict["annotation_labels"].keys()
-        ):
-            breakpoint()
-            flash(
-                "Mismatch in label keys in annotation and llm output: "
-                + str(report_dict["llm_output_labels"].keys())
-                + " vs "
-                + str(report_dict["annotation_labels"].keys()),
-                "danger",
-            )
-            return redirect(url_for("labelannotation.main"))
-
-        # go trough values of annotation labels and use the first list element as value
-        for k, v in report_dict["annotation_labels"].items():
-            report_dict["annotation_labels"][k] = v[0]
-
-        # the same for llm output labels
-        for k, v in report_dict["llm_output_labels"].items():
-            value_list = ast.literal_eval(v)
-            # choose the first none-empty value or "" if all values are empty
-            report_dict["llm_output_labels"][k] = value_list[0]
-            for value in value_list:
-                if value != "":
-                    report_dict["llm_output_labels"][k] = value
-                    break
-        
-        report_dict['metrics'] = calculate_metrics(report_dict['annotation_labels'], report_dict['llm_output_labels'])
-
-        report_list.append(report_dict)
     
-    report_summary_dict['report_list'] = report_list
+    report_summary_dict['report_list'] = generate_report_list(df, df_annotation)
 
-    report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_list)
+    report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
+
+    session["current_labelannotation_job"] = True
 
     return render_template(
         "labelannotation_metrics.html", report_summary_dict=report_summary_dict
     )
-
 
 @labelannotation.route("/labelannotationviewer", methods=["GET", "POST"])
 def labelannotationviewer():
@@ -348,6 +360,10 @@ def labelannotationviewer():
     if df is None or len(df) == 0:
         flash("No CSV file found in the uploaded file!", "danger")
         return redirect(request.url)
+    
+    df["report_id_short"] = (
+        df["id"].str.split(".pdf", expand=True)[0].str.split("$", expand=True)[0]
+    )
 
     if report_id not in df["id"].values:
         report_id = df["id"].iloc[0]
@@ -359,11 +375,33 @@ def labelannotationviewer():
     previous_id = df.at[current_index - 1, "id"] if current_index > 0 else None
     next_id = df.at[current_index + 1, "id"] if current_index < len(df) - 1 else None
 
+    df_annotation = pd.read_csv(session["annotation_file"])
+    if df_annotation is not None and len(df_annotation) == 0:
+        flash("Annotation File found but empty!", "danger")
+        return redirect(request.url)
+    
+    report_dict = None
+    
+    if df_annotation is not None:
+        # row = df[df["id"] == report_id].iloc[0]
+        for row in df.itertuples():
+            if row.id == report_id:
+                try:
+                    report_dict = generate_report_dict(row, df_annotation)
+                except Exception as e:
+                    flash(f"Error processing reports and annotations: {e}", "danger")
+                    breakpoint()
+                    return redirect(url_for("labelannotation.main"))
+                break
+
     return render_template(
         "labelannotation_viewer.html",
         report_id=report_id,
         previous_id=previous_id,
         next_id=next_id,
+        report_number=current_index + 1,
+        total_reports=len(df),
+        report_dict = report_dict,
     )
 
 

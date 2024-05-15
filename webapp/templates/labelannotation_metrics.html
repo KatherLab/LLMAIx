@@ -2,6 +2,10 @@
 
 {% block content %}
 <div class="nested-container">
+
+    <a class="btn btn-outline-info mb-3" href="{{ url_for('labelannotation.main') }}">↩ <i><b>Back to Label Annotation Form</b></i></a>
+
+
     <h2>Label Annotation Summary</h2>
 
     <div class="card mt-3 mb-3 shadow-sm">
@@ -182,13 +186,13 @@
         </div>
     </div>
 
-    <ol class="list-group list-group-numbered">
+    <div class="list-group list-group-numbered">
         {% for report in report_summary_dict['report_list'] %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
+        <a class="list-group-item d-flex justify-content-between align-items-start list-group-item-action" href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">{{report['id']}}</div>
-                <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}"
-                    class="btn btn-light float-right">🔎</a>
+                <!-- <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}"
+                    class="btn btn-light float-right">🔎</a> -->
 
                 F1: {{report['metrics']['overall']['f1']}}
                 Acc: {{report['metrics']['overall']['accuracy']}}
@@ -200,9 +204,9 @@
             <span class="badge text-bg-danger rounded-pill">F1:
                 {{report['metrics']['overall']['f1']}}</span>
             {% endif %}
-        </li>
+            </a>
         {% endfor %}
-    </ol>
+    </div>
 </div>
 
 
