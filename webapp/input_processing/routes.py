@@ -17,7 +17,9 @@ from odf import teletype
 from odf.opendocument import load
 import uuid
 import zipfile
+from fpdf import FPDF
 from io import BytesIO
+from docx2pdf import convert as convert_docx
 from . import input_processing
 from .. import socketio
 from .. import set_mode
@@ -64,6 +66,16 @@ def complete_job(job_id):
     socketio.emit('progress_complete', {'job_id': job_id})
 
 
+def save_text_as_pdf(text, pdf_file_save_path):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.multi_cell(0, 6, txt=text)
+
+    pdf.output(pdf_file_save_path)
+
+
 def preprocess_input(job_id, file_paths):
     print("PREPROCESS")
 
@@ -73,11 +85,12 @@ def preprocess_input(job_id, file_paths):
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
                 merged_data.append(df)
+                print("Cannot convert csv to pdf at the moment, not implemented!")
             elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
                 if not file_path.endswith('.pdf'):
                     # Convert JPG/PNG to PDF
-                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"pdf_{
-                                                   os.path.basename(file_path)}.pdf")
+                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"{
+                                                   os.path.splitext(os.path.basename(file_path))[0]}.pdf")
                     image = Image.open(file_path)
                     image.save(pdf_output_path)
                     file_path = pdf_output_path
@@ -121,18 +134,30 @@ def preprocess_input(job_id, file_paths):
             elif file_path.endswith('.txt'):
                 with open(file_path, 'r') as f:
                     text = f.read()
-                    merged_data.append(pd.DataFrame({'report': [text]}))
+                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.txt')[0]}.pdf")
+                    
+                    save_text_as_pdf(text, pdf_file_save_path)
+
+                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
             elif file_path.endswith('.docx'):
                 doc = Document(file_path)
                 doc_text = '\n'.join(
                     [paragraph.text for paragraph in doc.paragraphs])
-                merged_data.append(pd.DataFrame({'report': [doc_text]}))
+                
+                pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.docx')[0]}.pdf")
+                
+                convert_docx(file_path, pdf_file_save_path)
+
+                merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': pdf_file_save_path}))
+
+                # merged_data.append(pd.DataFrame({'report': [doc_text]}))
             elif file_path.endswith('.odt'):
                 doc = load(file_path)
                 doc_text = ''
                 for element in doc.getElementsByType(text.P):
                     doc_text += teletype.extractText(element)
                 merged_data.append(pd.DataFrame({'report': [doc_text]}))
+                print("Cannot convert odt to pdf at the moment, not implemented!")
             else:
                 print(f"Unsupported file format: {file_path}")
         except Exception as e:
@@ -187,7 +212,14 @@ def download():
         # Add an 'id' column and generate unique IDs for every row
         # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
 
-        df['filename'] = df['filepath'].apply(lambda x: os.path.basename(x))
+        def remove_ocr_prefix(filename):
+            if filename.startswith('ocr_'):
+                return filename[len('ocr_'):]
+            else:
+                return filename
+
+        df['filename'] = df['filepath'].apply(lambda x: remove_ocr_prefix(os.path.basename(x)))
+
         df['id'] = df.apply(lambda x: x['filename'] +
                             '$' + str(uuid.uuid4()), axis=1)
 
