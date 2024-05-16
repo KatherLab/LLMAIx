@@ -24,4 +24,6 @@ def create_app():
     return app
 
 def set_mode(session, mode):
-    session['mode'] = mode
+    pass
+    # print("set mode to ", mode)
+    # session['mode'] = mode
