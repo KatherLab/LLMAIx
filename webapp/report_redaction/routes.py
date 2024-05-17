@@ -8,14 +8,13 @@ import tempfile
 import time
 import traceback
 import zipfile
-from cassis import *
+from cassis import load_cas_from_json
 import fitz
 from flask import render_template, session, current_app
 import pandas as pd
 from webapp.llm_processing.utils import (
     anonymize_pdf,
     convert_personal_info_list,
-    find_fuzzy_matches,
     replace_personal_info,
 )
 from webapp.report_redaction.utils import (
@@ -24,6 +23,7 @@ from webapp.report_redaction.utils import (
     generate_confusion_matrix_from_counts,
     generate_score_dict,
     get_pymupdf_text_wordwise,
+    find_fuzzy_matches
 )
 from . import report_redaction
 from flask import abort, request, redirect, send_file, url_for, flash
@@ -32,9 +32,11 @@ from .. import socketio, set_mode
 
 JobID = str
 report_redaction_jobs: dict[JobID, futures.Future] = {}
-executor = futures.ThreadPoolExecutor(1)
+executor = futures.ThreadPoolExecutor(5)
 
 job_progress = {}
+client_connected = False
+client_connect_timeout = 0.5
 
 @report_redaction.before_request
 def before_request():
@@ -50,28 +52,47 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
         {"job_id": job_id, "progress": progress[0], "total": progress[1]},
     )
 
+def wait_for_client():
+    passed_time = 0
+    global client_connect_timeout
+    global client_connected
+    if not client_connected:
+        while not client_connected:
+            passed_time += 0.2
+            time.sleep(0.2)
+            print("Wait for client to connect")
+
+            if passed_time > client_connect_timeout:
+                break
+    return
+            
 
 def failed_job(job_id):
-    time.sleep(2)
     print("FAILED")
+
+    wait_for_client()
+
     global job_progress
     # wait for 1s
     socketio.emit("progress_failed", {"job_id": job_id})
 
 
 def warning_job(job_id, message):
-    time.sleep(0.2)
-    print("WARNING")
+    
+    wait_for_client()
+
     global job_progress
-    # wait for 1s
     socketio.emit("progress_warning", {"job_id": job_id, "message": message})
 
 
 def complete_job(job_id):
     print("COMPLETE")
+
     global job_progress
     # set the job progress tuple [2] to true
     job_progress[job_id] = (job_progress[job_id][0], job_progress[job_id][1], True)
+
+    wait_for_client()
 
     socketio.emit("progress_complete", {"job_id": job_id})
 
@@ -79,11 +100,14 @@ def complete_job(job_id):
 @socketio.on("connect")
 def handle_connect():
     print("Client Connected")
-
+    global client_connected
+    client_connected = True
 
 @socketio.on("disconnect")
 def handle_disconnect():
     print("Client Disconnected")
+    global client_connected
+    client_connected = False
 
 
 @report_redaction.route("/reportredaction", methods=["GET", "POST"])
@@ -221,12 +245,12 @@ def main():
 
 
 def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
-    print("Run Report List Generator")
+    # print("Run Report List Generator")
     report_list = []
 
     try:
         for index, row in df.iterrows():
-            print("Calculate Metrics for Report ", index, row["id"])
+            # print("Calculate Metrics for Report ", index, row["id"])
             report_dict = {}
             report_dict["id"] = row["id"]
 
@@ -265,7 +289,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
 
             orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
 
-            print("Load Annotated PDF")
+            # print("Load Annotated PDF")
             (
                 report_dict["annotated_pdf_filepath"],
                 report_dict["annotated_text_labelwise"],
@@ -274,7 +298,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
                 sofastring,
             ) = load_annotated_pdf(row["id"], orig_pdf_path, annotation_file)
 
-            print("Load Redacted PDF")
+            # print("Load Redacted PDF")
             (
                 report_dict["redacted_pdf_filepath"],
                 report_dict["dollartext_redacted_dict"],
@@ -286,8 +310,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file):
 
             report_dict["scores"] = {}
 
-            print("Generate Score Dict")
-
+            # Generate Report Dict
             for key in report_dict["annotated_text_labelwise"].keys():
                 if key not in report_dict["dollartext_redacted_dict"].keys():
                     warning_job(
@@ -818,10 +841,10 @@ def report_redaction_viewer(report_id):
 
 
 def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
-    print("load_annotated_pdf")
+    # print("load_annotated_pdf")
     json_filename = ".".join(report_id.split("$")[0].split(".")[:-1]) + ".json"
 
-    print("Filename: ", json_filename)
+    # print("Filename: ", json_filename)
     # Open zip file and get filename file in any level of this zip file
     with zipfile.ZipFile(annotation_zip_file, "r") as zipf:
         for file_info in zipf.infolist():
@@ -901,7 +924,6 @@ def load_redacted_pdf(
     scorer="WRatio",
     text=None,
 ):
-    print("load_redacted_pdf")
 
     if exclude_single_chars:
         for key, value in personal_info_dict.items():

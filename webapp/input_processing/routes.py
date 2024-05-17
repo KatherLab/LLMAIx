@@ -25,43 +25,48 @@ from .. import socketio
 from .. import set_mode
 
 
-
 JobID = str
 jobs: dict[JobID, futures.Future] = {}
-executor = futures.ThreadPoolExecutor(1)
+executor = futures.ThreadPoolExecutor(5)
 
 job_progress = {}
 
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client Connected")
+    # print("Client Connected")
+    pass
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client Disconnected")
+    pass
 
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
     global job_progress
     job_progress[job_id] = progress
-
-    print("Progress: ", progress)
+    
     socketio.emit('progress_update', {
                   'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
 
 
 def failed_job(job_id):
-    time.sleep(2)
-    print("FAILED")
+    
+    print("Preprocessing Job Failed: ", job_id)
+
+    time.sleep(0.5)
+
     global job_progress
-    # wait for 1s
     socketio.emit('progress_failed', {'job_id': job_id})
 
 
 def complete_job(job_id):
-    print("COMPLETE")
+    print("Preprocessing Job Complete: ", job_id)
+
+    # Sometimes when the preprocessing is too fast, the socketio client did not reconnect in time, so the progress bar is never updated
+    time.sleep(0.5)
+
     global job_progress
     socketio.emit('progress_complete', {'job_id': job_id})
 
@@ -77,10 +82,11 @@ def save_text_as_pdf(text, pdf_file_save_path):
 
 
 def preprocess_input(job_id, file_paths):
-    print("PREPROCESS")
 
     merged_data = []
+
     for i, file_path in enumerate(file_paths):
+
         try:
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
@@ -127,7 +133,7 @@ def preprocess_input(job_id, file_paths):
                     ocr_text = ''
                     for page in ocr_pdf.pages:
                         ocr_text += page.extract_text()
-                print("Save Report as ", ocr_output_path)
+                # print("Save Report as ", ocr_output_path)
                 merged_data.append(pd.DataFrame(
                     {'report': [ocr_text], 'filepath': ocr_output_path}))
 
@@ -168,14 +174,16 @@ def preprocess_input(job_id, file_paths):
             os.remove(file_path)
             return "Error processing file: " + str(e)
 
-        update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
+        try:
+            update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
+        except Exception as e:
+            print("Error updating progress: ", e)
+            import traceback
+            traceback.print_exc()
 
     merged_df = pd.concat(merged_data)
     complete_job(job_id)
     return merged_df
-    # merged_csv = merged_df.to_csv(index=False)
-
-    # return merged_csv
 
 
 @input_processing.before_request
@@ -234,8 +242,7 @@ def download():
 
         def add_files_to_zip(zipf, files, ids):
             for file, file_id in zip(files, ids):
-                zipf.write(file, f"{file_id}.{
-                           os.path.basename(file).split('.')[-1]}")
+                zipf.write(file, f"{file_id}.{os.path.basename(file).split('.')[-1]}")
                 # os.remove(file)sss
 
         # Add dataframe as CSV to zip
@@ -282,16 +289,6 @@ def download():
 
         zip_buffer.seek(0)
 
-        # result_io = io.BytesIO()
-        # df_split.to_csv(result_io, index=False)
-        # result_io.seek(0)
-        # return send_file(
-        #     result_io,
-        #     mimetype="text/csv",
-        #     as_attachment=True,
-        #     download_name=f"preprocessed-{job_id}.csv",
-        # )
-
         return send_file(
             zip_buffer,
             mimetype="application/zip",
@@ -305,7 +302,6 @@ def download():
 
 @input_processing.route("/", methods=['GET', 'POST'])
 def main():
-    print("MAIN")
 
     form = PreprocessUploadForm()
 
@@ -327,12 +323,16 @@ def main():
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(temp_dir, filename)
                 file.save(file_path)
-                print("File saved:", file_path)
+                # print("File saved:", file_path)
                 file_paths.append(file_path)
 
         update_progress(job_id=job_id, progress=(
             0, len(form.files.data), True))
 
+        # For debugging purposes, run outside of executor
+        # preprocess_input(job_id=job_id, file_paths=file_paths)
+
+        # print("Start Executor")
         global jobs
         jobs[job_id] = executor.submit(
             preprocess_input,

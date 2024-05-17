@@ -9,23 +9,42 @@ import io
 import pandas as pd
 
 
-def convert_personal_info_list(personal_info_list) -> None:
+# def convert_personal_info_list(personal_info_list) -> None:
+#     import ast
+#     personal_info_list = personal_info_list.replace("nan,", "")
+#     personal_info_list = personal_info_list.replace("'',", "")
+#     personal_info_list = ast.literal_eval(personal_info_list)
+#     personal_info_list = list(set(personal_info_list))
+#     personal_info_list = [item for item in personal_info_list if item != ""]
+
+#     # TODO include in list comprehension above
+#     personal_info_list_output = []
+#     for info in personal_info_list:
+#         if is_empty_string_nan_or_none(info):
+#             continue
+
+#         personal_info_list_output.append(info)
+
+#     return personal_info_list_output
+
+def convert_personal_info_list(personal_info_list: str) -> list:
     import ast
-    personal_info_list = personal_info_list.replace("nan,", "")
-    personal_info_list = personal_info_list.replace("'',", "")
+    from collections import OrderedDict
+
+    # Clean the input string
+    personal_info_list = personal_info_list.replace("nan,", "").replace("'',", "")
+    
+    # Convert to list
     personal_info_list = ast.literal_eval(personal_info_list)
-    personal_info_list = list(set(personal_info_list))
-    personal_info_list = [item for item in personal_info_list if item != ""]
-
-    # TODO include in list comprehension above
-    personal_info_list_output = []
-    for info in personal_info_list:
-        if is_empty_string_nan_or_none(info):
-            continue
-
-        personal_info_list_output.append(info)
+    
+    # Use OrderedDict to remove duplicates while preserving order
+    personal_info_list = list(OrderedDict.fromkeys(personal_info_list))
+    
+    # Use list comprehension to filter out empty strings, "nan", and None
+    personal_info_list_output = [item for item in personal_info_list if not is_empty_string_nan_or_none(item)]
 
     return personal_info_list_output
+
 
 
 def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None, fuzzy_matches: list[tuple[str, int]] = []) -> io.BytesIO | None:
@@ -97,7 +116,7 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
 
 def is_empty_string_nan_or_none(variable) -> bool:
     """
-    Check if the input variable is None, an empty string, or a string containing only whitespace or '?', or a NaN float value.
+    Check if the input variable is None, an empty string, a string containing only whitespace or '?', or a NaN float value.
 
     :param variable: The input variable to check.
     :return: True if the variable is None, an empty string, a string with only whitespace or '?', or a NaN float value, False otherwise.
@@ -105,18 +124,31 @@ def is_empty_string_nan_or_none(variable) -> bool:
     """
     if variable is None:
         return True
-    elif isinstance(variable, str) and (variable.strip() == "" or variable.isspace() or variable == "?"):
-        return True
-    elif isinstance(variable, float) and math.isnan(variable):
-        return True
-    elif isinstance(variable, str):
+    if isinstance(variable, str):
+        stripped = variable.strip()
+        if stripped == "" or stripped == "?" or variable.isspace():
+            return True
         return False
-    else:
-        print(f"WARNING: Removed {variable} from list.")
+    if isinstance(variable, float) and math.isnan(variable):
         return True
+    
+    # If variable is not a recognized type, we assume it's invalid and return True.
+    print(f"WARNING: Removed {variable} from list.")
+    return True
 
 
 def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'):
+    """
+    Replace text in the given string with a placeholder character.
+
+    Args:
+        text (str): The string to be processed.
+        personal_info_list (list): List of personal information to be replaced.
+        replacement_char (str): The character to use for replacement. Default is '*'.
+
+    Returns:
+        str: The processed string with personal information replaced with the placeholder character.
+    """
     # Create a list to store tuples of match positions
     match_positions = []
 
@@ -135,7 +167,8 @@ def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'
     return text
 
 
-def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_matches: list[str, int], fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■", ignore_short_sequences: int = 0) -> str:
+
+def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_matches: list[str, int], fuzzy_matching_threshold: int = 90, generate_dollarstring: bool = False, replacement_char: str = "■", ignore_short_sequences: int = 0, debug: bool = False) -> str:
     """
     Replace personal information in the given text with asterisks.
 
@@ -196,11 +229,13 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_m
 
     personal_info_list = personal_info_list + fuzzy_list
 
-    print("PERSONAL INFORMATION LIST: " + ', '.join(personal_info_list))
-    print("FUZZY LIST: " + ', '.join(fuzzy_list))
+    if debug:
+        print("PERSONAL INFORMATION LIST: " + ', '.join(personal_info_list))
+        print("FUZZY LIST: " + ', '.join(fuzzy_list))
 
     if ignore_short_sequences > 0:
-        print("IGNORE SEQUENCES SHORTER THAN ", ignore_short_sequences)
+        if debug:
+            print("IGNORE SEQUENCES SHORTER THAN ", ignore_short_sequences)
         personal_info_list = [item for item in personal_info_list if len(
             item) > ignore_short_sequences]
 
@@ -229,7 +264,7 @@ def read_preprocessed_csv_from_zip(zip_file: str) -> pd.DataFrame | None:
     return None
 
 
-def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int = 90, scorer="WRatio") -> list[str]:
+def find_fuzzy_matches_old(text: str, personal_info_list: list[str], threshold: int = 90, scorer="WRatio") -> list[str]:
     fuzzy_matches = []
 
     def meets_split_criteria(substring):
@@ -260,3 +295,6 @@ def find_fuzzy_matches(text: str, personal_info_list: list[str], threshold: int 
                         fuzzy_matches.append((match, score))
 
     return list(set(fuzzy_matches))  # remove duplicates
+
+
+

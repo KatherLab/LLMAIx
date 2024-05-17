@@ -147,30 +147,33 @@ def extract_from_report(
                 str(n_gpu_layers),
                 "--port",
                 str(llamacpp_port),
-                "-fa" # flash attention # use new llama cpp version
+                "--chat-template",
+                "llama3",
+                "-fa", # flash attention # use new llama cpp version
+                ""
                 # "--verbose",
             ],
         )
         current_model = model_name
         time.sleep(5)
 
-    try:
-        os.environ.pop("HTTP_PROXY", None)
-        os.environ.pop("HTTPS_PROXY", None)
-    except KeyError:
-        print("No proxy set")
-        pass
-
-    for _ in range(16):
-        # wait until server is running
         try:
-            requests.post(
-                url=f"http://localhost:{llamacpp_port}/completion",
-                json={"prompt": "foo", "n_predict": 1}
-            )
-            break
-        except requests.exceptions.ConnectionError:
-            time.sleep(10)
+            os.environ.pop("HTTP_PROXY", None)
+            os.environ.pop("HTTPS_PROXY", None)
+        except KeyError:
+            print("No proxy set")
+            pass
+
+        for _ in range(16):
+            # wait until server is running
+            try:
+                requests.post(
+                    url=f"http://localhost:{llamacpp_port}/completion",
+                    json={"prompt": "foo", "n_predict": 1}
+                )
+                break
+            except requests.exceptions.ConnectionError:
+                time.sleep(10)
 
     try:
         requests.post(
@@ -284,7 +287,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                 else:
                     info_dict[key] = value
 
-            print(f"Successfully parsed LLM output. ({content=})")
+            # print(f"Successfully parsed LLM output. ({content=})")
         except Exception:
             print(
                 f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
