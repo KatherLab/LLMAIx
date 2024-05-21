@@ -89,14 +89,33 @@ def preprocess_input(job_id, file_paths):
 
         try:
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
-                merged_data.append(df)
-                print("Cannot convert csv to pdf at the moment, not implemented!")
+                df = pd.read_csv(file_path, header=None)
+
+                for index, row in enumerate(df.itertuples()):
+                    text = str(row[1])
+
+                    # Convert CSV to PDF
+                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
+                    save_text_as_pdf(text, pdf_file_save_path)
+
+                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
+
+            elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
+                df = pd.read_excel(file_path, header=None)
+
+                for index, row in enumerate(df.itertuples()):
+                    text = str(row[1])
+
+                    # Convert Excel to PDF
+                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
+                    save_text_as_pdf(text, pdf_file_save_path)
+
+                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
+                    
             elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
                 if not file_path.endswith('.pdf'):
                     # Convert JPG/PNG to PDF
-                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"{
-                                                   os.path.splitext(os.path.basename(file_path))[0]}.pdf")
+                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}.pdf")
                     image = Image.open(file_path)
                     image.save(pdf_output_path)
                     file_path = pdf_output_path

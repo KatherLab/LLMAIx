@@ -3,7 +3,7 @@ import os
 import tempfile
 import zipfile
 import ast
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import f1_score
 
 
 from flask import (

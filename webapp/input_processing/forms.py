@@ -7,7 +7,7 @@ from wtforms import validators
 class PreprocessUploadForm(FlaskForm):
 
     files = MultipleFileField("Upload Files", validators=[FileRequired(), FileAllowed(
-        ['pdf', 'txt', 'csv', 'jpg', 'png', 'jpeg', 'docx', 'odt'], 'Only PDF, TXT, CSV, JPG, PNG, DOCX, and ODT files are allowed!')])
+        ['pdf', 'txt', 'csv', 'jpg', 'png', 'jpeg', 'docx', 'xlsx'], 'Only PDF, TXT, CSV, JPG, PNG, XLSX and DOCX files are allowed!')])
 
     # Add Integer Fields with values between 100 and 128000
     text_split = IntegerField("Split Length", validators=[
