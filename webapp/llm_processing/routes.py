@@ -94,6 +94,11 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
                   'job_id': job_id, 'progress': progress[0], 'total': progress[1], 'remaining_time': estimated_remaining_time})
 
 
+def warning_job(job_id, message):
+    
+    global job_progress
+    socketio.emit("progress_warning", {"job_id": job_id, "message": message})
+
 @socketio.on('connect')
 def handle_connect():
     print("Client Connected")
@@ -184,25 +189,21 @@ def extract_from_report(
             print("No proxy set")
             pass
 
-        for _ in range(16):
-            # wait until server is running
+        while True:
             try:
-                requests.post(
-                    url=f"http://localhost:{llamacpp_port}/completion",
-                    json={"prompt": "foo", "n_predict": 1}
-                )
-                break
+                response = requests.get(f"http://localhost:{llamacpp_port}/health")
+                if response.json()["status"] == "ok":
+                    break
+                elif response.json()["status"] == "error":
+                    socketio.emit('load_failed')
+                    return
+                elif response.json()["status"] == "no slot available":
+                    warning_job(job_id=job_id, message="Model loaded, but currently no slots available")
+                    break
+                time.sleep(1)
             except requests.exceptions.ConnectionError:
-                time.sleep(10)
-
-    try:
-        requests.post(
-            url=f"http://localhost:{llamacpp_port}/completion",
-            json={"prompt": "foo", "n_predict": 1}
-        )
-    except requests.exceptions.ConnectionError:
-        socketio.emit('load_failed')
-        return
+                warning_job(job_id=job_id, message="Server connection error, will keep retrying ...")
+                time.sleep(5)
 
     print("Server running")
 
@@ -210,11 +211,6 @@ def extract_from_report(
     socketio.emit('load_complete')
 
     results = {}
-
-    # breakpoint()
-
-    # socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': 0, 'total_steps': len(df)})
-
     skipped = 0
 
     for i, (report, id) in enumerate(zip(df.report, df.id)):
@@ -226,12 +222,24 @@ def extract_from_report(
                 i + 1 - skipped, len(df) - skipped, True))
             continue
         for symptom in symptoms:
+
+            prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+
+            tokenized_result = requests.post(
+                url=f"http://localhost:{llamacpp_port}/tokenize",
+                json={"content": prompt_formatted},
+                )
+            
+            num_prompt_tokens = len(tokenized_result.json()['tokens'])
+
+            if num_prompt_tokens >= ctx_size - n_predict:
+                print(f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens.")
+                warning_job(job_id=job_id, message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.")
+
             result = requests.post(
                 url=f"http://localhost:{llamacpp_port}/completion",
                 json={
-                    "prompt": prompt.format(
-                        symptom=symptom, report="".join(report)
-                    ),
+                    "prompt": prompt_formatted,
                     "n_predict": n_predict,
                     "temperature": temperature,
                     "grammar": grammar,
@@ -505,21 +513,6 @@ def main():
             flash(
                 "Llama CPP Server executable not found. Did you specify --server_path correctly?", "danger")
             return render_template("llm_processing.html", form=form)
-
-        longest_report = max(df['report'], key=len)
-        import transformers
-        tokenizer = transformers.AutoTokenizer.from_pretrained("./tokenizer")
-        longest_report_tokens = len(tokenizer.tokenize(longest_report))
-
-        ctx_size = get_context_size(
-            current_app.config['CONFIG_FILE'], form.model.data)
-        n_predict = current_app.config['N_PREDICT']
-        if longest_report_tokens > ctx_size - n_predict:
-            flash(f"At least one report might be too long to process. Your model has a context size of {ctx_size}, n_predict is set to {
-                  n_predict} but the longest report already takes {longest_report_tokens} llama 3 tokens!", "danger")
-        else:
-            flash(f"Your model has a context size of {ctx_size}, n_predict is set to {
-                  n_predict} and the longest report takes {longest_report_tokens} tokens. Good to go!", "success")
 
         print("Run job!")
         global llm_jobs

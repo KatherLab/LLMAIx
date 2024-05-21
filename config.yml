@@ -10,19 +10,19 @@ models:
     context_size: 4096
   - name: "Mistral 7b Instruct"
     path_to_gguf: "mistral-7b-instruct-v0.1.Q5_K_M.gguf"
-    context_size: 8196
+    context_size: 8192
   - name: "Mistral 8x7b Instruct"
     path_to_gguf: "mixtral-8x7b-instruct-v0.1.Q5_K_M.gguf"
-    context_size: 8196
+    context_size: 8192
   - name: "LLaMA 3 8B Instruct Q5_K_M"
     path_to_gguf: "Meta-Llama-3-8B-Instruct-Q5_K_M.gguf"
-    context_size: 8196
+    context_size: 8192
   - name: "LLaMA 3 70B Instruct Q5_K_M"
     path_to_gguf: "Meta-Llama-3-70B-Instruct.Q5_K_M.gguf"
-    context_size: 8196
+    context_size: 8192
   - name: "LLaMA 3 70B Instruct Q4_K_M"
     path_to_gguf: "Meta-Llama-3-70B-Instruct.Q4_K_M.gguf"
-    context_size: 8196
+    context_size: 8192
   - name: "Phi 3 mini 128k instruct Q8"
     path_to_gguf: "Phi-3-mini-128k-instruct.Q8_0.gguf"
     context_size: 64000
