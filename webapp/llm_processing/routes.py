@@ -3,7 +3,16 @@ import tempfile
 import zipfile
 from . import llm_processing
 from .. import socketio
-from flask import render_template, current_app, flash, request, redirect, send_file, url_for, session
+from flask import (
+    render_template,
+    current_app,
+    flash,
+    request,
+    redirect,
+    send_file,
+    url_for,
+    session,
+)
 from .forms import LLMPipelineForm
 import requests
 import pandas as pd
@@ -17,7 +26,11 @@ import secrets
 from concurrent import futures
 import io
 from prometheus_client.parser import text_string_to_metric_families
-from .utils import read_preprocessed_csv_from_zip, replace_personal_info, is_empty_string_nan_or_none
+from .utils import (
+    read_preprocessed_csv_from_zip,
+    replace_personal_info,
+    is_empty_string_nan_or_none,
+)
 from io import BytesIO
 from .. import set_mode
 
@@ -31,13 +44,6 @@ executor = futures.ThreadPoolExecutor(1)
 
 new_model = False
 llm_progress = {}
-
-# def update_progress(job_id, progress: tuple[int, int, bool]):
-#     global llm_progress
-#     llm_progress[job_id] = progress
-
-#     print("Progress: ", progress[0], " total: ", progress[1])
-#     socketio.emit('llm_progress_update', {'job_id': job_id, 'progress': progress[0], 'total': progress[1]})
 
 start_times = {}
 
@@ -54,13 +60,14 @@ def format_time(seconds):
 
 
 def push_llm_metrics(metrics):
-    socketio.emit('llm_metrics', {'metrics': metrics})
+    socketio.emit("llm_metrics", {"metrics": metrics})
+
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
     global llm_progress
 
     # Initialize llm_progress dictionary if not already initialized
-    if 'llm_progress' not in globals():
+    if "llm_progress" not in globals():
         llm_progress = {}
 
     # Update progress dictionary
@@ -86,39 +93,52 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
 
     estimated_remaining_time = format_time(estimated_remaining_time)
 
-    print("Progress: ", progress[0], " Total: ", progress[1],
-          " Estimated Remaining Time: ", estimated_remaining_time)
+    print(
+        "Progress: ",
+        progress[0],
+        " Total: ",
+        progress[1],
+        " Estimated Remaining Time: ",
+        estimated_remaining_time,
+    )
 
     # Emit progress update via socketio
-    socketio.emit('llm_progress_update', {
-                  'job_id': job_id, 'progress': progress[0], 'total': progress[1], 'remaining_time': estimated_remaining_time})
+    socketio.emit(
+        "llm_progress_update",
+        {
+            "job_id": job_id,
+            "progress": progress[0],
+            "total": progress[1],
+            "remaining_time": estimated_remaining_time,
+        },
+    )
 
 
 def warning_job(job_id, message):
-    
     global job_progress
     socketio.emit("progress_warning", {"job_id": job_id, "message": message})
 
-@socketio.on('connect')
+
+@socketio.on("connect")
 def handle_connect():
     print("Client Connected")
 
 
-@socketio.on('disconnect')
+@socketio.on("disconnect")
 def handle_disconnect():
     print("Client Disconnected")
 
 
 @llm_processing.before_request
 def before_request():
-    set_mode(session, current_app.config['MODE'])
-
+    set_mode(session, current_app.config["MODE"])
 
 
 def fetch_metrics(url):
     response = requests.get(url)
     response.raise_for_status()  # Raise an error for bad responses
     return response.text
+
 
 def parse_metrics(metrics_text):
     metrics_dict = {}
@@ -128,23 +148,24 @@ def parse_metrics(metrics_text):
             metrics_dict[sample.name] = sample.value
     return metrics_dict
 
+
 def extract_from_report(
-        df: pd.DataFrame,
-        model_name: str,
-        prompt: str,
-        symptoms: Iterable[str],
-        temperature: float,
-        grammar: str,
-        model_path: str,
-        server_path: str,
-        ctx_size: int,
-        n_gpu_layers: int,
-        n_predict: int,
-        job_id: int,
-        zip_file_path: str,
-        llamacpp_port: int,
-        debug: bool = False,
-        model_name_name: str = ""
+    df: pd.DataFrame,
+    model_name: str,
+    prompt: str,
+    symptoms: Iterable[str],
+    temperature: float,
+    grammar: str,
+    model_path: str,
+    server_path: str,
+    ctx_size: int,
+    n_gpu_layers: int,
+    n_predict: int,
+    job_id: int,
+    zip_file_path: str,
+    llamacpp_port: int,
+    debug: bool = False,
+    model_name_name: str = "",
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -174,8 +195,8 @@ def extract_from_report(
                 "llama3",
                 "--metrics",
                 "-np",
-                "4",
-                "-fa", # flash attention # use new llama cpp version
+                "1",
+                "-fa",  # flash attention # use new llama cpp version
                 # "--verbose",
             ],
         )
@@ -195,20 +216,26 @@ def extract_from_report(
                 if response.json()["status"] == "ok":
                     break
                 elif response.json()["status"] == "error":
-                    socketio.emit('load_failed')
+                    socketio.emit("load_failed")
                     return
                 elif response.json()["status"] == "no slot available":
-                    warning_job(job_id=job_id, message="Model loaded, but currently no slots available")
+                    warning_job(
+                        job_id=job_id,
+                        message="Model loaded, but currently no slots available",
+                    )
                     break
                 time.sleep(1)
             except requests.exceptions.ConnectionError:
-                warning_job(job_id=job_id, message="Server connection error, will keep retrying ...")
+                warning_job(
+                    job_id=job_id,
+                    message="Server connection error, will keep retrying ...",
+                )
                 time.sleep(5)
 
     print("Server running")
 
     new_model = False
-    socketio.emit('load_complete')
+    socketio.emit("load_complete")
 
     results = {}
     skipped = 0
@@ -218,23 +245,28 @@ def extract_from_report(
         if is_empty_string_nan_or_none(report):
             print("SKIPPING EMPTY REPORT!")
             skipped += 1
-            update_progress(job_id=job_id, progress=(
-                i + 1 - skipped, len(df) - skipped, True))
+            update_progress(
+                job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+            )
             continue
         for symptom in symptoms:
-
             prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
 
             tokenized_result = requests.post(
                 url=f"http://localhost:{llamacpp_port}/tokenize",
                 json={"content": prompt_formatted},
-                )
-            
-            num_prompt_tokens = len(tokenized_result.json()['tokens'])
+            )
+
+            num_prompt_tokens = len(tokenized_result.json()["tokens"])
 
             if num_prompt_tokens >= ctx_size - n_predict:
-                print(f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens.")
-                warning_job(job_id=job_id, message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.")
+                print(
+                    f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens."
+                )
+                warning_job(
+                    job_id=job_id,
+                    message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.",
+                )
 
             result = requests.post(
                 url=f"http://localhost:{llamacpp_port}/completion",
@@ -247,7 +279,7 @@ def extract_from_report(
                 timeout=20 * 60,
             )
 
-            url = f'http://localhost:{llamacpp_port}/metrics'
+            url = f"http://localhost:{llamacpp_port}/metrics"
             metrics_text = fetch_metrics(url)
             metrics_dict = parse_metrics(metrics_text)
 
@@ -257,26 +289,28 @@ def extract_from_report(
             if id not in results:
                 results[id] = {}
 
-            results[id]['report'] = report
-            results[id]['symptom'] = symptom
-            results[id]['summary'] = summary
+            results[id]["report"] = report
+            results[id]["symptom"] = symptom
+            results[id]["summary"] = summary
 
         print(f"Report {i} completed.")
-        update_progress(job_id=job_id, progress=(
-            i+1 - skipped, len(df) - skipped, True))
+        update_progress(
+            job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+        )
 
-    socketio.emit('llm_progress_complete', {
-                  'job_id': job_id, 'total_steps': len(df) - skipped})
+    socketio.emit(
+        "llm_progress_complete", {"job_id": job_id, "total_steps": len(df) - skipped}
+    )
 
     llm_metadata = {
-        'model_name': model_name_name if model_name_name else model_name,
-        'prompt': prompt,
-        'symptoms': symptoms,
-        'temperature': temperature,
-        'n_predict': n_predict,
-        'ctx_size': ctx_size,
-        'grammar': grammar,
-        'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "model_name": model_name_name if model_name_name else model_name,
+        "prompt": prompt,
+        "symptoms": symptoms,
+        "temperature": temperature,
+        "n_predict": n_predict,
+        "ctx_size": ctx_size,
+        "grammar": grammar,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
     return postprocess_grammar(results, df, llm_metadata, debug), zip_file_path
@@ -295,18 +329,18 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         # Get the first key in the dictionary (here assumed to be the relevant field)
 
         # Extract the content of the first field
-        content = info['summary']['content']
+        content = info["summary"]["content"]
 
         # Parse the content string into a dictionary
         try:
-            if content.endswith('<|eot_id|>'):
+            if content.endswith("<|eot_id|>"):
                 print("Remove eot_id")
-                content = content[:-len('<|eot_id|>')]
-            if content.endswith('</s>'):
+                content = content[: -len("<|eot_id|>")]
+            if content.endswith("</s>"):
                 print("Remove </s>")
-                content = content[:-len('</s>')]
+                content = content[: -len("</s>")]
             # search for last } in content and remove anything after that
-            content = content[:content.rfind('}')+1]
+            content = content[: content.rfind("}") + 1]
             import ast
 
             # replace all backslash in the content string with nothing
@@ -315,7 +349,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             info_dict_raw = ast.literal_eval(content)
 
             info_dict = {}
-            for (key, value) in info_dict_raw.items():
+            for key, value in info_dict_raw.items():
                 if is_empty_string_nan_or_none(value):
                     info_dict[key] = ""
                 else:
@@ -324,7 +358,8 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             # print(f"Successfully parsed LLM output. ({content=})")
         except Exception:
             print(
-                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
+                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})"
+            )
             print(f"Will ignore the error for report {i} and continue.")
             if debug:
                 breakpoint()
@@ -335,16 +370,20 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
 
         # get metadata from df by looking for row where id == id and get the column metadata
 
-        metadata = df[df['id'] == id]['metadata'].iloc[0]
+        metadata = df[df["id"] == id]["metadata"].iloc[0]
         import ast
+
         metadata = ast.literal_eval(metadata)
-        metadata['llm_processing'] = llm_metadata
+        metadata["llm_processing"] = llm_metadata
 
         import json
 
         # Construct a dictionary containing the report and extracted information
-        extracted_info = {'report': info['report'],
-                          'id': id, 'metadata': json.dumps(metadata)}
+        extracted_info = {
+            "report": info["report"],
+            "id": id,
+            "metadata": json.dumps(metadata),
+        }
         for key, value in info_dict.items():
             extracted_info[key] = value
 
@@ -355,56 +394,56 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
     df = pd.DataFrame(extracted_data)
 
     # id without the extension for splitted reports
-
-    # def extract_base_id(id):
-    #     parts = id.split('_')
-    #     if '_' in id:
-    #         if '$' in parts[-1] and '_' in parts[-1]:
-    #             return '_'.join(parts[:-1])
-    #         else:
-    #             return '_'.join(parts[:-1]) if parts[:-1] else id
-    #     else:
-    #         return id
-
     def extract_base_id(id):
-        parts = id.split('$')
+        parts = id.split("$")
         base_id = parts[0]  # The part before the dollar sign
 
         if len(parts) > 1:  # If there's a dollar sign in the ID
-            subparts = parts[1].split('_')
+            subparts = parts[1].split("_")
             if len(subparts) > 1 and subparts[-1].isdigit():
                 # If there's an underscore followed by a number after the dollar sign
-                return base_id + '$' + '_'.join(subparts[:-1])
+                return base_id + "$" + "_".join(subparts[:-1])
 
         return id  # Return the original ID if no underscore followed by a number is found after the dollar sign
 
-    df['base_id'] = df['id'].apply(extract_base_id)
+    df["base_id"] = df["id"].apply(extract_base_id)
     # test_id = 'ocr_arztbericht-bild.pdf$eea5469f-f6a4-4b08-92f3-2340c61b0745'
     # breakpoint()
 
     # df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
 
     # Group by base_id and aggregate reports and other columns into lists
-    aggregated_df = df.groupby('base_id').agg(
-        lambda x: x.tolist() if x.name != 'report' else ' '.join(x)).reset_index()
+    aggregated_df = (
+        df.groupby("base_id")
+        .agg(lambda x: x.tolist() if x.name != "report" else " ".join(x))
+        .reset_index()
+    )
 
-    aggregated_df['personal_info_list'] = aggregated_df.apply(lambda row: [item for list in row.drop(
-        ["id", "base_id", "report", "metadata"]) for item in list], axis=1)
+    aggregated_df["personal_info_list"] = aggregated_df.apply(
+        lambda row: [
+            item
+            for list in row.drop(["id", "base_id", "report", "metadata"])
+            for item in list
+        ],
+        axis=1,
+    )
 
-    aggregated_df['masked_report'] = aggregated_df['report'].apply(
-        lambda x: replace_personal_info(x, aggregated_df['personal_info_list'][0], []))
+    aggregated_df["masked_report"] = aggregated_df["report"].apply(
+        lambda x: replace_personal_info(x, aggregated_df["personal_info_list"][0], [])
+    )
 
-    aggregated_df.drop(columns=['id'], inplace=True)
-    aggregated_df.rename(columns={'base_id': 'id'}, inplace=True)
+    aggregated_df.drop(columns=["id"], inplace=True)
+    aggregated_df.rename(columns={"base_id": "id"}, inplace=True)
 
-    aggregated_df['metadata'] = aggregated_df['metadata'].apply(lambda x: x[0])
+    aggregated_df["metadata"] = aggregated_df["metadata"].apply(lambda x: x[0])
 
     return aggregated_df, error_count
 
 
 def get_context_size(yaml_filename, model_name):
     import yaml
-    with open(yaml_filename, 'r') as file:
+
+    with open(yaml_filename, "r") as file:
         config_data = yaml.safe_load(file)
 
     print(config_data)
@@ -418,44 +457,47 @@ def get_context_size(yaml_filename, model_name):
     return None  # Model not found in the YAML file
 
 
-@llm_processing.route("/llm", methods=['GET', 'POST'])
+@llm_processing.route("/llm", methods=["GET", "POST"])
 def main():
-
     form = LLMPipelineForm(
-        current_app.config['CONFIG_FILE'], current_app.config['MODEL_PATH'])
-    form.variables.render_kw = {'disabled': 'disabled'}
+        current_app.config["CONFIG_FILE"], current_app.config["MODEL_PATH"]
+    )
+    form.variables.render_kw = {"disabled": "disabled"}
 
     if form.validate_on_submit():
         file = request.files["file"]
 
-        if file.filename.endswith('.csv'):
+        if file.filename.endswith(".csv"):
             try:
                 print(file)
                 df = pd.read_csv(file)
             except pd.errors.ParserError as e:
                 # print the error message in console
                 print(e)
-                print("The error message indicates that the number of fields in line 3 of the CSV file is not as expected. This means that the CSV file is not properly formatted and needs to be fixed. Usually, this is caused by a line break in a field. The file will be fixed and then read again.")
+                print(
+                    "The error message indicates that the number of fields in line 3 of the CSV file is not as expected. This means that the CSV file is not properly formatted and needs to be fixed. Usually, this is caused by a line break in a field. The file will be fixed and then read again."
+                )
                 # fix the file
                 fixed_file = BytesIO()
                 read_and_save_csv(file, fixed_file)
                 fixed_file.seek(0)
                 df = pd.read_csv(fixed_file)
 
-        elif file.filename.endswith('.xlsx'):
+        elif file.filename.endswith(".xlsx"):
             try:
                 df = pd.read_excel(file)
                 print(df.head())
                 # ValueError: Excel file format cannot be determined, you must specify an engine manually.
             except ValueError as e:
                 print(e)
-                print("The error message indicates that the Excel file format cannot be determined. This means that the Excel file is not properly formatted and needs to be fixed. The file will be fixed and then read again.")
+                print(
+                    "The error message indicates that the Excel file format cannot be determined. This means that the Excel file is not properly formatted and needs to be fixed. The file will be fixed and then read again."
+                )
                 # fix the file
                 flash("Excel file is not properly formatted!", "danger")
                 return render_template("llm_processing.html", form=form)
 
-        elif file.filename.endswith('.zip'):
-
+        elif file.filename.endswith(".zip"):
             zip_buffer = BytesIO()
             file.save(zip_buffer)
             zip_buffer.seek(0)
@@ -464,7 +506,7 @@ def main():
 
             # Save the uploaded file to the temporary directory
             zip_file_path = os.path.join(temp_dir, file.filename)
-            with open(zip_file_path, 'wb') as f:
+            with open(zip_file_path, "wb") as f:
                 f.write(zip_buffer.getvalue())
                 print("Zip file saved:", zip_file_path)
 
@@ -475,7 +517,7 @@ def main():
 
                 # Check if the saved file is a valid ZIP file
                 try:
-                    with zipfile.ZipFile(zip_file_path, 'r') as test_zip:
+                    with zipfile.ZipFile(zip_file_path, "r") as test_zip:
                         test_zip.testzip()
                     print("File is a valid ZIP file")
                 except zipfile.BadZipFile:
@@ -489,7 +531,9 @@ def main():
 
             if df is None:
                 flash(
-                    "Zip file seems to be malformed or in a not supported format! Is there a csv file in it?", "danger")
+                    "Zip file seems to be malformed or in a not supported format! Is there a csv file in it?",
+                    "danger",
+                )
                 return render_template("llm_processing.html", form=form)
 
         else:
@@ -507,11 +551,19 @@ def main():
         current_datetime = datetime.now()
         prefix = current_datetime.strftime("%Y%m%d%H%M")
 
-        job_id = model_name.replace(" ", "").replace("_", "-") + "_" + prefix + "_" + secrets.token_urlsafe(8)
+        job_id = (
+            model_name.replace(" ", "").replace("_", "-")
+            + "_"
+            + prefix
+            + "_"
+            + secrets.token_urlsafe(8)
+        )
 
-        if not os.path.exists(current_app.config['SERVER_PATH']):
+        if not os.path.exists(current_app.config["SERVER_PATH"]):
             flash(
-                "Llama CPP Server executable not found. Did you specify --server_path correctly?", "danger")
+                "Llama CPP Server executable not found. Did you specify --server_path correctly?",
+                "danger",
+            )
             return render_template("llm_processing.html", form=form)
 
         print("Run job!")
@@ -543,40 +595,42 @@ def main():
             symptoms=variables,
             temperature=float(form.temperature.data),
             grammar=form.grammar.data.replace("\r\n", "\n"),
-            model_path=current_app.config['MODEL_PATH'],
-            server_path=current_app.config['SERVER_PATH'],
-            n_predict=current_app.config['N_PREDICT'],
+            model_path=current_app.config["MODEL_PATH"],
+            server_path=current_app.config["SERVER_PATH"],
+            n_predict=current_app.config["N_PREDICT"],
             ctx_size=get_context_size(
-                current_app.config['CONFIG_FILE'], form.model.data),
-            n_gpu_layers=current_app.config['N_GPU_LAYERS'],
+                current_app.config["CONFIG_FILE"], form.model.data
+            ),
+            n_gpu_layers=current_app.config["N_GPU_LAYERS"],
             job_id=job_id,
             zip_file_path=zip_file_path or None,
-            llamacpp_port=current_app.config['LLAMACPP_PORT'],
-            debug=current_app.config['DEBUG'],
-            model_name_name = model_name
+            llamacpp_port=current_app.config["LLAMACPP_PORT"],
+            debug=current_app.config["DEBUG"],
+            model_name_name=model_name,
         )
 
         print("Started job successfully!")
 
-        return redirect(url_for('llm_processing.llm_results'))
+        return redirect(url_for("llm_processing.llm_results"))
 
     return render_template("llm_processing.html", form=form)
 
 
-@llm_processing.route("/llm_results", methods=['GET'])
+@llm_processing.route("/llm_results", methods=["GET"])
 def llm_results():
-
     global llm_progress
-    return render_template("llm_results.html", llm_progress=llm_progress, model_loaded=not new_model)
+    return render_template(
+        "llm_results.html", llm_progress=llm_progress, model_loaded=not new_model
+    )
 
 
-@llm_processing.route("/llm_download", methods=['GET'])
+@llm_processing.route("/llm_download", methods=["GET"])
 def llm_download():
-    job_id = request.args.get('job')
+    job_id = request.args.get("job")
 
     if job_id not in llm_jobs:
         flash("Job not found!", "danger")
-        return redirect(url_for('llm_processing.llm_results'))
+        return redirect(url_for("llm_processing.llm_results"))
 
     job = llm_jobs[job_id]
 
@@ -585,7 +639,7 @@ def llm_download():
             (result_df, error_count), zip_file_path = job.result()
         except Exception as e:
             flash(str(e), "danger")
-            return redirect(url_for('llm_processing.llm_results'))
+            return redirect(url_for("llm_processing.llm_results"))
 
         if not zip_file_path or not os.path.exists(zip_file_path):
             print("Download only the csv.")
@@ -606,58 +660,35 @@ def llm_download():
             updated_zip_buffer = io.BytesIO()
 
             # Create a new ZIP file
-            with zipfile.ZipFile(updated_zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as updated_zip:
+            with zipfile.ZipFile(
+                updated_zip_buffer, "a", zipfile.ZIP_DEFLATED, False
+            ) as updated_zip:
                 # Add all existing files from the original ZIP
                 for existing_file in existing_zip.filelist:
                     updated_zip.writestr(
-                        existing_file.filename, existing_zip.read(existing_file.filename))
+                        existing_file.filename,
+                        existing_zip.read(existing_file.filename),
+                    )
 
                 # Add the DataFrame as a CSV file to the ZIP
                 csv_buffer = io.StringIO()
                 result_df.to_csv(csv_buffer, index=False)
-                updated_zip.writestr(
-                    f"llm-output-{job_id}.csv", csv_buffer.getvalue())
+                updated_zip.writestr(f"llm-output-{job_id}.csv", csv_buffer.getvalue())
 
         # Reset the BytesIO object to the beginning
         updated_zip_buffer.seek(0)
-
-        # # Unfortunately, everything has to extracted by now. I failed to add the csv to a zipfile directly.
-
-        # updated_zip_buffer = BytesIO()
-
-        # with tempfile.TemporaryDirectory() as temp_dir:
-        #     # Extract files from the existing ZIP file
-        #     breakpoint()
-        #     shutil.unpack_archive(zip_file_path, temp_dir, "zip")
-
-        #     # Create an in-memory BytesIO object to hold the updated ZIP file
-        #     updated_zip_buffer = BytesIO()
-
-        #     # Create a new ZIP file
-        #     with zipfile.ZipFile(updated_zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as updated_zip:
-        #         # Add the extracted files to the new ZIP
-        #         for root, dirs, files in os.walk(temp_dir):
-        #             for file in files:
-        #                 file_path = os.path.join(root, file)
-        #                 arcname = os.path.relpath(file_path, temp_dir)
-        #                 updated_zip.write(file_path, arcname=arcname)
-
-        #         # Add the DataFrame as a CSV file to the ZIP
-        #         csv_buffer = io.StringIO()
-        #         result_df.to_csv(csv_buffer, index=False)
-        #         updated_zip.writestr(f"llm-output-{job_id}.csv", csv_buffer.getvalue())
-
-        # # Reset the BytesIO object to the beginning
-        # updated_zip_buffer.seek(0)
 
         # Send the updated ZIP file
         return send_file(
             updated_zip_buffer,
             mimetype="application/zip",
             as_attachment=True,
-            download_name=f"llm-output-{job_id}.zip"
+            download_name=f"llm-output-{job_id}.zip",
         )
 
     else:
-        flash(f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty and / or the code ran into a breakpoint!", "danger")
-        return redirect(url_for('llm_processing.llm_results'))
+        flash(
+            f"Job {job}: An unknown error occurred! Probably the model did not predict anything / the output is empty and / or the code ran into a breakpoint!",
+            "danger",
+        )
+        return redirect(url_for("llm_processing.llm_results"))
