@@ -263,19 +263,51 @@ def download():
         ids = df['id'].tolist()
 
         # Split rows containing more than max_length letters
-        split_rows = []
-        for index, row in df.iterrows():
-            if len(row['report']) > max_length:
-                num_splits = (len(row['report']) +
-                              max_length - 1) // max_length
-                for i in range(num_splits):
-                    split_row = row.copy()
-                    split_row['report'] = row['report'][i *
-                                                        max_length: (i + 1) * max_length]
-                    split_row['id'] = f'{row["id"]}_{i}'
-                    split_rows.append(split_row)
+        # split_rows = []
+        # for index, row in df.iterrows():
+        #     if len(row['report']) > max_length:
+        #         num_splits = (len(row['report']) +
+        #                       max_length - 1) // max_length
+        #         for i in range(num_splits):
+        #             split_row = row.copy()
+        #             split_row['report'] = row['report'][i *
+        #                                                 max_length: (i + 1) * max_length]
+        #             split_row['id'] = f'{row["id"]}_{i}'
+        #             split_rows.append(split_row)
+        #     else:
+        #         split_rows.append(row)
+
+        # Function to split text without breaking words
+    def split_text(text, max_length):
+        words = text.split()
+        split_texts = []
+        current_text = ""
+        
+        for word in words:
+            if len(current_text) + len(word) + 1 <= max_length:  # +1 for space
+                current_text += " " + word if current_text else word
             else:
-                split_rows.append(row)
+                split_texts.append(current_text)
+                current_text = word
+        
+        if current_text:
+            split_texts.append(current_text)
+        
+        return split_texts
+
+    # Split rows containing more than max_length letters
+    split_rows = []
+    for index, row in df.iterrows():
+        if len(row['report']) > max_length:
+            split_texts = split_text(row['report'], max_length)
+            for i, text in enumerate(split_texts):
+                split_row = row.copy()
+                split_row['report'] = text
+                split_row['id'] = f'{row["id"]}_{i}'
+                split_rows.append(split_row)
+        else:
+            split_rows.append(row)
+
 
         # Create a new DataFrame with the split rows
         df_split = pd.DataFrame(split_rows)
