@@ -3,8 +3,10 @@
 
 <style>
     .loading-circle {
-        border: 4px solid #f3f3f3; /* Light grey */
-        border-top: 4px solid #3498db; /* Blue */
+        border: 4px solid #f3f3f3;
+        /* Light grey */
+        border-top: 4px solid #3498db;
+        /* Blue */
         border-radius: 50%;
         width: 30px;
         height: 30px;
@@ -13,8 +15,13 @@
     }
 
     @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .hidden {
@@ -45,14 +52,14 @@
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             Model loaded successfully.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
+        </div>
     </div>
 
     <div class="hidden" id="load_failed">
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
+        </div>
     </div>
 
     {% for job_id, progress_tuple in llm_progress.items() %}
@@ -61,27 +68,41 @@
         <div class="row">
             <div class="col-md-11">
 
-                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
+                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
+                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
                     {% if progress_tuple[2] %}
-                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-success" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</div>
+                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-success"
+                        style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">{{ progress_tuple[0] }} /
+                        {{ progress_tuple[1] }}</div>
                     {% else %}
-                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-danger" style="width: 100%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
+                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-danger" style="width: 100%;"
+                        id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
                     {% endif %}
                 </div>
             </div>
             <div class="col-md-1">
                 {% if progress_tuple[0] == progress_tuple[1] %}
-                    <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-success">Download</a>
+                <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-success">Download</a>
                 {% elif progress_tuple[2] %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
+                <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
                 {% else %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
+                <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
                 {% endif %}
             </div>
         </div>
     </div>
     {% endfor %}
 
+    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics" aria-expanded="false" aria-controls="collapseExample">
+        Llama-cpp Metrics
+    </button>
+    
+
+    <div class="collapse" id="collapseMetrics">
+        <div class="card card-body" id="metrics_container">
+            <div class="loading-circle"></div><p class="text-center">Waiting for metrics.</p><p class="text-center">Metrics are only updated while a llm job runs.</p>
+        </div>
+    </div>
 </div>
 
 
@@ -89,7 +110,7 @@
 <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-    socket.on('llm_progress_update', function(data) {
+    socket.on('llm_progress_update', function (data) {
         var job_id = data.job_id;
         var progress = data.progress;
         var totalSteps = data.total;
@@ -103,7 +124,7 @@
         }
     });
 
-    socket.on('llm_progress_complete', function(data) {
+    socket.on('llm_progress_complete', function (data) {
 
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
@@ -115,13 +136,13 @@
         downloadLink.removeAttribute('disabled');
     });
 
-    socket.on('llm_progress_failed', function(data) {
+    socket.on('llm_progress_failed', function (data) {
 
         alert('Job ' + data.job_id + ' failed');
 
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
-         
+
         // Make progress bar red and state failure
         progressBar.className = 'progress-bar bg-danger';
         progressBar.innerText = 'Failed';
@@ -134,14 +155,30 @@
 
     });
 
-    socket.on('load_failed', function(){
-            document.getElementById('load_failed').classList.remove('hidden');
-            alert('Loading the model failed!')
-        });
+    socket.on('load_failed', function () {
+        document.getElementById('load_failed').classList.remove('hidden');
+        alert('Loading the model failed!')
+    });
 
-    socket.on('load_complete', function() {
+    socket.on('load_complete', function () {
         document.getElementById('loading-circle').classList.add('hidden');
         document.getElementById('load_complete').classList.remove('hidden');
+    });
+
+    socket.on('llm_metrics', function (data) {
+        var metrics = data.metrics;
+        var tableHTML = '<table class="table table-bordered table-striped table-hover">';
+        tableHTML += '<thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody>';
+
+        for (var key in metrics) {
+            if (metrics.hasOwnProperty(key)) {
+                tableHTML += '<tr><th scope="row">' + key + '</th><td>' + metrics[key] + '</td></tr>';
+            }
+        }
+
+        tableHTML += '</tbody></table>';
+
+        document.getElementById('metrics_container').innerHTML = tableHTML;
     });
 
 

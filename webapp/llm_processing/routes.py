@@ -16,6 +16,7 @@ from .read_strange_csv import read_and_save_csv
 import secrets
 from concurrent import futures
 import io
+from prometheus_client.parser import text_string_to_metric_families
 from .utils import read_preprocessed_csv_from_zip, replace_personal_info, is_empty_string_nan_or_none
 from io import BytesIO
 from .. import set_mode
@@ -51,6 +52,9 @@ def format_time(seconds):
     else:
         return f"{seconds / 86400:.1f}d"
 
+
+def push_llm_metrics(metrics):
+    socketio.emit('llm_metrics', {'metrics': metrics})
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
     global llm_progress
@@ -105,6 +109,20 @@ def before_request():
     set_mode(session, current_app.config['MODE'])
 
 
+
+def fetch_metrics(url):
+    response = requests.get(url)
+    response.raise_for_status()  # Raise an error for bad responses
+    return response.text
+
+def parse_metrics(metrics_text):
+    metrics_dict = {}
+    for family in text_string_to_metric_families(metrics_text):
+        for sample in family.samples:
+            # Sample name is in sample.name, value in sample.value
+            metrics_dict[sample.name] = sample.value
+    return metrics_dict
+
 def extract_from_report(
         df: pd.DataFrame,
         model_name: str,
@@ -149,8 +167,10 @@ def extract_from_report(
                 str(llamacpp_port),
                 "--chat-template",
                 "llama3",
+                "--metrics",
+                "-np",
+                "4",
                 "-fa", # flash attention # use new llama cpp version
-                ""
                 # "--verbose",
             ],
         )
@@ -218,6 +238,12 @@ def extract_from_report(
                 },
                 timeout=20 * 60,
             )
+
+            url = f'http://localhost:{llamacpp_port}/metrics'
+            metrics_text = fetch_metrics(url)
+            metrics_dict = parse_metrics(metrics_text)
+
+            push_llm_metrics(metrics_dict)
 
             summary = result.json()
             if id not in results:
