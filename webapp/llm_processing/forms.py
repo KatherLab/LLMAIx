@@ -4,17 +4,12 @@ from wtforms import StringField, SubmitField, TextAreaField, FileField, FloatFie
 from wtforms.validators import ValidationError
 import os
 
-default_prompt = r"""[INST] <<SYS>>
-Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information wortwörtlich aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
-<</SYS>>
-[/INST]
+default_prompt = r"""Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information wortwörtlich aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
 
-[INST]
 Das ist der Bericht:
 {report}
 
-Extrahiere diese Elemente aus dem Text: {symptom}? 
-[/INST]"""
+Extrahiere diese Elemente aus dem Text: {symptom}?"""
 
 
 default_grammer = r"""root   ::= allrecords
@@ -70,8 +65,7 @@ idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
 tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
 
 # Optional space: by convention, applied in this grammar after literal chars when allowed
-ws ::= ([ \t\n])?
-"""
+ws ::= ([ \t\n])?"""
 
 # patientengeburtsdatum ::= "\"" day "\\." month "\\." year "\"" space
 # patientengeburtsdatum-kv ::= "\"patientengeburtsdatum\"" space ":" space patientengeburtsdatum
@@ -157,8 +151,7 @@ idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
 tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
 
 # Optional space: by convention, applied in this grammar after literal chars when allowed
-ws ::= ([ \t\n])?
-"""
+ws ::= ([ \t\n])?"""
 
 
 class FileExistsValidator:

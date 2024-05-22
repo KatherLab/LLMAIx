@@ -93,14 +93,24 @@
     </div>
     {% endfor %}
 
-    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics" aria-expanded="false" aria-controls="collapseExample">
+    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
+        aria-expanded="false" aria-controls="collapseExample">
         Llama-cpp Metrics
     </button>
-    
+
 
     <div class="collapse" id="collapseMetrics">
-        <div class="card card-body" id="metrics_container">
-            <div class="loading-circle"></div><p class="text-center">Waiting for metrics.</p><p class="text-center">Metrics are only updated while a llm job runs.</p>
+        <div class="card">
+            <div class="card-header">
+                <h3>Llama-cpp Metrics</h3>
+                <div id="countdown_container">Next update in: <span id="countdown">30</span> seconds</div>
+            </div>
+
+            <div id="metrics_container" class="card-body">
+                <div class="loading-circle"></div>
+                <p class="text-center">Waiting for metrics.</p>
+                <p class="text-center">Metrics are only updated while a llm job runs.</p>
+            </div>
         </div>
     </div>
 
@@ -167,7 +177,7 @@
         document.getElementById('load_complete').classList.remove('hidden');
     });
 
-    socket.on('llm_metrics', function (data) {
+    {# socket.on('llm_metrics', function (data) {
         var metrics = data.metrics;
         var tableHTML = '<table class="table table-bordered table-striped table-hover">';
         tableHTML += '<thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody>';
@@ -181,7 +191,59 @@
         tableHTML += '</tbody></table>';
 
         document.getElementById('metrics_container').innerHTML = tableHTML;
-    });
+    }); #}
+
+    const updateInterval = 10000; // 10 seconds in milliseconds
+    let countdown = updateInterval / 1000; // Initial countdown value in seconds
+
+    function updateMetrics() {
+        fetch('/metrics')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('metrics_container').innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+                } else {
+                    var metrics = data;
+                    var tableHTML = '<table class="table table-bordered table-striped table-hover">';
+                    tableHTML += '<thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody>';
+
+                    for (var key in metrics) {
+                        if (metrics.hasOwnProperty(key)) {
+                            tableHTML += '<tr><th scope="row">' + key + '</th><td>' + metrics[key] + '</td></tr>';
+                        }
+                    }
+
+                    tableHTML += '</tbody></table>';
+
+                    document.getElementById('metrics_container').innerHTML = tableHTML;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching metrics:', error);
+                document.getElementById('metrics_container').innerHTML = '<div class="alert alert-danger">Error fetching metrics.</div>';
+            });
+    }
+
+    function startCountdown() {
+        countdown = updateInterval / 1000; // Reset countdown value
+        document.getElementById('countdown').textContent = countdown;
+
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            document.getElementById('countdown').textContent = countdown;
+
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                updateMetrics();
+                startCountdown(); // Restart countdown after updating metrics
+            }
+        }, 1000); // Update countdown every second
+    }
+
+    // Initial call to populate the table and start the countdown
+    updateMetrics();
+    startCountdown();
+
 
     socket.on('progress_warning', function (data) {
         var job_id = data.job_id;

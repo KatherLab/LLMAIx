@@ -141,8 +141,7 @@ def preprocess_input(job_id, file_paths):
                                   file_path}")
                             return "OCRMyPDF not found but required for OCR."
                     else:
-                        print(f"Tesseract not found, skipping OCR for {
-                              file_path}")
+                        print(f"Tesseract not found, skipping OCR for {file_path}")
                         return "Tesseract not found but required for OCR."
 
                 else:
@@ -214,6 +213,9 @@ def download():
     job_id = request.args.get("job")
     global jobs
 
+    if job_id not in jobs:
+        flash(f"Input processing job {job_id} not found!", "danger")
+        return redirect(url_for('input_processing.main'))
     job = jobs[job_id]
 
     if job.cancelled():
@@ -297,35 +299,35 @@ def download():
         #         split_rows.append(row)
 
         # Function to split text without breaking words
-    def split_text(text, max_length):
-        words = text.split()
-        split_texts = []
-        current_text = ""
-        
-        for word in words:
-            if len(current_text) + len(word) + 1 <= max_length:  # +1 for space
-                current_text += " " + word if current_text else word
-            else:
+        def split_text(text, max_length):
+            words = text.split()
+            split_texts = []
+            current_text = ""
+            
+            for word in words:
+                if len(current_text) + len(word) + 1 <= max_length:  # +1 for space
+                    current_text += " " + word if current_text else word
+                else:
+                    split_texts.append(current_text)
+                    current_text = word
+            
+            if current_text:
                 split_texts.append(current_text)
-                current_text = word
-        
-        if current_text:
-            split_texts.append(current_text)
-        
-        return split_texts
+            
+            return split_texts
 
-    # Split rows containing more than max_length letters
-    split_rows = []
-    for index, row in df.iterrows():
-        if len(row['report']) > max_length:
-            split_texts = split_text(row['report'], max_length)
-            for i, text in enumerate(split_texts):
-                split_row = row.copy()
-                split_row['report'] = text
-                split_row['id'] = f'{row["id"]}_{i}'
-                split_rows.append(split_row)
-        else:
-            split_rows.append(row)
+        # Split rows containing more than max_length letters
+        split_rows = []
+        for _, row in df.iterrows():
+            if len(row['report']) > max_length:
+                split_texts = split_text(row['report'], max_length)
+                for i, text in enumerate(split_texts):
+                    split_row = row.copy()
+                    split_row['report'] = text
+                    split_row['id'] = f'{row["id"]}_{i}'
+                    split_rows.append(split_row)
+            else:
+                split_rows.append(row)
 
 
         # Create a new DataFrame with the split rows

@@ -46,6 +46,9 @@ if __name__ == "__main__":
     parser.add_argument("--llamacpp_port", type=int, default=2929)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--mode", type=str, default="choice", choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
+    parser.add_argument("--no-parallel", action="store_true")
+    parser.add_argument("--parallel-slots", type=int, default=1, help="Number of parallel slots for llama processing")
+    parser.add_argument("--context-size", type=int, default=-1, help="Set custom context size for llama cpp")
 
     args = parser.parse_args()
 
@@ -57,6 +60,9 @@ if __name__ == "__main__":
     app.config["N_PREDICT"] = args.n_predict
     app.config["LLAMACPP_PORT"] = args.llamacpp_port
     app.config["DEBUG"] = args.debug
+    app.config["NO_PARALLEL"] = args.no_parallel
+    app.config["PARALLEL_SLOTS"] = args.parallel_slots
+    app.config["CTX_SIZE"] = args.context_size
 
     app.config["MODE"] = args.mode
 

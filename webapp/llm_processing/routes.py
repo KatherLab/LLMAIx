@@ -12,6 +12,7 @@ from flask import (
     send_file,
     url_for,
     session,
+    jsonify
 )
 from .forms import LLMPipelineForm
 import requests
@@ -25,6 +26,9 @@ from .read_strange_csv import read_and_save_csv
 import secrets
 from concurrent import futures
 import io
+import asyncio
+import aiohttp
+from tqdm import tqdm
 from prometheus_client.parser import text_string_to_metric_families
 from .utils import (
     read_preprocessed_csv_from_zip,
@@ -149,6 +153,19 @@ def parse_metrics(metrics_text):
     return metrics_dict
 
 
+@llm_processing.route("/metrics")
+def get_metrics():
+    try:
+        url = f"http://localhost:{current_app.config['LLAMACPP_PORT']}/metrics"
+        metrics_text = fetch_metrics(url)
+        metrics_dict = parse_metrics(metrics_text)
+        return jsonify(metrics_dict)
+    except Exception as e:
+        # Log the error if needed
+        # print(f"Error fetching or parsing metrics: {e}")
+        return jsonify({"error": "Probably llama-cpp is not running."})
+
+
 def extract_from_report(
     df: pd.DataFrame,
     model_name: str,
@@ -166,6 +183,8 @@ def extract_from_report(
     llamacpp_port: int,
     debug: bool = False,
     model_name_name: str = "",
+    no_parallel: bool = False,
+    parallel_slots: int = 1,
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -195,7 +214,7 @@ def extract_from_report(
                 "llama3",
                 "--metrics",
                 "-np",
-                "1",
+                str(parallel_slots),
                 "-fa",  # flash attention # use new llama cpp version
                 # "--verbose",
             ],
@@ -240,24 +259,42 @@ def extract_from_report(
     results = {}
     skipped = 0
 
-    for i, (report, id) in enumerate(zip(df.report, df.id)):
-        print("parsing report: ", i)
+    async def fetch_tokenized_result(session, prompt_formatted):
+        async with session.post(
+            f"http://localhost:{llamacpp_port}/tokenize", 
+            json={"content": prompt_formatted}
+        ) as response:
+            return await response.json()
+
+    async def fetch_completion_result(session, prompt_formatted):
+        async with session.post(
+            f"http://localhost:{llamacpp_port}/completion", 
+            json={
+                "prompt": prompt_formatted,
+                "n_predict": n_predict,
+                "temperature": temperature,
+                "grammar": grammar,
+            },
+            timeout=20 * 60
+        ) as response:
+            return await response.json()
+
+    async def process_report(session, report, id, index, progress_bar, skipped):
+        # global skipped
         if is_empty_string_nan_or_none(report):
             print("SKIPPING EMPTY REPORT!")
             skipped += 1
             update_progress(
-                job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+                job_id=job_id, progress=(progress_bar.n + 1 - skipped, len(df) - skipped, True)
             )
-            continue
+            progress_bar.update(1)
+            return
+
         for symptom in symptoms:
             prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
-
-            tokenized_result = requests.post(
-                url=f"http://localhost:{llamacpp_port}/tokenize",
-                json={"content": prompt_formatted},
-            )
-
-            num_prompt_tokens = len(tokenized_result.json()["tokens"])
+            
+            tokenized_result = await fetch_tokenized_result(session, prompt_formatted)
+            num_prompt_tokens = len(tokenized_result["tokens"])
 
             if num_prompt_tokens >= ctx_size - n_predict:
                 print(
@@ -268,24 +305,8 @@ def extract_from_report(
                     message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.",
                 )
 
-            result = requests.post(
-                url=f"http://localhost:{llamacpp_port}/completion",
-                json={
-                    "prompt": prompt_formatted,
-                    "n_predict": n_predict,
-                    "temperature": temperature,
-                    "grammar": grammar,
-                },
-                timeout=20 * 60,
-            )
+            summary = await fetch_completion_result(session, prompt_formatted)
 
-            url = f"http://localhost:{llamacpp_port}/metrics"
-            metrics_text = fetch_metrics(url)
-            metrics_dict = parse_metrics(metrics_text)
-
-            push_llm_metrics(metrics_dict)
-
-            summary = result.json()
             if id not in results:
                 results[id] = {}
 
@@ -293,10 +314,82 @@ def extract_from_report(
             results[id]["symptom"] = symptom
             results[id]["summary"] = summary
 
-        print(f"Report {i} completed.")
+        progress_bar.update(1)
         update_progress(
-            job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+            job_id=job_id, progress=(progress_bar.n - skipped, len(df) - skipped, True)
         )
+
+    async def main():
+        async with aiohttp.ClientSession() as session:
+            with tqdm(total=len(df), desc="Processing Reports") as progress_bar:
+                tasks = []
+                for i, (report, id) in enumerate(zip(df.report, df.id)):
+                    print("parsing report: ", i)
+                    tasks.append(process_report(session, report, id, i, progress_bar, skipped))
+                await asyncio.gather(*tasks)
+
+    if not no_parallel:
+        print("RUN PARALLELLY")
+        asyncio.run(main())
+    else:
+        print("RUN SEQUENTIALLY")
+        for i, (report, id) in enumerate(zip(df.report, df.id)):
+            print("parsing report: ", i)
+            if is_empty_string_nan_or_none(report):
+                print("SKIPPING EMPTY REPORT!")
+                skipped += 1
+                update_progress(
+                    job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+                )
+                continue
+            for symptom in symptoms:
+                prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+
+                tokenized_result = requests.post(
+                    url=f"http://localhost:{llamacpp_port}/tokenize",
+                    json={"content": prompt_formatted},
+                )
+
+                num_prompt_tokens = len(tokenized_result.json()["tokens"])
+
+                if num_prompt_tokens >= ctx_size - n_predict:
+                    print(
+                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens."
+                    )
+                    warning_job(
+                        job_id=job_id,
+                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.",
+                    )
+
+                result = requests.post(
+                    url=f"http://localhost:{llamacpp_port}/completion",
+                    json={
+                        "prompt": prompt_formatted,
+                        "n_predict": n_predict,
+                        "temperature": temperature,
+                        "grammar": grammar,
+                    },
+                    timeout=20 * 60,
+                )
+
+                url = f"http://localhost:{llamacpp_port}/metrics"
+                metrics_text = fetch_metrics(url)
+                metrics_dict = parse_metrics(metrics_text)
+
+                push_llm_metrics(metrics_dict)
+
+                summary = result.json()
+                if id not in results:
+                    results[id] = {}
+
+                results[id]["report"] = report
+                results[id]["symptom"] = symptom
+                results[id]["summary"] = summary
+
+            print(f"Report {i} completed.")
+            update_progress(
+                job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+            )
 
     socketio.emit(
         "llm_progress_complete", {"job_id": job_id, "total_steps": len(df) - skipped}
@@ -440,14 +533,18 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
     return aggregated_df, error_count
 
 
-def get_context_size(yaml_filename, model_name):
+def get_context_size(yaml_filename, model_name, context_size_config):
+
+    if context_size_config is not None and context_size_config > 0:
+        return context_size_config
+
     import yaml
 
     with open(yaml_filename, "r") as file:
         config_data = yaml.safe_load(file)
 
-    print(config_data)
-    print("Find ", model_name)
+    # print(config_data)
+    # print("Find ", model_name)
 
     for model in config_data["models"]:
         if model["path_to_gguf"] == model_name:
@@ -599,7 +696,7 @@ def main():
             server_path=current_app.config["SERVER_PATH"],
             n_predict=current_app.config["N_PREDICT"],
             ctx_size=get_context_size(
-                current_app.config["CONFIG_FILE"], form.model.data
+                current_app.config["CONFIG_FILE"], form.model.data, current_app.config['CTX_SIZE']
             ),
             n_gpu_layers=current_app.config["N_GPU_LAYERS"],
             job_id=job_id,
@@ -607,6 +704,8 @@ def main():
             llamacpp_port=current_app.config["LLAMACPP_PORT"],
             debug=current_app.config["DEBUG"],
             model_name_name=model_name,
+            no_parallel=current_app.config['NO_PARALLEL'],
+            parallel_slots=current_app.config['PARALLEL_SLOTS'],
         )
 
         print("Started job successfully!")
