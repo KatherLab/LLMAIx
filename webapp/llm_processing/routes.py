@@ -296,13 +296,13 @@ def extract_from_report(
             tokenized_result = await fetch_tokenized_result(session, prompt_formatted)
             num_prompt_tokens = len(tokenized_result["tokens"])
 
-            if num_prompt_tokens >= ctx_size - n_predict:
+            if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
                 print(
-                    f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens."
+                    f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
                 )
                 warning_job(
                     job_id=job_id,
-                    message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.",
+                    message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
                 )
 
             summary = await fetch_completion_result(session, prompt_formatted)
@@ -352,13 +352,13 @@ def extract_from_report(
 
                 num_prompt_tokens = len(tokenized_result.json()["tokens"])
 
-                if num_prompt_tokens >= ctx_size - n_predict:
+                if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
                     print(
-                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE: {ctx_size} Tokens. N-PREDICT: {n_predict} Tokens."
+                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
                     )
                     warning_job(
                         job_id=job_id,
-                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size: {ctx_size} Tokens. N-Predict: {n_predict} Tokens.",
+                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
                     )
 
                 result = requests.post(
@@ -434,12 +434,19 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                 content = content[: -len("</s>")]
             # search for last } in content and remove anything after that
             content = content[: content.rfind("}") + 1]
+            # replace space null comma with space "null" comma
+            
             import ast
 
             # replace all backslash in the content string with nothing
             content = content.replace("\\", "")
 
-            info_dict_raw = ast.literal_eval(content)
+            try:
+                info_dict_raw = ast.literal_eval(content)
+            except Exception:
+                content = content.replace(" null,", '' ,' "null",')
+                print("REPLACE NULL")
+                info_dict_raw = ast.literal_eval(content)
 
             info_dict = {}
             for key, value in info_dict_raw.items():
