@@ -47,7 +47,7 @@ def convert_personal_info_list(personal_info_list: str) -> list:
 
 
 
-def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None, fuzzy_matches: list[tuple[str, int]] = []) -> io.BytesIO | None:
+def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], output_pdf_path: str | None = None, fuzzy_matches: list[tuple[str, int]] = [], apply_redaction: bool = False) -> io.BytesIO | None:
     """
     Anonymizes the specified text in a PDF by covering it with black rectangles and removes the underlying text.
 
@@ -83,7 +83,8 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                 # Redact each instance of the text
                 for inst in text_instances:
                     page.add_redact_annot(inst, fill=(0, 0, 0))
-                    # page.apply_redactions()
+                    if apply_redaction:
+                        page.apply_redactions()
 
         # Add the fuzzy matches
         if fuzzy_matches:
@@ -94,7 +95,8 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                 # Redact each instance of the text
                 for inst in text_instances:
                     page.add_redact_annot(inst, fill=(0, 0, 0))
-                    # page.apply_redactions()
+                    if apply_redaction:
+                        page.apply_redactions()
 
         # Save the modified page
         # try:

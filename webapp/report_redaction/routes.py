@@ -178,6 +178,104 @@ def main():
             return redirect(
                 url_for("report_redaction.report_redaction_viewer", report_id=report_id)
             )
+        
+        if 'submit-redaction-download' in request.form:
+
+            def convert_personal_info_dict(df, report_id):
+                try:
+                    # Extract all column values for the current report ID, except column 'id', 'report', 'metadata' and 'report_redacted', put them in a dict with the column name as the key
+
+                    personal_info_dict = {}
+                    for column_name in df.columns:
+                        if (
+                            column_name != "id"
+                            and column_name != "report"
+                            and column_name != "metadata"
+                            and column_name != "report_redacted"
+                            and column_name != "masked_report"
+                        ):
+                            personal_info_dict[column_name] = df[df["id"] == report_id][
+                                column_name
+                            ].item()
+
+                    # personal_info_list = df[df['id'] == report_id]['personal_info_list'].item()
+                except Exception as e:
+                    flash("Error Loading personal info from llm output file: " + str(e), "danger")
+                    return redirect(request.url)
+
+                personal_info_dict = {
+                    key: convert_personal_info_list(value)
+                    for key, value in personal_info_dict.items()
+                }
+
+                return personal_info_dict
+            
+            def create_yaml_settings(enable_fuzzy, threshold, exclude_single_chars, scorer):
+                import yaml
+                settings = {
+                    'enable_fuzzy': enable_fuzzy,
+                    'threshold': threshold,
+                    'exclude_single_chars': exclude_single_chars,
+                    'scorer': scorer
+                }
+                yaml_data = yaml.dump(settings)
+                return yaml_data
+
+
+            def create_zip_from_dataframe(df, pdf_folder_path):
+                # Create an in-memory BytesIO object to hold the ZIP file
+                zip_buffer = io.BytesIO()
+
+                # Create a new ZIP file in memory
+                with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+
+                    yaml_settings = create_yaml_settings(
+                        enable_fuzzy=session.get("enable_fuzzy", False),
+                        threshold=session.get("threshold", 90),
+                        exclude_single_chars=session.get("exclude_single_chars", False),
+                        scorer=session.get("scorer", None)
+                    )
+                    zip_file.writestr('redaction_config.yaml', yaml_settings)
+
+
+                    for idx, row in df.iterrows():
+                        pdf_id = str(row['id'])
+                        possible_filenames = [pdf_id, pdf_id + '.pdf']
+
+                        for filename in possible_filenames:
+                            file_path = os.path.join(pdf_folder_path, filename)
+                            if os.path.isfile(file_path):
+
+                                file_path_redacted, _, _, _ = load_redacted_pdf(
+                                    convert_personal_info_dict(df, row['id']),
+                                    file_path,
+                                    df,
+                                    row['id'],
+                                    enable_fuzzy=session.get("enable_fuzzy", False),
+                                    threshold=session.get("threshold", 90),
+                                    exclude_single_chars=session.get("exclude_single_chars", False),
+                                    scorer=session.get("scorer", None),
+                                    apply_redaction=True
+                                )
+
+                                with open(file_path_redacted, 'rb') as pdf_file:
+                                    zip_file.writestr(os.path.basename(file_path_redacted), pdf_file.read())
+                                break
+
+                zip_buffer.seek(0)
+                return zip_buffer
+            
+            # Create the ZIP file from the DataFrame
+            zip_buffer = create_zip_from_dataframe(df, content_temp_dir)
+
+            llm_output_id = file.filename.split(".zip")[0]
+            if llm_output_id.startswith("llm-output"):
+                llm_output_id = llm_output_id.split("llm-output-")[1]
+            download_filename = f'redacted-reports-{llm_output_id}.zip'
+
+            # Send the ZIP file without saving it to disk
+            return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name=download_filename)
+
 
         elif "submit-metrics" in request.form:
             
@@ -923,6 +1021,7 @@ def load_redacted_pdf(
     threshold=90,
     scorer="WRatio",
     text=None,
+    apply_redaction:bool=False,
 ):
 
     if exclude_single_chars:
@@ -962,6 +1061,7 @@ def load_redacted_pdf(
         personal_info_dict["personal_info_list"],
         filename.replace(".pdf", "_redacted.pdf"),
         fuzzy_matches_dict["personal_info_list"],
+        apply_redaction=apply_redaction,
     )
 
     return (
