@@ -355,7 +355,7 @@ def download():
         df['filename'] = df['filepath'].apply(lambda x: remove_ocr_prefix(os.path.basename(x)))
 
         df['id'] = df.apply(lambda x: x['filename'] +
-                            '$' + str(uuid.uuid4()[:8]), axis=1)
+                            '$' + str(uuid.uuid4()), axis=1)[:8]
         # limiting the uuid is bad as it may cause colissions, but already the filename should colission-free - this is just to make sure!
 
         # add metadata column with json structure. Add the current date and time as preprocessing key in the json structure
