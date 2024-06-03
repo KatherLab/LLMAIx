@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField, SubmitField, TextAreaField, FileField, FloatField, validators, SelectField
+from flask_wtf.file import FileRequired, FileAllowed, DataRequired
+from wtforms import StringField, SubmitField, TextAreaField, FileField, FloatField, validators, SelectField, FormField, FieldList, IntegerField
 from wtforms.validators import ValidationError
+import wtforms
 import os
 
 default_prompt = r"""Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information wortwörtlich aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
@@ -175,6 +176,16 @@ class GrammarValidator:
             raise ValidationError(
                 'Grammar field is required when "Enable Grammar" is checked.')
 
+class GrammarField(wtforms.Form):
+  field_name = StringField('Label Name', validators=[DataRequired()])
+  field_type = SelectField('Select Type', choices=[('string', 'String *'), ('stringN', 'String n chars'), ('stringuptoN', 'String up to n chars'), ('number', 'Number *'), ('numberN', 'Number n digits'), ('numberuptoN', 'Number up to n digits'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
+  string_length = IntegerField('String Length', [validators.Optional()])
+  number_length = IntegerField('Number Length', [validators.Optional()])
+  fp_number_length = IntegerField('Floating Point Number Length', [validators.Optional()])
+  options = StringField('Categories (comma-separated)', [validators.Optional()])
+  custom_rule = StringField('Custom Rule (rulename ::= <YOURCUSTOMRULE>)', [validators.Optional()])
+
+
 
 class LLMPipelineForm(FlaskForm):
     def __init__(self, config_file_path, model_path, *args, **kwargs):
@@ -203,11 +214,18 @@ class LLMPipelineForm(FlaskForm):
                     'Only .zip files allowed!')
     ])
     grammar = TextAreaField("Grammar:", validators=[], default=grammar_new)
+
+    grammarbuilder = FieldList(FormField(GrammarField), min_entries=1, max_entries=10)
+
+    extra_grammar_rules = TextAreaField("Extra Grammar Rules:", validators=[], default="")
+
     prompt = TextAreaField("Prompt:", validators=[], default=default_prompt)
     variables = StringField(
         "Variables (separated by commas):", validators=[], default="Patienteninfos")
     temperature = FloatField("Temperature:", validators=[
                              validators.NumberRange(0, 1)], default=0.1)
     model = SelectField("Model:", validators=[])
+
+    n_predict = IntegerField("n_predict:", validators=[validators.NumberRange(1, 96000)], default=1024)
 
     submit = SubmitField("Run Pipeline")

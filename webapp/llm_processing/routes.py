@@ -682,7 +682,7 @@ def main():
         #     grammar=form.grammar.data.replace("\r\n", "\n"),
         #     model_path=current_app.config['MODEL_PATH'],
         #     server_path=current_app.config['SERVER_PATH'],
-        #     n_predict=current_app.config['N_PREDICT'],
+        #     n_predict=form.n_predict.data,
         #     ctx_size=current_app.config['CTX_SIZE'],
         #     n_gpu_layers=current_app.config['N_GPU_LAYERS'],
         #     job_id=job_id,
@@ -701,7 +701,7 @@ def main():
             grammar=form.grammar.data.replace("\r\n", "\n"),
             model_path=current_app.config["MODEL_PATH"],
             server_path=current_app.config["SERVER_PATH"],
-            n_predict=current_app.config["N_PREDICT"],
+            n_predict = form.n_predict.data,
             ctx_size=get_context_size(
                 current_app.config["CONFIG_FILE"], form.model.data, current_app.config['CTX_SIZE']
             ),

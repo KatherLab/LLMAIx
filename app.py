@@ -42,7 +42,6 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--config_file", type=str, default="config.yml")
     parser.add_argument("--n_gpu_layers", type=int, default=80)
-    parser.add_argument("--n_predict", type=int, default=384)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--mode", type=str, default="choice", choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
@@ -57,7 +56,6 @@ if __name__ == "__main__":
     app.config["SERVER_PORT"] = args.port
     app.config["CONFIG_FILE"] = args.config_file
     app.config["N_GPU_LAYERS"] = args.n_gpu_layers
-    app.config["N_PREDICT"] = args.n_predict
     app.config["LLAMACPP_PORT"] = args.llamacpp_port
     app.config["DEBUG"] = args.debug
     app.config["NO_PARALLEL"] = args.no_parallel

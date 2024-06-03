@@ -49,7 +49,6 @@ Run:
 |Parameter|Description|Example|
 |---|---|---|
 |--model_path|Directory with downloaded model files which can be processed by llama.cpp|/path/to/models|
-|--n_predict|How many tokens to predict. Will crash if too little. Default: 384|384|
 |--server_path|Path of llama cpp executable (on Windows: server.exe).|/path/to/llamacpp/executable/server|
 |--n_gpu_layers|How many layers of the model to offload to the GPU. Adjust according to model and GPU memory. Default: 80|-1 for all, otherwise any number|
 |--host|Hostname of the server. Default: 0.0.0.0|0.0.0.0 or localhost|

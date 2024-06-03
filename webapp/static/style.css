@@ -35,3 +35,12 @@
 .nested-container {
     padding: 30px 15px;
 }
+
+.conditional-field {
+    display: none;
+}
+
+.conditional-field[data-field-type="string"],
+.conditional-field[data-field-type="custom"] {
+    display: inline-block;
+}
