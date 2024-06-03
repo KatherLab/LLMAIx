@@ -93,7 +93,7 @@
     </div>
     {% endfor %}
 
-    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
+    <button id="toggleMetricsButton" class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
         aria-expanded="false" aria-controls="collapseExample">
         Llama-cpp Metrics
     </button>
@@ -234,7 +234,10 @@
 
             if (countdown <= 0) {
                 clearInterval(countdownInterval);
-                updateMetrics();
+                if (isMetricsExpanded()) {
+
+                    updateMetrics();
+                }
                 startCountdown(); // Restart countdown after updating metrics
             }
         }, 1000); // Update countdown every second
@@ -243,6 +246,12 @@
     // Initial call to populate the table and start the countdown
     updateMetrics();
     startCountdown();
+
+    function isMetricsExpanded() {
+        var toggleButton = document.getElementById("toggleMetricsButton");
+        return toggleButton.getAttribute("aria-expanded") === "true";
+    }
+    
 
 
     socket.on('progress_warning', function (data) {
