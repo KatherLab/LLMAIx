@@ -110,7 +110,7 @@ The output extends the input zip file with a csv file with columns `report` with
 
 ## Example Grammar
 
-> [!Info]
+> [!Tip]
 > **Use the new Grammar Builder**
 > 
 > ![Grammar Builder Tool](image_grammarbuilder.png)
