@@ -177,7 +177,7 @@ class GrammarValidator:
                 'Grammar field is required when "Enable Grammar" is checked.')
 
 class GrammarField(wtforms.Form):
-  field_name = StringField('Label Name', validators=[DataRequired()])
+  field_name = StringField('Label Name', validators=[validators.Optional()])
   field_type = SelectField('Select Type', choices=[('string', 'String *'), ('stringN', 'String n chars'), ('stringuptoN', 'String up to n chars'), ('number', 'Number *'), ('numberN', 'Number n digits'), ('numberuptoN', 'Number up to n digits'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
   string_length = IntegerField('String Length', [validators.Optional()])
   number_length = IntegerField('Number Length', [validators.Optional()])
