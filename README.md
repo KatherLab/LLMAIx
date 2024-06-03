@@ -74,7 +74,7 @@ The output is a zip file containing the csv file and the pdf files with a text l
 
 - Click on **LLM Information Extraction**
 
-Use the zip file from the preprocessing step as an input, choose a model and adjust the prompt, grammar and temperature accordingly. When you click `Run Pipeline` you will be redirected to the **LLM results** tab. Wait for the results to be available for download. You don't have to reload the page! In the meantime you can also start more information extraction jobs.
+Use the zip file from the preprocessing step as an input, choose a model and adjust the prompt, grammar (use the grammar builder), n_predict and temperature accordingly. When you click `Run Pipeline` you will be redirected to the **LLM results** tab. Wait for the results to be available for download. You don't have to reload the page! In the meantime you can also start more information extraction jobs.
 
 The output extends the input zip file with a csv file with columns `report` with the original report, `report_masked` which contains the anonymized report and more columns with the personal information extracted according to the grammar as well as Ids and metadata.
 
@@ -109,6 +109,11 @@ The output extends the input zip file with a csv file with columns `report` with
 
 
 ## Example Grammar
+
+> [!Info]
+> **Use the new Grammar Builder**
+> 
+> ![Grammar Builder Tool](image_grammarbuilder.png)
 
 > Adjust the grammar according to the [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md). This causes the llm output to be in a json structure with the desired datapoints. Note: Playing around with this can help, not every model works well with a too restrictive grammar.
 
@@ -169,6 +174,4 @@ ws ::= ([ \t\n])?
 
 - make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
 - When reports are split, put the already extracted information in the input for the next part.
-- Multiple Grammars
-- Grammar UI
-- n predict settings
+
