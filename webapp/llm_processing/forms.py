@@ -5,12 +5,10 @@ from wtforms.validators import ValidationError
 import wtforms
 import os
 
-default_prompt = r"""Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information wortwörtlich aus dem Bericht. Wenn du die Information nicht findest, antworte null. 
+default_prompt = r"""Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information aus dem Bericht. Wenn du die Information nicht findest, antworte null. Bitte generiere die selbe Form wie im Text.
 
 Das ist der Bericht:
-{report}
-
-Extrahiere diese Elemente aus dem Text: {symptom}?"""
+{report}"""
 
 
 default_grammer = r"""root   ::= allrecords
