@@ -235,13 +235,13 @@ def generate_report_dict(row, df_annotation) -> dict:
     report_dict['metadata'] = row.metadata
     # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
     report_dict["annotation_labels"] = df_annotation[
-        df_annotation["report"].str.startswith(row.report_id_short)
+        df_annotation["id"].str.startswith(row.report_id_short)
     ].to_dict("list")
 
-    if len(df_annotation[df_annotation["report"].str.startswith(row.report_id_short)]) == 0:
+    if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) == 0:
         raise Exception("No annotation found for report " + row.report_id_short)
     
-    if len(df_annotation[df_annotation["report"].str.startswith(row.report_id_short)]) > 1:
+    if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) > 1:
         raise Exception("Multiple annotations found for report " + row.report_id_short)
 
     del report_dict["annotation_labels"]["report"]
@@ -330,7 +330,7 @@ def labelannotationmetrics():
     )
 
     # Check if the extracted report names from df1 are present in df2
-    df["matching_report"] = df["report_id_short"].isin(df_annotation["report"])
+    df["matching_report"] = df["report_id_short"].isin(df_annotation["id"])
 
     # Find IDs with no matching report
     df["no_matching_report"] = ~df["matching_report"]
