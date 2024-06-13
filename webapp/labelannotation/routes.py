@@ -274,9 +274,9 @@ def generate_report_dict(row, df_annotation) -> dict:
         not report_dict["llm_output_labels"].keys()
         == report_dict["annotation_labels"].keys()
     ):
-        raise Exception("Mismatch in label keys in annotation and llm output: " + str(
+        raise Exception("Mismatch in label keys in llm output: " + str(
             report_dict["llm_output_labels"].keys())
-            + " vs "
+            + " vs annotation: "
             + str(report_dict["annotation_labels"].keys())
         )
 
@@ -369,6 +369,10 @@ def labelannotationmetrics():
         return redirect(url_for("labelannotation.main"))
 
     report_summary_dict["metadata"] = metadata
+
+    # itertuple does not allow spaces in identifiers
+    df = df.rename(columns=lambda x: x.replace(' ', '_'))
+    df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
     
     report_summary_dict['report_list'] = generate_report_list(df, df_annotation)
 
