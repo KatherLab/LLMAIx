@@ -85,20 +85,22 @@ def preprocess_file(file_path):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path, header=None)
+            df = pd.read_csv(file_path)
             for index, row in enumerate(df.itertuples()):
-                text = str(row[1])
+                text = str(getattr(row, 'report'))
+                id = str(getattr(row, 'id'))
                 pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
                 save_text_as_pdf(text, pdf_file_save_path)
-                merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
+                merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, 'id': id}))
 
         elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
-            df = pd.read_excel(file_path, header=None)
+            df = pd.read_excel(file_path)
             for index, row in enumerate(df.itertuples()):
-                text = str(row[1])
+                text = str(getattr(row, 'report'))
+                id = str(getattr(row, 'id'))
                 pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
                 save_text_as_pdf(text, pdf_file_save_path)
-                merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
+                merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, "id": id}))
 
         elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
             if not file_path.endswith('.pdf'):
@@ -354,7 +356,17 @@ def download():
 
         df['filename'] = df['filepath'].apply(lambda x: remove_ocr_prefix(os.path.basename(x)))
 
-        df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4())[:8], axis=1)
+        def generate_id(row):
+            if pd.isna(row['id']):
+                return row['filename'] + '$' + str(uuid.uuid4())[:8]
+            else:
+                return row['id'] + '$' + str(uuid.uuid4())[:8]
+
+        # Apply the function to the DataFrame
+        df['id'] = df.apply(generate_id, axis=1)
+
+
+        # df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4())[:8], axis=1)
         # limiting the uuid is bad as it may cause colissions, but already the filename should colission-free - this is just to make sure!
 
         # add metadata column with json structure. Add the current date and time as preprocessing key in the json structure
