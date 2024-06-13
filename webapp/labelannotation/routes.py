@@ -234,15 +234,20 @@ def generate_report_dict(row, df_annotation) -> dict:
     report_dict["report"] = row.report
     report_dict['metadata'] = row.metadata
     # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
-    report_dict["annotation_labels"] = df_annotation[
-        df_annotation["id"].str.startswith(row.report_id_short)
-    ].to_dict("list")
-
-    if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) == 0:
-        raise Exception("No annotation found for report " + row.report_id_short)
+    report_dict["annotation_labels"] = df_annotation[df_annotation["id"] == row.report_id_short].to_dict("list")
     
-    if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) > 1:
-        raise Exception("Multiple annotations found for report " + row.report_id_short)
+    if len(report_dict["annotation_labels"]) == 0:
+        raise Exception(f"No annotation found for report {row.report_id_short}")
+    
+    if len(report_dict["annotation_labels"]) > 1:
+        raise Exception(f"Multiple annotations found for report {row.report_id_short}")
+
+
+    # if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) == 0:
+    #     raise Exception("No annotation found for report " + row.report_id_short)
+    
+    # if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) > 1:
+    #     raise Exception("Multiple annotations found for report " + row.report_id_short)
 
     del report_dict["annotation_labels"]["report"]
     # similar with llm output labels from the row, excluding id, report, metadata, matching_report, no_matching_report, report_redacted
@@ -334,7 +339,10 @@ def labelannotationmetrics():
     df["report_id_short"] = df["report_id_short"].astype(str)
     df_annotation["id"] = df_annotation["id"].astype(str)
 
-    df["matching_report"] = df["report_id_short"].isin(df_annotation["id"])
+    # df["matching_report"] = df["report_id_short"].isin(df_annotation["id"])
+    
+    merged_df = pd.merge(df, df_annotation, left_on="report_id_short", right_on="id", how="left", indicator=True)
+    df["matching_report"] = merged_df["_merge"] == "both"
 
     # Find IDs with no matching report
     df["no_matching_report"] = ~df["matching_report"]
