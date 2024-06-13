@@ -11,7 +11,7 @@ class LLMAnnotationResultsForm(FlaskForm):
     ])
 
     annotation_file = FileField("Annotation File (csv)", validators=[
-        FileAllowed(['csv'], 'Only .csv file allowed!')
+        FileAllowed(['csv', 'xlsx'], 'Only .csv and .xlsx files allowed!')
     ])
 
     submit = SubmitField("LLM Output Viewer")

@@ -296,7 +296,14 @@ def generate_report_list(df, df_annotation) -> list:
 
 @labelannotation.route("/labelannotationmetrics", methods=["GET"])
 def labelannotationmetrics():
-    df_annotation = pd.read_csv(session["annotation_file"])
+    # if annotation file is csv file:
+    if os.path.splitext(session["annotation_file"])[-1] == ".csv":
+        df_annotation = pd.read_csv(session["annotation_file"])
+    elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
+        df_annotation = pd.read_excel(session["annotation_file"])
+    else:
+        flash("Invalid annotation file format!", "danger")
+        return redirect(request.url)
     if df_annotation is None or len(df_annotation) == 0:
         flash(
             "No CSV file found in the annotation file or is the annotation file is empty!",
