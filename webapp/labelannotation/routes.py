@@ -408,7 +408,14 @@ def labelannotationviewer():
     previous_id = df.at[current_index - 1, "id"] if current_index > 0 else None
     next_id = df.at[current_index + 1, "id"] if current_index < len(df) - 1 else None
 
-    df_annotation = pd.read_csv(session["annotation_file"])
+    if session["annotation_file"].endswith(".csv"):
+        df_annotation = pd.read_csv(session["annotation_file"])
+    elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
+        df_annotation = pd.read_excel(session["annotation_file"])
+    else:
+        flash("Invalid annotation file format!", "danger")
+        return redirect(request.url)
+    
     if df_annotation is not None and len(df_annotation) == 0:
         flash("Annotation File found but empty!", "danger")
         return redirect(request.url)
