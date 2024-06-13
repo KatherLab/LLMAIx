@@ -421,6 +421,9 @@ def labelannotationviewer():
         return redirect(request.url)
     
     report_dict = None
+
+    df = df.rename(columns=lambda x: x.replace(' ', '_'))
+    df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
     
     if df_annotation is not None:
         # row = df[df["id"] == report_id].iloc[0]
