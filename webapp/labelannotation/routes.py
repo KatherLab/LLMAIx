@@ -425,6 +425,9 @@ def labelannotationviewer():
     df = df.rename(columns=lambda x: x.replace(' ', '_'))
     df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
     
+    df["report_id_short"] = df["report_id_short"].astype(str)
+    df_annotation["id"] = df_annotation["id"].astype(str)
+
     if df_annotation is not None:
         # row = df[df["id"] == report_id].iloc[0]
         for row in df.itertuples():
