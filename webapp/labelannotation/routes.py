@@ -330,6 +330,10 @@ def labelannotationmetrics():
     )
 
     # Check if the extracted report names from df1 are present in df2
+
+    df["report_id_short"] = df["report_id_short"].astype(str)
+    df_annotation["id"] = df_annotation["id"].astype(str)
+
     df["matching_report"] = df["report_id_short"].isin(df_annotation["id"])
 
     # Find IDs with no matching report
