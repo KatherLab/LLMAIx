@@ -234,14 +234,15 @@ def generate_report_dict(row, df_annotation) -> dict:
     report_dict["report"] = row.report
     report_dict['metadata'] = row.metadata
     # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
-    report_dict["annotation_labels"] = df_annotation[df_annotation["id"] == row.report_id_short].to_dict("list")
+    report_dict["annotation_labels"] = df_annotation[df_annotation["id"] == row.report_id_short]
     
     if len(report_dict["annotation_labels"]) == 0:
         raise Exception(f"No annotation found for report {row.report_id_short}")
     
     if len(report_dict["annotation_labels"]) > 1:
         raise Exception(f"Multiple annotations found for report {row.report_id_short}")
-
+    
+    report_dict["annotation_labels"] = report_dict["annotation_labels"].to_dict("list")
 
     # if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) == 0:
     #     raise Exception("No annotation found for report " + row.report_id_short)
