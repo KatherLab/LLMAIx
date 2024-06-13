@@ -250,7 +250,7 @@ def generate_report_dict(row, df_annotation) -> dict:
     # if len(df_annotation[df_annotation["id"].str.startswith(row.report_id_short)]) > 1:
     #     raise Exception("Multiple annotations found for report " + row.report_id_short)
 
-    del report_dict["annotation_labels"]["report"]
+    del report_dict["annotation_labels"]["id"]
     # similar with llm output labels from the row, excluding id, report, metadata, matching_report, no_matching_report, report_redacted
     report_dict["llm_output_labels"] = {
         k: v
