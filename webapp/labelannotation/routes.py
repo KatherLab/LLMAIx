@@ -96,7 +96,15 @@ def main():
                 return render_template("labelannotation_form.html", form=form)
 
             try:
-                df = pd.read_csv(session["annotation_file"])
+                # check if annotation file is csv
+                if os.path.splitext(session["annotation_file"])[-1] == ".csv":
+                    df = pd.read_csv(session["annotation_file"])
+                    assert df is not None and len(df) > 0
+                elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
+                    df = pd.read_excel(session["annotation_file"])
+                    assert df is not None and len(df) > 0
+                else:
+                    raise Exception("Invalid annotation file format!")
                 assert df is not None and len(df) > 0
             except Exception as e:
                 flash(f"Invalid annotation file format: {e}", "danger")
