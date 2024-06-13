@@ -285,7 +285,7 @@ def generate_report_dict(row, df_annotation) -> dict:
     for k, v in report_dict["annotation_labels"].items():
         if len(v) == 0:
             raise Exception("No value in annotation for key: " + k + " for report: " + row.id)
-        report_dict["annotation_labels"][k] = v[0]
+        report_dict["annotation_labels"][k] = str(v[0])
 
     # the same for llm output labels
     for k, v in report_dict["llm_output_labels"].items():
@@ -294,7 +294,7 @@ def generate_report_dict(row, df_annotation) -> dict:
         report_dict["llm_output_labels"][k] = value_list[0]
         for value in value_list:
             if value != "":
-                report_dict["llm_output_labels"][k] = value
+                report_dict["llm_output_labels"][k] = str(value)
                 break
     
     report_dict['metrics'] = calculate_metrics(report_dict['annotation_labels'], report_dict['llm_output_labels'])
