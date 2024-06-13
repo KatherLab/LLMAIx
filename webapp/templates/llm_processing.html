@@ -431,7 +431,7 @@ $(document).ready(function () {
             e.fp_number_length || '',
             e.options || '',
             e.custom_rule || ''
-        ].join(",")).join("\n");
+        ].join(";")).join("\n");
 
         // Append extraRules as an extra line at the end
         const finalCsvContent = extraRules ? csvContent + "\n" + extraRules : csvContent;
@@ -457,7 +457,7 @@ $(document).ready(function () {
 
                 // Parse entries
                 const entriesData = lines.slice(0, -1).map(row => {
-                    const cols = row.split(",");
+                    const cols = row.split(";");
                     return {
                         field_name: cols[0].replace(/"/g, '&quot;') || '',
                     field_type: cols[1].replace(/"/g, '&quot;') || 'string',
