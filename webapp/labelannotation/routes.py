@@ -130,8 +130,8 @@ def calculate_metrics(annotation_labels, llm_output_labels):
             false_negative = 0
 
             # Compare annotation and output labels
-            annotation_value = annotation_labels[label]
-            output_value = llm_output_labels[label]
+            annotation_value = str(annotation_labels[label])
+            output_value = str(llm_output_labels[label])
 
             # True positives
             if annotation_value == output_value:
