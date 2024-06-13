@@ -527,7 +527,7 @@ $(document).ready(function () {
                 grammar += `ws "\\"${entryData.field_name}\\":" ws ${entryData.custom_rule} ","\n`;
             } else if (entryData.field_type === 'options') {
                 let options = entryData.options.split(',').map(option => `"${option.trim()}"`).join(' | ');
-                grammar += `ws "\\"${entryData.field_name}\\":" ws "\"" ${options} "\"" ","\n`;
+                grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" ${options} "\\"" ","\n`;
             } else {
                 grammar += `ws "\\"${entryData.field_name}\\":" ws ${entryData.field_type} ","\n`;
             }
@@ -580,7 +580,7 @@ ws ::= ([ \\t\\n])?
         } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {
             stringRule = generateNumberRuleOptional(entryData.number_length);
         } else if (entryData.field_type === 'boolean') {
-            stringRule = `boolean ::= "\"" ("true" | "false" | "null") "\"" ws\n\n`;
+            stringRule = `boolean ::= "\\"" ("true" | "false" | "null") "\\"" ws\n\n`;
         }
 
         // Check if the rule already exists
