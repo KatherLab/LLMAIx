@@ -98,10 +98,10 @@ def main():
             try:
                 # check if annotation file is csv
                 if os.path.splitext(session["annotation_file"])[-1] == ".csv":
-                    df = pd.read_csv(session["annotation_file"])
+                    df = pd.read_csv(session["annotation_file"], dtype=str)
                     assert df is not None and len(df) > 0
                 elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
-                    df = pd.read_excel(session["annotation_file"])
+                    df = pd.read_excel(session["annotation_file"], dtype=str)
                     assert df is not None and len(df) > 0
                 else:
                     raise Exception("Invalid annotation file format!")
@@ -313,9 +313,9 @@ def generate_report_list(df, df_annotation) -> list:
 def labelannotationmetrics():
     # if annotation file is csv file:
     if os.path.splitext(session["annotation_file"])[-1] == ".csv":
-        df_annotation = pd.read_csv(session["annotation_file"])
+        df_annotation = pd.read_csv(session["annotation_file"], dtype=str)
     elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
-        df_annotation = pd.read_excel(session["annotation_file"])
+        df_annotation = pd.read_excel(session["annotation_file"], dtype=str)
     else:
         flash("Invalid annotation file format!", "danger")
         return redirect(request.url)
@@ -409,9 +409,9 @@ def labelannotationviewer():
     next_id = df.at[current_index + 1, "id"] if current_index < len(df) - 1 else None
 
     if session["annotation_file"].endswith(".csv"):
-        df_annotation = pd.read_csv(session["annotation_file"])
+        df_annotation = pd.read_csv(session["annotation_file"], dtype=str)
     elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
-        df_annotation = pd.read_excel(session["annotation_file"])
+        df_annotation = pd.read_excel(session["annotation_file"], dtype=str)
     else:
         flash("Invalid annotation file format!", "danger")
         return redirect(request.url)
