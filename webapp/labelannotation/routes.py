@@ -83,6 +83,13 @@ def main():
         report_id = df["id"].iloc[0]
 
         if "submit-viewer" in request.form:
+
+            if session["annotation_file"] is None:
+                form.annotation_file.errors.append(
+                    "For the viewer page, please upload an annotation file. Viewer without annotation will be implemented in the future."
+                )  # Manually set error message for the 'name' field
+                return render_template("labelannotation_form.html", form=form)
+
             session["current_labelannotation_job"] = None
             return redirect(
                 url_for("labelannotation.labelannotationviewer", report_id=report_id)
@@ -147,8 +154,45 @@ def calculate_metrics(annotation_labels, llm_output_labels):
                 true_negative = 1
 
             # Calculate label-wise metrics
-            label_accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
-            label_f1 = f1_score([annotation_value], [output_value], average="macro")
+            # label_accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
+            # label_precision = true_positive / (true_positive + false_positive)
+            # label_recall = true_positive / (true_positive + false_negative)
+            # label_f1 = 2 * (label_precision * label_recall) / (label_precision + label_recall)
+
+            try:
+                label_accuracy = true_positive / (true_positive + false_positive + false_negative)
+            except ZeroDivisionError:
+                label_accuracy = 0.0
+
+            try:
+                label_precision = true_positive / (true_positive + false_positive)
+            except ZeroDivisionError:
+                label_precision = 0.0
+
+            try:
+                label_recall = true_positive / (true_positive + false_negative)
+            except ZeroDivisionError:
+                label_recall = 0.0
+
+            try:
+                label_f1 = 2 * (label_precision * label_recall) / (label_precision + label_recall)
+            except ZeroDivisionError:
+                label_f1 = 0.0
+
+            try:
+                label_specificity = true_negative / (true_negative + false_positive)
+            except ZeroDivisionError:
+                label_specificity = 0.0
+
+            try:
+                label_false_positive_rate = false_positive / (true_negative + false_positive)
+            except ZeroDivisionError:
+                label_false_positive_rate = 0.0
+
+            try:
+                label_false_negative_rate = false_negative / (true_positive + false_negative)
+            except ZeroDivisionError:
+                label_false_negative_rate = 0.0
 
             label_metrics[label] = {
                 'tp': true_positive,
@@ -156,7 +200,12 @@ def calculate_metrics(annotation_labels, llm_output_labels):
                 'fp': false_positive,
                 'fn': false_negative,
                 'f1': label_f1,
-                'accuracy': label_accuracy
+                'accuracy': label_accuracy,
+                'precision': label_precision,
+                'recall': label_recall,
+                'specificity': label_specificity,
+                'false_positive_rate': label_false_positive_rate,
+                'false_negative_rate': label_false_negative_rate
             }
         else:
             # If the label is not found in llm_output_labels, consider it as false negative
@@ -166,17 +215,73 @@ def calculate_metrics(annotation_labels, llm_output_labels):
                 'fp': 0,
                 'fn': 1,
                 'f1': 0,
-                'accuracy': 0
+                'accuracy': 0,
+                'precision': 0,
+                'recall': 0,
+                'specificity': 0,
+                'false_positive_rate': 0,
+                'false_negative_rate': 0
             }
-
+                
     # Calculate overall metrics
     overall_tp = sum([metrics['tp'] for metrics in label_metrics.values()])
     overall_tn = sum([metrics['tn'] for metrics in label_metrics.values()])
     overall_fp = sum([metrics['fp'] for metrics in label_metrics.values()])
     overall_fn = sum([metrics['fn'] for metrics in label_metrics.values()])
 
-    overall_accuracy = (overall_tp + overall_tn) / (overall_tp + overall_tn + overall_fp + overall_fn)
-    overall_f1 = f1_score(list(annotation_labels.values()), list(llm_output_labels.values()), average='weighted')
+    # overall_accuracy = (overall_tp + overall_tn) / float(overall_tp + overall_tn + overall_fp + overall_fn)
+    # overall_recall = overall_tp / float(overall_tp + overall_fn)
+    # overall_precision = overall_tp / float(overall_tp + overall_fp)
+    # overall_f1 = 2 * (overall_precision * overall_recall) / (overall_precision + overall_recall)
+    # overall_specificity = overall_tn / float(overall_tn + overall_fp)
+    # overall_false_positive_rate = overall_fp / float(overall_fp + overall_tn)
+    # overall_false_negative_rate = overall_fn / float(overall_fn + overall_tp)
+
+    try:
+        overall_accuracy = (overall_tp + overall_tn) / float(overall_tp + overall_tn + overall_fp + overall_fn)
+    except ZeroDivisionError:
+        overall_accuracy = 0.0
+
+    # Calculate overall recall
+    try:
+        overall_recall = overall_tp / float(overall_tp + overall_fn)
+    except ZeroDivisionError:
+        overall_recall = 0.0
+
+    # Calculate overall precision
+    try:
+        overall_precision = overall_tp / float(overall_tp + overall_fp)
+    except ZeroDivisionError:
+        overall_precision = 0.0
+
+    # Calculate overall F1-score
+    try:
+        if overall_precision + overall_recall == 0:
+            overall_f1 = 0.0
+        else:
+            overall_f1 = 2 * (overall_precision * overall_recall) / (overall_precision + overall_recall)
+    except ZeroDivisionError:
+        overall_f1 = 0.0
+
+    # Calculate overall specificity
+    try:
+        overall_specificity = overall_tn / float(overall_tn + overall_fp)
+    except ZeroDivisionError:
+        overall_specificity = 0.0
+
+    # Calculate overall false positive rate
+    try:
+        overall_false_positive_rate = overall_fp / float(overall_fp + overall_tn)
+    except ZeroDivisionError:
+        overall_false_positive_rate = 0.0
+
+    # Calculate overall false negative rate
+    try:
+        overall_false_negative_rate = overall_fn / float(overall_fn + overall_tp)
+    except ZeroDivisionError:
+        overall_false_negative_rate = 0.0
+
+    
 
     overall_metrics = {
         'tp': overall_tp,
@@ -184,7 +289,12 @@ def calculate_metrics(annotation_labels, llm_output_labels):
         'fp': overall_fp,
         'fn': overall_fn,
         'f1': overall_f1,
-        'accuracy': overall_accuracy
+        'accuracy': overall_accuracy,
+        'recall': overall_recall,
+        'precision': overall_precision,
+        'specificity': overall_specificity,
+        'false_positive_rate': overall_false_positive_rate,
+        'false_negative_rate': overall_false_negative_rate
     }
 
     return {
@@ -194,7 +304,7 @@ def calculate_metrics(annotation_labels, llm_output_labels):
 
 def accumulate_metrics(data_list):
     accumulated_metrics = {
-        'overall': {'tp': 0, 'tn': 0, 'fp': 0, 'fn': 0, 'f1': 0, 'accuracy': 0},
+        'overall': {'tp': 0, 'tn': 0, 'fp': 0, 'fn': 0, 'f1': 0, 'accuracy': 0, 'precision': 0, 'recall': 0, 'specificity': 0, 'false_positive_rate': 0, 'false_negative_rate': 0},
         'label_wise': {}
     }
 
@@ -206,7 +316,7 @@ def accumulate_metrics(data_list):
         # Accumulate label-wise metrics
         for label, label_metrics in data['metrics']['label_wise'].items():
             if label not in accumulated_metrics['label_wise']:
-                accumulated_metrics['label_wise'][label] = {'tp': 0, 'tn': 0, 'fp': 0, 'fn': 0, 'f1': 0, 'accuracy': 0}
+                accumulated_metrics['label_wise'][label] = {'tp': 0, 'tn': 0, 'fp': 0, 'fn': 0, 'f1': 0, 'accuracy': 0, 'precision': 0, 'recall': 0, 'specificity': 0, 'false_positive_rate': 0, 'false_negative_rate': 0}
 
             for metric, value in label_metrics.items():
                 try:
@@ -218,12 +328,14 @@ def accumulate_metrics(data_list):
     # Calculate averages for overall metrics
     num_entries = len(data_list)
     for metric in accumulated_metrics['overall']:
-        accumulated_metrics['overall'][metric] /= num_entries
+        if metric not in ['tp', 'tn', 'fp', 'fn']:
+            accumulated_metrics['overall'][metric] /= float(num_entries)
 
     # Calculate averages for label-wise metrics
     for label, label_metrics in accumulated_metrics['label_wise'].items():
         for metric in label_metrics:
-            accumulated_metrics['label_wise'][label][metric] /= num_entries
+            if metric not in ['tp', 'tn', 'fp', 'fn']:
+                accumulated_metrics['label_wise'][label][metric] /= float(num_entries)
 
     return accumulated_metrics
 
@@ -231,7 +343,7 @@ def generate_report_dict(row, df_annotation) -> dict:
     report_dict = {}
 
     report_dict["id"] = row.id
-    report_dict["report"] = row.report
+    # report_dict["report"] = row.report
     report_dict['metadata'] = row.metadata
     # for annotation labels, find the corresponding row in the df_annotation (match report(without .pdf) == row.report) and get a list of dict with the other column labels as keys and the corresponding value in the row as value
     report_dict["annotation_labels"] = df_annotation[df_annotation["id"] == row.report_id_short]
@@ -251,7 +363,8 @@ def generate_report_dict(row, df_annotation) -> dict:
     #     raise Exception("Multiple annotations found for report " + row.report_id_short)
 
     del report_dict["annotation_labels"]["id"]
-    del report_dict["annotation_labels"]["report"]
+    if "report" in report_dict["annotation_labels"]:
+        del report_dict["annotation_labels"]["report"]
     # similar with llm output labels from the row, excluding id, report, metadata, matching_report, no_matching_report, report_redacted
     report_dict["llm_output_labels"] = {
         k: v
@@ -410,7 +523,7 @@ def labelannotationviewer():
 
     if session["annotation_file"].endswith(".csv"):
         df_annotation = pd.read_csv(session["annotation_file"], dtype=str)
-    elif os.path.splitext(session["annotation_file"])[-1] == ".xlsx":
+    elif session["annotation_file"].endswith(".xlsx"):
         df_annotation = pd.read_excel(session["annotation_file"], dtype=str)
     else:
         flash("Invalid annotation file format!", "danger")

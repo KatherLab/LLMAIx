@@ -133,28 +133,28 @@ def preprocess_file(file_path):
                 ocr_text = ''
                 for page in ocr_pdf.pages:
                     ocr_text += page.extract_text()
-            merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path}))
+            merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
         elif file_path.endswith('.txt'):
             with open(file_path, 'r') as f:
                 text = f.read()
             pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.txt')[0]}.pdf")
             save_text_as_pdf(text, pdf_file_save_path)
-            merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
+            merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, 'id': ''}))
 
         elif file_path.endswith('.docx'):
             doc = Document(file_path)
             doc_text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
             pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.docx')[0]}.pdf")
             convert_docx(file_path, pdf_file_save_path)
-            merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': pdf_file_save_path}))
+            merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': pdf_file_save_path, 'id': ''}))
 
         elif file_path.endswith('.odt'):
             doc = load(file_path)
             doc_text = ''
             for element in doc.getElementsByType(text.P):
                 doc_text += teletype.extractText(element)
-            merged_data.append(pd.DataFrame({'report': [doc_text]}))
+            merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': '', 'id': ''}))
 
         else:
             return f"Unsupported file format: {file_path}"
@@ -357,7 +357,8 @@ def download():
         df['filename'] = df['filepath'].apply(lambda x: remove_ocr_prefix(os.path.basename(x)))
 
         def generate_id(row):
-            if pd.isna(row['id']):
+            # check if id is NaN or empty string
+            if pd.isna(row['id']) or row['id'] == '':
                 return row['filename'] + '$' + str(uuid.uuid4())[:8]
             else:
                 return row['id'] + '$' + str(uuid.uuid4())[:8]

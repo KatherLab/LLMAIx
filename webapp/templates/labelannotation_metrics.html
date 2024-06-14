@@ -57,14 +57,14 @@
                                         <tr>
                                             <th scope="row">Accuracy</th>
                                             <td>{{
-                                                report_summary_dict['accumulated_metrics']['overall']['accuracy']
+                                                report_summary_dict['accumulated_metrics']['overall']['accuracy'] | round(2)
                                                 }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <th scope="row">F1 Score</th>
                                             <td>{{
-                                                report_summary_dict['accumulated_metrics']['overall']['f1']
+                                                report_summary_dict['accumulated_metrics']['overall']['f1'] | round(2)
                                                 }}
                                             </td>
                                         </tr>
@@ -97,12 +97,31 @@
                                     <tbody>
                                         <tr>
                                             <th scope="row">Accuracy</th>
-                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['accuracy'] }}
-                                            </td>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['accuracy'] | round(2) }}</td>
                                         </tr>
                                         <tr>
                                             <th scope="row">F1 Score</th>
-                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['f1'] }}
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['f1'] | round(2) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Precision</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['precision'] | round(2) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Recall</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['recall'] | round(2) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Positive Rate</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['false_positive_rate'] | round(2) }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">False Negative Rate</th>
+                                            <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['false_negative_rate'] | round(2) }}
                                             </td>
                                         </tr>
                                         
@@ -191,15 +210,17 @@
                 <!-- <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}"
                     class="btn btn-light float-right">🔎</a> -->
 
-                F1: {{report['metrics']['overall']['f1']}}
-                Acc: {{report['metrics']['overall']['accuracy']}}
+                F1: {{report['metrics']['overall']['f1'] | round(2)}}
+                Acc: {{report['metrics']['overall']['accuracy'] | round(2)}}
+                Prec: {{report['metrics']['overall']['precision'] | round(2)}}
+                Recall: {{report['metrics']['overall']['recall'] | round(2)}}
             </div>
             {% if report['metrics']['overall']['f1'] == 1 %}
             <span class="badge text-bg-success rounded-pill">F1:
-                {{report['metrics']['overall']['f1']}}</span>
+                {{report['metrics']['overall']['f1'] | round(2)}}</span>
             {% else %}
             <span class="badge text-bg-danger rounded-pill">F1:
-                {{report['metrics']['overall']['f1']}}</span>
+                {{report['metrics']['overall']['f1'] | round(2)}}</span>
             {% endif %}
             </a>
         {% endfor %}
