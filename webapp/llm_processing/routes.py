@@ -217,8 +217,7 @@ def extract_from_report(
                 "-np",
                 str(parallel_slots),
                 "-fa",  # flash attention # use new llama cpp version
-                "--verbose" if verbose_llama else "",
-            ],
+            ] + (["--verbose"] if verbose_llama else []),
         )
         current_model = model_name
         time.sleep(5)
