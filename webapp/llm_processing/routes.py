@@ -185,6 +185,7 @@ def extract_from_report(
     model_name_name: str = "",
     no_parallel: bool = False,
     parallel_slots: int = 1,
+    verbose_llama: bool = False,
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -216,7 +217,7 @@ def extract_from_report(
                 "-np",
                 str(parallel_slots),
                 "-fa",  # flash attention # use new llama cpp version
-                # "--verbose",
+                "--verbose" if verbose_llama else "",
             ],
         )
         current_model = model_name
@@ -713,6 +714,7 @@ def main():
             model_name_name=model_name,
             no_parallel=current_app.config['NO_PARALLEL'],
             parallel_slots=current_app.config['PARALLEL_SLOTS'],
+            verbose_llama=current_app.config['VERBOSE_LLAMA'],
         )
 
         print("Started job successfully!")
