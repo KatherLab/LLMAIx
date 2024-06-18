@@ -3,8 +3,6 @@ import os
 import tempfile
 import zipfile
 import ast
-from sklearn.metrics import f1_score
-
 
 from flask import (
     flash,
@@ -150,8 +148,6 @@ def calculate_metrics(annotation_labels, llm_output_labels):
             elif annotation_value != output_value:
                 false_positive = 1
             # True negatives (excluding true positives)
-            else:
-                true_negative = 1
 
             # Calculate label-wise metrics
             # label_accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
