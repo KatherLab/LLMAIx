@@ -39,7 +39,7 @@ if __name__ == "__main__":
         default=5001,
         help="On which port the Web App should be available.",
     )
-    parser.add_argument("--host", type=str, default="0.0.0.0")
+    parser.add_argument("--host", type=str, default="localhost")
     parser.add_argument("--config_file", type=str, default="config.yml")
     parser.add_argument("--n_gpu_layers", type=int, default=80)
     parser.add_argument("--llamacpp_port", type=int, default=2929)
