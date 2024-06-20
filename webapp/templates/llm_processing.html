@@ -434,7 +434,8 @@ $(document).ready(function () {
         ].join(";")).join("\n");
 
         // Append extraRules as an extra line at the end
-        const finalCsvContent = extraRules ? csvContent + "\n" + extraRules : csvContent;
+        // const finalCsvContent = extraRules ? csvContent + "\n" + extraRules : csvContent;
+        finalCsvContent = csvContent + "\n" + extraRules + ";";
 
         downloadFile(finalCsvContent, 'grammar_entries.csv', 'text/csv');
     });
@@ -469,8 +470,8 @@ $(document).ready(function () {
                     };
                 });
 
-                // Populate extra_grammar_rules field
-                const extraRules = lines.slice(-1)[0].trim();
+                // Populate extra_grammar_rules field and remove last semicolon
+                const extraRules = lines.slice(-1)[0].trim().slice(0, -1);
                 $('textarea[name="extra_grammar_rules"]').val(extraRules);
 
                 // Append rows to the form
