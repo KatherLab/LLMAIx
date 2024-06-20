@@ -173,10 +173,16 @@
                                         {{ grammar_entry.field_type.label(class="form-control-label") }} {{ grammar_entry.field_type(class="form-control") }}
                                     </div>
                 
-                                    <div class="conditional-field form-group col-md-5" data-field-type="stringN">
+                                    <div class="conditional-field form-group col-md-2" data-field-type="string">
+                                        {{ grammar_entry.string_min_length.label(class="form-control-label") }} {{ grammar_entry.string_min_length(class="form-control") }}
+                                    </div>
+                                    <div class="conditional-field form-group col-md-3" data-field-type="string">
                                         {{ grammar_entry.string_length.label(class="form-control-label") }} {{ grammar_entry.string_length(class="form-control") }}
                                     </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="numberN">
+                                    <div class="conditional-field form-group col-md-2" data-field-type="number">
+                                        {{ grammar_entry.number_min_length.label(class="form-control-label") }} {{ grammar_entry.number_min_length(class="form-control") }}
+                                    </div>
+                                    <div class="conditional-field form-group col-md-3" data-field-type="number">
                                         {{ grammar_entry.number_length.label(class="form-control-label") }} {{ grammar_entry.number_length(class="form-control") }}
                                     </div>
                                     <div class="conditional-field form-group col-md-5" data-field-type="fp-number-disabled">
@@ -189,10 +195,11 @@
                                         {{ grammar_entry.custom_rule.label(class="form-control-label") }} {{ grammar_entry.custom_rule(class="form-control") }}
                                     </div>
                                     <!--Layout placeholders-->
+                                    <!--
                                     <div class="conditional-field form-group col-md-5" data-field-type="string">
                                     </div>
                                     <div class="conditional-field form-group col-md-5" data-field-type="number">  
-                                    </div>
+                                    </div>-->
                                     <div class="conditional-field form-group col-md-5" data-field-type="boolean">  
                                     </div>
                                     <div class="conditional-field form-group col-md-5" data-field-type="fp-number">  
@@ -305,7 +312,9 @@ $(document).ready(function () {
         return {
             field_name: entry.find('input[name^="grammarbuilder-"][name$="-field_name"]').val(),
             field_type: entry.find('select[name^="grammarbuilder-"][name$="-field_type"]').val(),
+            string_min_length: entry.find('input[name^="grammarbuilder-"][name$="-string_min_length"]').val(),
             string_length: entry.find('input[name^="grammarbuilder-"][name$="-string_length"]').val(),
+            number_min_length: entry.find('input[name^="grammarbuilder-"][name$="-number_min_length"]').val(),
             number_length: entry.find('input[name^="grammarbuilder-"][name$="-number_length"]').val(),
             fp_number_length: entry.find('input[name^="grammarbuilder-"][name$="-fp_number_length"]').val(),
             options: entry.find('input[name^="grammarbuilder-"][name$="-options"]').val(),
@@ -317,7 +326,9 @@ $(document).ready(function () {
         const {
             field_name = '',
             field_type = 'string',  // Default to "string"
+            string_min_length = '1',
             string_length = '',
+            number_min_length = '1',
             number_length = '',
             fp_number_length = '',
             options = '',
@@ -342,11 +353,19 @@ $(document).ready(function () {
                         {% endfor %}
                     </select>
                 </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="stringN" style="display: ${field_type == 'stringN' || field_type == 'stringuptoN' ? 'block' : 'none'};">
+                <div class="conditional-field form-group col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                    <label class="form-control-label" for="grammarbuilder-${index}-string_min_length">{{ form.grammarbuilder[0].string_min_length.label }}</label>
+                    <input type="number" name="grammarbuilder-${index}-string_min_length" id="grammarbuilder-${index}-string_min_length" class="form-control" value="${string_min_length}">
+                </div>
+                <div class="conditional-field form-group col-md-3" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
                     <label class="form-control-label" for="grammarbuilder-${index}-string_length">{{ form.grammarbuilder[0].string_length.label }}</label>
                     <input type="number" name="grammarbuilder-${index}-string_length" id="grammarbuilder-${index}-string_length" class="form-control" value="${string_length}">
                 </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="numberN" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                <div class="conditional-field form-group col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                    <label class="form-control-label" for="grammarbuilder-${index}-number_min_length">{{ form.grammarbuilder[0].number_min_length.label }}</label>
+                    <input type="number" name="grammarbuilder-${index}-number_min_length" id="grammarbuilder-${index}-number_min_length" class="form-control" value="${number_min_length}">
+                </div>
+                <div class="conditional-field form-group col-md-3" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
                     <label class="form-control-label" for="grammarbuilder-${index}-number_length">{{ form.grammarbuilder[0].number_length.label }}</label>
                     <input type="number" name="grammarbuilder-${index}-number_length" id="grammarbuilder-${index}-number_length" class="form-control" value="${number_length}">
                 </div>
@@ -362,10 +381,10 @@ $(document).ready(function () {
                     <label class="form-control-label" for="grammarbuilder-${index}-custom_rule">{{ form.grammarbuilder[0].custom_rule.label }}</label>
                     <input type="text" name="grammarbuilder-${index}-custom_rule" id="grammarbuilder-${index}-custom_rule" class="form-control" value="${custom_rule}">
                 </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                <!--<div class="conditional-field form-group col-md-5" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
                 </div>
                 <div class="conditional-field form-group col-md-5" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
-                </div>
+                </div>-->
                 <div class="conditional-field form-group col-md-5" data-field-type="boolean" style="display: ${field_type == 'boolean' ? 'block' : 'none'};">
                 </div>
                 <div class="conditional-field form-group col-md-5" data-field-type="fp-number" style="display: ${field_type == 'fp-number' ? 'block' : 'none'};">
@@ -426,7 +445,9 @@ $(document).ready(function () {
         const csvContent = entriesData.map(e => [
             e.field_name,
             e.field_type,
+            e.string_min_length || '1',
             e.string_length || '',
+            e.number_min_length || '1',
             e.number_length || '',
             e.fp_number_length || '',
             e.options || '',
@@ -459,14 +480,22 @@ $(document).ready(function () {
                 // Parse entries
                 const entriesData = lines.slice(0, -1).map(row => {
                     const cols = row.split(";");
+
+                    // if length of cols is less than 9, alert user
+                    if (cols.length < 9) {
+                        alert("The CSV File is invalid or was created using an old version of the Grammar Builder.");
+                        return;
+                    }
                     return {
                         field_name: cols[0].replace(/"/g, '&quot;') || '',
                     field_type: cols[1].replace(/"/g, '&quot;') || 'string',
-                    string_length: cols[2].replace(/"/g, '&quot;') || '',
-                    number_length: cols[3].replace(/"/g, '&quot;') || '',
-                    fp_number_length: cols[4].replace(/"/g, '&quot;') || '',
-                    options: cols[5].replace(/"/g, '&quot;') || '',
-                    custom_rule: cols[6].replace(/"/g, '&quot;') || ''
+                    string_min_length: cols[2].replace(/"/g, '&quot;') || '',
+                    string_length: cols[3].replace(/"/g, '&quot;') || '',
+                    number_min_length: cols[4].replace(/"/g, '&quot;') || '',
+                    number_length: cols[5].replace(/"/g, '&quot;') || '',
+                    fp_number_length: cols[6].replace(/"/g, '&quot;') || '',
+                    options: cols[7].replace(/"/g, '&quot;') || '',
+                    custom_rule: cols[8].replace(/"/g, '&quot;') || ''
                     };
                 });
 
@@ -499,27 +528,9 @@ $(document).ready(function () {
             
             let entryData = getEntryData($(this));
             if (entryData.field_type === 'string') {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws string ","\n`;
-            } else if (entryData.field_type === 'stringuptoN' && entryData.string_length) {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws stringupto${entryData.string_length} ","\n`;
-            } else if (entryData.field_type === 'stringN' && entryData.string_length) {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws string${entryData.string_length} ","\n`;
-            } else if (entryData.field_type === 'stringuptoN' && !entryData.string_length) {
-                alert("String length is required for 'stringuptoN' type in field: " + entryData.field_name);
-            } else if (entryData.field_type === 'stringN' && !entryData.string_length) {
-                alert("String length is required for 'stringN' type in field: " + entryData.field_name);
+                grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" char{${entryData.string_min_length},${entryData.string_length}} "\\"" ","\n`;
             } else if (entryData.field_type === 'number') {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" [0-9]* "\\"" ","\n`;
-            } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws numberupto${entryData.number_length} ","\n`;
-                rule = generateNumberRuleOptional(entryData.number_length);
-            } else if (entryData.field_type === 'numberN' && entryData.number_length) {
-                grammar += `ws "\\"${entryData.field_name}\\":" ws number${entryData.number_length} ","\n`;
-                rule = generateNumberRule(entryData.number_length);
-            } else if (entryData.field_type === 'numberuptoN' && !entryData.number_length) {
-                alert("Number length is required for 'numberuptoN' type in field: " + entryData.field_name);
-            } else if (entryData.field_type === 'numberN' && !entryData.number_length) {
-                alert("Number length is required for 'numberN' type in field: " + entryData.field_name);
+                grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" [0-9]{${entryData.number_min_length},${entryData.number_length}} "\\"" ","\n`;
             } else if (entryData.field_type === 'fp-number') {
                 grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? "\\"" ","\n`;
             } else if (entryData.field_type === 'boolean') {
@@ -558,24 +569,10 @@ ws ::= ([ \\t\\n])?
         var charDefinition = 'char ::= [^"\\\\] | "\\\\" (["\\\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])\n\n';
 
         if (entryData.field_type === 'string') {
-            stringRule = `string ::=
-  "\\"" (
-    [^"\\\\\\x7F\\x00-\\x1F] |
-    "\\\\" (["\\\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) # escapes
-  )* "\\""ws\n\n`;
-        }
-        else if (entryData.field_type === 'stringN' && entryData.string_length) {
             if (!charRuleAdded) {
                 fullGrammar += charDefinition;
                 charRuleAdded = true;
             }
-            stringRule = generateStringRule(entryData.string_length);
-        } else if (entryData.field_type === 'stringuptoN' && entryData.string_length) {
-            if (!charRuleAdded) {
-                fullGrammar += charDefinition;
-                charRuleAdded = true;
-            }
-            stringRule = generateStringRuleOptional(entryData.string_length);
         } else if (entryData.field_type === 'numberN' && entryData.number_length) {
             stringRule = generateNumberRule(entryData.number_length);
         } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {

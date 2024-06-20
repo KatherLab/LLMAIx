@@ -11,96 +11,7 @@ Das ist der Bericht:
 {report}"""
 
 
-default_grammer = r"""root   ::= allrecords
-value  ::= object | array | string | number | ("true" | "false" | "null") ws
-
-allrecords ::= (
-  "{"
-  ws "\"patientennachname\":" ws string ","
-  ws "\"patientenvorname\":" ws string ","
-  ws "\"patientenname\":" ws string ","
-  ws "\"patientengeschlecht\":" ws string ","
-  ws "\"patientengeburtsdatum\":" ws string ","
-  ws "\"patientenid\":" ws string ","
-  ws "\"patientenstrasse\":" ws string ","
-  ws "\"patientenhausnummer\":" ws string ","
-  ws "\"patientenpostleitzahl\":" ws plz ","
-  ws "\"patientenstadt\":" ws string ","
-  ws "\"patientengeburtsname\":" ws string ","
-  ws "}"
-  ws
-)
-
-record ::= (
-    "{"
-    ws "\"excerpt\":" ws ( string | "null" ) ","
-    ws "\"present\":" ws ("true" | "false") ws 
-    ws "}"
-    ws
-)
-
-object ::=
-  "{" ws (
-            string ":" ws value
-    ("," ws string ":" ws value)*
-  )? "}" ws
-
-array  ::=
-  "[" ws (
-            value
-    ("," ws value)*
-  )? "]" ws
-
-string ::=
-  "\"" (
-    [^"\\] |
-    "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) # escapes
-  )* "\"" ws
-
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
-
-plz ::= ("\"" [0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
-idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
-tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
-
-# Optional space: by convention, applied in this grammar after literal chars when allowed
-ws ::= ([ \t\n])?"""
-
-# patientengeburtsdatum ::= "\"" day "\\." month "\\." year "\"" space
-# patientengeburtsdatum-kv ::= "\"patientengeburtsdatum\"" space ":" space patientengeburtsdatum
-
-grammar_new1 = r"""integer ::= ("-"? integral-part) space
-integral-part ::= [0-9] | [1-9] [0-9]* 
-day ::= ("0"[1-9] | [12][0-9] | "3"[01])
-month ::= ("0"[1-9] | "1"[0-2])
-year ::= [0-9] [0-9] [0-9] [0-9]
-postal-digit ::= [0-9]
-patientengeburtsdatum ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientengeburtsdatum-kv ::= "\"patientengeburtsdatum\"" space ":" space patientengeburtsdatum
-patientenid-kv ::= "\"patientenid\"" space ":" space "\"" integer "\"" space
-patientenpostleitzahl ::= "\"" postal-digit postal-digit postal-digit postal-digit postal-digit "\"" space
-patientenpostleitzahl-kv ::= "\"patientenpostleitzahl\"" space ":" space patientenpostleitzahl
-char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
-patientengeburtsname ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientengeburtsname-kv ::= "\"patientengeburtsname\"" space ":" space patientengeburtsname
-patientengeschlecht ::= "\"male\"" | "\"female\"" | "\"others\""
-patientengeschlecht-kv ::= "\"patientengeschlecht\"" space ":" space patientengeschlecht
-patientenhausnummer ::= "\"" (char (char (char (char (char)?)?)?)?)? "\"" space
-patientenhausnummer-kv ::= "\"patientenhausnummer\"" space ":" space patientenhausnummer
-patientenname ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientenname-kv ::= "\"patientenname\"" space ":" space patientenname
-patientenstadt ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientenstadt-kv ::= "\"patientenstadt\"" space ":" space patientenstadt
-patientenstrasse ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientenstrasse-kv ::= "\"patientenstrasse\"" space ":" space patientenstrasse
-patientenvorname ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientenvorname-kv ::= "\"patientenvorname\"" space ":" space patientenvorname
-patientnachname ::= "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" space
-patientnachname-kv ::= "\"patientnachname\"" space ":" space patientnachname
-root ::= "{" space patientenname-kv "," space patientenvorname-kv "," space patientnachname-kv "," space patientengeschlecht-kv "," space patientengeburtsdatum-kv "," space patientenid-kv "," space patientenstrasse-kv "," space patientenhausnummer-kv "," space patientenpostleitzahl-kv "," space patientenstadt-kv "," space patientengeburtsname-kv "}" space
-space ::= " "?"""
-
-grammar_new = r"""root   ::= allrecords
+default_grammar = r"""root   ::= allrecords
 value  ::= object | array | string | number | ("true" | "false" | "null") ws
 
 allrecords ::= (
@@ -176,13 +87,14 @@ class GrammarValidator:
 
 class GrammarField(wtforms.Form):
   field_name = StringField('Label Name', validators=[validators.Optional()])
-  field_type = SelectField('Select Type', choices=[('string', 'String *'), ('stringN', 'String n chars'), ('stringuptoN', 'String up to n chars'), ('number', 'Number *'), ('numberN', 'Number n digits'), ('numberuptoN', 'Number up to n digits'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
-  string_length = IntegerField('String Length', [validators.Optional()])
-  number_length = IntegerField('Number Length', [validators.Optional()])
-  fp_number_length = IntegerField('Floating Point Number Length', [validators.Optional()])
+  field_type = SelectField('Select Type', choices=[('string', 'String'), ('number', 'Number'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
+  string_length = IntegerField('String Max Length (empty=no limit)', [validators.Optional()])
+  string_min_length = IntegerField('String Min Length', [validators.Optional()], default=1)
+  number_length = IntegerField('Number Max Length (empty=no limit)', [validators.Optional()])
+  number_min_length = IntegerField('Number Min Length', [validators.Optional()], default=1)
+  fp_number_length = IntegerField('FP Number Length', [validators.Optional()])
   options = StringField('Categories (comma-separated)', [validators.Optional()])
   custom_rule = StringField('Custom Rule (rulename ::= <YOURCUSTOMRULE>)', [validators.Optional()])
-
 
 
 class LLMPipelineForm(FlaskForm):
@@ -211,7 +123,7 @@ class LLMPipelineForm(FlaskForm):
         FileAllowed(['zip'], # for now remove csv and xlsx as they are not (longer and yet) supported
                     'Only .zip files allowed!')
     ])
-    grammar = TextAreaField("Grammar:", validators=[], default=grammar_new)
+    grammar = TextAreaField("Grammar:", validators=[], default=default_grammar)
 
     grammarbuilder = FieldList(FormField(GrammarField), min_entries=1, max_entries=10)
 
@@ -221,7 +133,7 @@ class LLMPipelineForm(FlaskForm):
     variables = StringField(
         "Variables (separated by commas):", validators=[], default="Patienteninfos")
     temperature = FloatField("Temperature:", validators=[
-                             validators.NumberRange(0, 1)], default=0.1)
+                             validators.NumberRange(0, 1)], default=0)
     model = SelectField("Model:", validators=[])
 
     n_predict = IntegerField("n_predict:", validators=[validators.NumberRange(1, 96000)], default=1024)
