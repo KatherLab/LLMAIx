@@ -580,7 +580,7 @@ ws ::= ([ \\t\\n])?
         } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {
             stringRule = generateNumberRuleOptional(entryData.number_length);
         } else if (entryData.field_type === 'boolean') {
-            stringRule = `boolean ::= "\\"" ("true" | "false" | "null") "\\"" ws\n\n`;
+            stringRule = `boolean ::= "\\"" ("true" | "false") "\\"" ws\n\n`;
         }
 
         // Check if the rule already exists

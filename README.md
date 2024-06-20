@@ -182,6 +182,9 @@ ws ::= ([ \t\n])?
 - labelannotation: more metrics
 - incorporate new grammar rules
 
+- all metrics class-wise
+- experimental: compare embeddings of llm output and annotation: calculate attention and then threshold
+
 - grammar builder last line fix
 
 - csv in annotation subfolder
