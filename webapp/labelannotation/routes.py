@@ -381,8 +381,7 @@ def generate_report_dict(row, df_annotation) -> dict:
     }
 
     if (
-        not report_dict["llm_output_labels"].keys()
-        == report_dict["annotation_labels"].keys()
+        report_dict["llm_output_labels"].keys() not in report_dict["annotation_labels"].keys()
     ):
         raise Exception("Mismatch in label keys in llm output: " + str(
             report_dict["llm_output_labels"].keys())
