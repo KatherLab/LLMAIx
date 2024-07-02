@@ -44,3 +44,6 @@ models:
   - name: "Qwen 2 7b Instruct Q5_K_M"
     path_to_gguf: "qwen2-7b-instruct-q5_k_m.gguf"
     context_size: 32768
+  - name: "Qwen 2 72b Instruct Q4_K_M"
+    path_to_gguf:"qwen2-72b-instruct-q4_k_m.gguf"
+    context_size: 32768
