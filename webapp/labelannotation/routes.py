@@ -380,13 +380,14 @@ def generate_report_dict(row, df_annotation) -> dict:
         ]
     }
 
-    if (
-        report_dict["llm_output_labels"].keys() not in report_dict["annotation_labels"].keys()
-    ):
+    annotation_labels = list(report_dict["annotation_labels"].keys())
+    llm_output_labels = list(report_dict["llm_output_labels"].keys())
+
+    if not all([key in annotation_labels for key in llm_output_labels]):
         raise Exception("Mismatch in label keys in llm output: " + str(
-            report_dict["llm_output_labels"].keys())
+            llm_output_labels)
             + " vs annotation: "
-            + str(report_dict["annotation_labels"].keys())
+            + str(annotation_labels)
         )
 
     # go trough values of annotation labels and use the first list element as value
@@ -483,7 +484,11 @@ def labelannotationmetrics():
     df = df.rename(columns=lambda x: x.replace(' ', '_'))
     df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
     
-    report_summary_dict['report_list'] = generate_report_list(df, df_annotation)
+    try:
+        report_summary_dict['report_list'] = generate_report_list(df, df_annotation)
+    except Exception as e:
+        flash(f"Something went wrong: {e}", "danger")
+        return redirect(url_for("labelannotation.main"))
 
     report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
 
