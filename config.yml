@@ -41,3 +41,6 @@ models:
   - name: "LLaMA 2 70b chat"
     path_to_gguf: "llama-2-70b-chat.Q5_K_M.gguf"
     context_size: 4096
+  - name: "Qwen 2 7b Instruct Q5_K_M"
+    path_to_gguf: "qwen2-7b-instruct-q5_k_m.gguf"
+    context_size: 32768
