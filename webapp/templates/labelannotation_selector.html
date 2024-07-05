@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="content-section">
+    <h1>Select Label Types</h1>
+
+    <form action="" method="post" enctype="multipart/form-data">
+
+        {{ form.hidden_tag() }}
+
+        
+
+        <fieldset class="form-control p-3">
+            <legend>Which type does each label correspond to?</legend>
+            
+            <div class="list-group">
+                {% for label_entry in form.labels %}
+                <div class="list-group-item">
+                    <div class="entry row">
+                        <div class="form-group col-md-3">
+                            {{ label_entry.label_name.label(class="form-control-label") }} {{ label_entry.label_name(class="form-control") }}
+                        </div>
+                        <div class="form-group col-md-3">
+                            {{ label_entry.label_type.label(class="form-control-label") }} {{ label_entry.label_type(class="form-select", id="label_type_" + loop.index0|string, data_index=loop.index0|string) }}
+                        </div>
+                        <div class="form-group col-md-6 label-classes-container" id="label_classes_container_{{ loop.index0|string }}" style="display: {% if label_entry.label_type.data != 'multiclass' %}none{% endif %};">
+                            {{ label_entry.label_classes.label(class="form-control-label") }} {{ label_entry.label_classes(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+        </fieldset>
+
+        <div class="row p-3">
+            <div class="form-group col-md-12">
+                <button type="submit" name="submit-metrics"
+                    class="form-control form-control-lg btn btn-secondary">Continue</button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[id^="label_type_"]').forEach(function(selectElement) {
+            selectElement.addEventListener('change', function() {
+                var index = selectElement.id.split('_').pop();
+                var container = document.getElementById('label_classes_container_' + index);
+                if (container) { // Check if container exists
+                    if (selectElement.value === 'multiclass') {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                } else {
+                    console.log('Container not found');
+                }
+            });
+
+            // Trigger the change event on page load to set the correct initial state
+            selectElement.dispatchEvent(new Event('change'));
+        });
+    });
+</script>
+
+
+
+{% endblock %}

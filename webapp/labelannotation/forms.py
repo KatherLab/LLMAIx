@@ -1,7 +1,16 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import SubmitField, FileField
+from wtforms import SubmitField, FileField, Form, StringField, SelectField, FieldList, FormField
 
+
+class LabelField(Form):
+    label_name = StringField("Label Name")
+    label_type = SelectField("Label Type", choices=[("multiclass", "Multiclass"), ("boolean", "Boolean"), ("stringmatch", "String Match")])
+    label_classes = StringField("Classes")
+
+class LabelSelectorForm(FlaskForm):
+    labels = FieldList(FormField(LabelField))
+    submit = SubmitField("Continue")
 
 class LLMAnnotationResultsForm(FlaskForm):
 

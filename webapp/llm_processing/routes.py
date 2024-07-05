@@ -563,6 +563,16 @@ def get_context_size(yaml_filename, model_name, context_size_config):
 
 @llm_processing.route("/llm", methods=["GET", "POST"])
 def main():
+
+    try:
+        import yaml
+
+        with open(current_app.config["CONFIG_FILE"], 'r') as file:
+            config_data = yaml.safe_load(file)
+    except Exception as e:
+        flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
+        return redirect(request.referrer)
+
     form = LLMPipelineForm(
         current_app.config["CONFIG_FILE"], current_app.config["MODEL_PATH"]
     )
