@@ -61,20 +61,15 @@
                                                 }}
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <th scope="row">F1 Score</th>
-                                            <td>{{
-                                                report_summary_dict['accumulated_metrics']['overall']['f1'] | round(2)
-                                                }}
-                                            </td>
-                                        </tr>
                                         
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- <div class="col-md-6">
-                                <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id) }}"
+                            
+                            <!-- <div class="col-md-6" id="confusion_matrix">
+                                <img src="{{ url_for('labelannotation.labelannotationcacheprovider', file_id=report_summary_dict['accumulated_metrics']['overall']['confusion_matrix']) }}"
                                     class="img" height="300px">
+                                
                             </div> -->
                         </div>
                     </div>
@@ -85,6 +80,13 @@
                 <div class="tab-pane fade" id="scores-tab-{{ label }}-pane" role="tabpanel"
                     aria-labelledby="scores-tab-{{ label }}" tabindex="0">
                     <div class="container">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3></h3>
+                            <div>
+                                <span class="badge rounded-pill text-bg-primary">{{ label_type_mapping[label]['label_type'] }}</span>
+                            </div>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <table class="table table-bordered table-hover">
@@ -99,6 +101,7 @@
                                             <th scope="row">Accuracy</th>
                                             <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['accuracy'] | round(2) }}</td>
                                         </tr>
+                                        {% if label_type_mapping[label]['label_type'] == 'boolean' or label_type_mapping[label]['label_type'] == 'multiclass' %}
                                         <tr>
                                             <th scope="row">F1 Score</th>
                                             <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['f1'] | round(2) }}
@@ -114,6 +117,9 @@
                                             <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['recall'] | round(2) }}
                                             </td>
                                         </tr>
+                                        {% endif %}
+
+                                        {% if label_type_mapping[label]['label_type'] == 'boolean' %}
                                         <tr>
                                             <th scope="row">False Positive Rate</th>
                                             <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['false_positive_rate'] | round(2) }}
@@ -124,6 +130,7 @@
                                             <td>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['false_negative_rate'] | round(2) }}
                                             </td>
                                         </tr>
+                                        {% endif %}
                                         
                                     </tbody>
                                 </table>
@@ -132,6 +139,29 @@
                                 <img src="{{ url_for('report_redaction.reportredactionconfusionmatrix', job_id=job_id, label=label) }}"
                                     class="img" height="300px">
                             </div> -->
+                            {% if label_type_mapping[label]['label_type'] == 'stringmatch' %}
+                            <div class="col-md-3">
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Matched</th>
+                                            <th scope="col">Not Matched</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="bg-success-subtle"><b>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['match'] }}</b></td>
+                                            <td class="bg-danger-subtle"><b>{{ report_summary_dict['accumulated_metrics']['label_wise'][label]['no_match'] }}</b></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="col-md-6" id="confusion_matrix">
+                                <img src="{{ url_for('labelannotation.labelannotationcacheprovider', file_id=report_summary_dict['accumulated_metrics']['label_wise'][label]['confusion_matrix']) }}"
+                                    class="img" height="300px">
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -210,17 +240,14 @@
                 <!-- <a href="{{ url_for('labelannotation.labelannotationviewer', report_id=report['id']) }}"
                     class="btn btn-light float-right">🔎</a> -->
 
-                F1: {{report['metrics']['overall']['f1'] | round(2)}}
                 Acc: {{report['metrics']['overall']['accuracy'] | round(2)}}
-                Prec: {{report['metrics']['overall']['precision'] | round(2)}}
-                Recall: {{report['metrics']['overall']['recall'] | round(2)}}
             </div>
-            {% if report['metrics']['overall']['f1'] == 1 %}
-            <span class="badge text-bg-success rounded-pill">F1:
-                {{report['metrics']['overall']['f1'] | round(2)}}</span>
+            {% if report['metrics']['overall']['accuracy'] == 1 %}
+            <span class="badge text-bg-success rounded-pill">Acc:
+                {{report['metrics']['overall']['accuracy'] | round(2)}}</span>
             {% else %}
-            <span class="badge text-bg-danger rounded-pill">F1:
-                {{report['metrics']['overall']['f1'] | round(2)}}</span>
+            <span class="badge text-bg-danger rounded-pill">Acc:
+                {{report['metrics']['overall']['accuracy'] | round(2)}}</span>
             {% endif %}
             </a>
         {% endfor %}

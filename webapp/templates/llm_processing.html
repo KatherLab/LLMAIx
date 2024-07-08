@@ -109,7 +109,7 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    {{ form.model(class="form-control form-control") }}
+                    {{ form.model(class="form-select") }}
                     {% endif %}
                 </div>
             </div>
@@ -170,7 +170,7 @@
                                         {{ grammar_entry.field_name.label(class="form-control-label") }} {{ grammar_entry.field_name(class="form-control") }}
                                     </div>
                                     <div class="form-group col-md-2">
-                                        {{ grammar_entry.field_type.label(class="form-control-label") }} {{ grammar_entry.field_type(class="form-control") }}
+                                        {{ grammar_entry.field_type.label(class="form-control-label") }} {{ grammar_entry.field_type(class="form-select") }}
                                     </div>
                 
                                     <div class="conditional-field form-group col-md-2" data-field-type="string">
@@ -347,7 +347,7 @@ $(document).ready(function () {
                 </div>
                 <div class="form-group col-md-2">
                     <label class="form-control-label" for="grammarbuilder-${index}-field_type">{{ form.grammarbuilder[0].field_type.label }}</label>
-                    <select name="grammarbuilder-${index}-field_type" id="grammarbuilder-${index}-field_type" class="form-control">
+                    <select name="grammarbuilder-${index}-field_type" id="grammarbuilder-${index}-field_type" class="form-select">
                         {% for field_type in form.grammarbuilder[0].field_type %}
                         {{field_type}}
                         {% endfor %}

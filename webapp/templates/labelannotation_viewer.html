@@ -93,13 +93,26 @@
                             {% for label, value in report_dict['llm_output_labels'].items() %}
                             <tr>
                                 <th scope="row">{{ label }}</td>
-                                {% if value == report_dict['annotation_labels'][label] %}
-                                <td class="bg-success-subtle">{{ value }}</td>
-                                <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
-                                {% else %}
-                                <td class="bg-danger-subtle">{{ value }}</td>
-                                <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
-                                {% endif %}
+                                    {% if label_type_mapping[label]['label_type'] == 'boolean' %}
+                                        {% set value_bool = value in [1, '1', True, 'True', 'true'] %}
+                                        {% set label_bool = report_dict['annotation_labels'][label] in [1, '1', True, 'True', 'true'] %}
+                                        {% if value_bool == label_bool %}
+                                            <td class="bg-success-subtle">{{ value }}</td>
+                                            <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                        {% else %}
+                                            <td class="bg-danger-subtle">{{ value }}</td>
+                                            <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if value == report_dict['annotation_labels'][label] %}
+                                        <td class="bg-success-subtle">{{ value }}</td>
+                                        <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                        {% else %}
+                                        <td class="bg-danger-subtle">{{ value }}</td>
+                                        <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                        {% endif %}
+                                    {% endif %}
+                                    
                                 
                             </tr>
                             {% endfor %}
@@ -110,15 +123,31 @@
 
                 <div class="tab-pane fade pt-3" id="scores-tab-{{ label }}-pane" role="tabpanel"
                     aria-labelledby="scores-tab-{{ label }}" tabindex="0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3></h3>
+                        <div>
+                            <span class="badge rounded-pill text-bg-primary">{{ label_type_mapping[label]['label_type'] }}</span>
+                        </div>
+                    </div>
+                    {% if label_type_mapping[label]['label_type'] == 'boolean' %}
                     <div class="btn-group">
-                        {% for key, value in report_dict['metrics']['label_wise'][label].items() %}
-                        {% if key == 'fn' and value != 0 %}
-                        <button type="button" class="btn btn-danger">{{ key }}: {{ value }}</button>
-                        {% else %}
+                        {% for key, value in report_dict['metrics']['label_wise'][label].items() if key in ['accuracy', 'f1', 'precision', 'recall', 'false_positive_rate', 'false_negative_rate'] %}
                         <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
-                        {% endif %}
                         {% endfor %}
                     </div>
+                    {% elif label_type_mapping[label]['label_type'] == 'multiclass' %}
+                    <div class="btn-group">
+                        {% for key, value in report_dict['metrics']['label_wise'][label].items() if key in ['accuracy', 'f1', 'precision', 'recall'] %}
+                        <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                        {% endfor %}
+                    </div>
+                    {% elif label_type_mapping[label]['label_type'] == 'stringmatch' %}
+                    <div class="btn-group">
+                        {% for key, value in report_dict['metrics']['label_wise'][label].items() if key in ['accuracy'] %}
+                        <button type="button" class="btn btn-secondary" disabled>{{ key }}: {{ value }}</button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
                     <table class="table table-bordered table-hover mt-3">
                         <thead>
@@ -131,12 +160,30 @@
                         <tbody>
                             <tr>
                                 <th scope="row">{{ label }}</td>
+
+                                    {% if label_type_mapping[label]['label_type'] == 'boolean' %}
+
+                                
+                                {% set llm_output_bool = report_dict['llm_output_labels'][label] in [1, '1', True, 'True', 'true'] %}
+                                {% set annotation_bool = report_dict['annotation_labels'][label] in [1, '1', True, 'True', 'true'] %}
+                                {% if llm_output_bool == annotation_bool %}
+                                    <td class="bg-success-subtle">{{ report_dict['llm_output_labels'][label] }}</td>
+                                    <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                {% else %}
+                                    <td class="bg-danger-subtle">{{ report_dict['llm_output_labels'][label] }}</td>
+                                    <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                {% endif %}
+                                    
+                                {%else%}
+                                
                                 {% if report_dict['llm_output_labels'][label] == report_dict['annotation_labels'][label] %}
                                 <td class="bg-success-subtle">{{ report_dict['llm_output_labels'][label] }}</td>
                                 <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
                                 {% else %}
                                 <td class="bg-danger-subtle">{{ report_dict['llm_output_labels'][label] }}</td>
                                 <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
+                                {% endif %}
+
                                 {% endif %}
                                 
                             </tr>
