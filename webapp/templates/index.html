@@ -114,6 +114,8 @@
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
 
+        progressBar.className = 'progress-bar bg-success';
+        progressBar.style.width = '100%';
         // Enable download button
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/download?job=' + job_id;
