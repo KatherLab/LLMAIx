@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, MultipleFileField
+from wtforms import SubmitField, IntegerField, MultipleFileField, BooleanField
 from flask_wtf.file import FileAllowed, FileRequired
 from wtforms import validators
 
@@ -12,5 +12,7 @@ class PreprocessUploadForm(FlaskForm):
     # Add Integer Fields with values between 100 and 128000
     text_split = IntegerField("Split Length", validators=[
                               validators.NumberRange(min=100, max=128000)], default=14000)
+    
+    force_ocr = BooleanField("Force OCR", default=False)
 
     submit = SubmitField("Upload")

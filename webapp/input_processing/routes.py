@@ -8,7 +8,6 @@ from .forms import PreprocessUploadForm
 import secrets
 from concurrent import futures
 import pandas as pd
-import pdfplumber
 import time
 import subprocess
 from PIL import Image
@@ -20,6 +19,7 @@ import zipfile
 from fpdf import FPDF
 from io import BytesIO
 from docx2pdf import convert as convert_docx
+import fitz
 from . import input_processing
 from .. import socketio
 from .. import set_mode
@@ -81,7 +81,7 @@ def save_text_as_pdf(text, pdf_file_save_path):
     pdf.output(pdf_file_save_path)
 
 
-def preprocess_file(file_path):
+def preprocess_file(file_path, force_ocr=False):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
@@ -110,13 +110,19 @@ def preprocess_file(file_path):
                 file_path = pdf_output_path
 
             contains_text = False
-            with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
-                    if len(page.extract_text()) > 0:
+            print("Opening PDF: ", file_path)
+            with fitz.open(file_path) as pdf_document:
+                contains_text = False
+                for page_num in range(len(pdf_document)):
+                    page = pdf_document.load_page(page_num)
+                    if len(page.get_text()) > 0:
                         contains_text = True
                         break
 
-            if not contains_text:
+
+            print("Contains text: ", contains_text)
+
+            if not contains_text or force_ocr:
                 ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
                 if shutil.which("tesseract") is not None:
                     if shutil.which("ocrmypdf") is not None:
@@ -129,10 +135,12 @@ def preprocess_file(file_path):
             else:
                 ocr_output_path = file_path
 
-            with pdfplumber.open(ocr_output_path) as ocr_pdf:
+            with fitz.open(ocr_output_path) as ocr_pdf:
                 ocr_text = ''
-                for page in ocr_pdf.pages:
-                    ocr_text += page.extract_text()
+                for page_num in range(len(ocr_pdf)):
+                    page = ocr_pdf.load_page(page_num)
+                    ocr_text += page.get_text()
+
             merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
         elif file_path.endswith('.txt'):
@@ -165,11 +173,11 @@ def preprocess_file(file_path):
     return merged_data
 
 
-def preprocess_input(job_id, file_paths):
+def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False):
     merged_data = []
 
-    with futures.ThreadPoolExecutor(max_workers=20) as inner_executor:
-        future_to_file = {inner_executor.submit(preprocess_file, file_path): file_path for file_path in file_paths}
+    with futures.ThreadPoolExecutor(max_workers=20 if parallel_preprocessing else 1) as inner_executor:
+        future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr): file_path for file_path in file_paths}
         
         for i, future in enumerate(futures.as_completed(future_to_file)):
             file_path = future_to_file[future]
@@ -182,129 +190,6 @@ def preprocess_input(job_id, file_paths):
                 update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
             except Exception as e:
                 print(f"Error in future result for {file_path}: {e}")
-
-    merged_df = pd.concat(merged_data)
-    complete_job(job_id)
-    return merged_df
-
-
-def preprocess_input_old(job_id, file_paths):
-
-    merged_data = []
-
-    for i, file_path in enumerate(file_paths):
-
-        try:
-            if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path, header=None)
-
-                for index, row in enumerate(df.itertuples()):
-                    text = str(row[1])
-
-                    # Convert CSV to PDF
-                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
-                    save_text_as_pdf(text, pdf_file_save_path)
-
-                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
-
-            elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
-                df = pd.read_excel(file_path, header=None)
-
-                for index, row in enumerate(df.itertuples()):
-                    text = str(row[1])
-
-                    # Convert Excel to PDF
-                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
-                    save_text_as_pdf(text, pdf_file_save_path)
-
-                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
-                    
-            elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
-                if not file_path.endswith('.pdf'):
-                    # Convert JPG/PNG to PDF
-                    pdf_output_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}.pdf")
-                    image = Image.open(file_path)
-                    image.save(pdf_output_path)
-                    file_path = pdf_output_path
-
-                # Run OCRmyPDF
-                contains_text = False
-                with pdfplumber.open(file_path) as pdf:
-                    for page in pdf.pages:
-                        if len(page.extract_text()) > 0:
-                            contains_text = True
-                            break
-
-                if not contains_text:
-                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{
-                                                   os.path.basename(file_path)}")
-                    if shutil.which("tesseract") is not None:
-                        if shutil.which("ocrmypdf") is not None:
-                            # Command exists, proceed with subprocess
-                            subprocess.run(
-                                ['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
-                        else:
-                            print(f"OCRMyPDF not found, skipping OCR for {
-                                  file_path}")
-                            return "OCRMyPDF not found but required for OCR."
-                    else:
-                        print(f"Tesseract not found, skipping OCR for {file_path}")
-                        return "Tesseract not found but required for OCR."
-
-                else:
-                    ocr_output_path = file_path
-
-                with pdfplumber.open(ocr_output_path) as ocr_pdf:
-                    ocr_text = ''
-                    for page in ocr_pdf.pages:
-                        ocr_text += page.extract_text()
-                # print("Save Report as ", ocr_output_path)
-                merged_data.append(pd.DataFrame(
-                    {'report': [ocr_text], 'filepath': ocr_output_path}))
-
-            elif file_path.endswith('.txt'):
-                with open(file_path, 'r') as f:
-                    text = f.read()
-                    pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.txt')[0]}.pdf")
-                    
-                    save_text_as_pdf(text, pdf_file_save_path)
-
-                    merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path}))
-            elif file_path.endswith('.docx'):
-                doc = Document(file_path)
-                doc_text = '\n'.join(
-                    [paragraph.text for paragraph in doc.paragraphs])
-                
-                pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.docx')[0]}.pdf")
-                
-                convert_docx(file_path, pdf_file_save_path)
-
-                merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': pdf_file_save_path}))
-
-                # merged_data.append(pd.DataFrame({'report': [doc_text]}))
-            elif file_path.endswith('.odt'):
-                doc = load(file_path)
-                doc_text = ''
-                for element in doc.getElementsByType(text.P):
-                    doc_text += teletype.extractText(element)
-                merged_data.append(pd.DataFrame({'report': [doc_text]}))
-                print("Cannot convert odt to pdf at the moment, not implemented!")
-            else:
-                print(f"Unsupported file format: {file_path}")
-        except Exception as e:
-            print(f"Error processing file {
-                  file_path} (might also be that tesseract / ghostscript / ocrmypdf is not installed or not in PATH): {e}")
-            update_progress(job_id=job_id, progress=(
-                i, len(file_paths), False))
-            os.remove(file_path)
-            return "Error processing file: " + str(e)
-
-        try:
-            update_progress(job_id=job_id, progress=(i+1, len(file_paths), True))
-        except Exception as e:
-            print("Error updating progress: ", e)
-            import traceback
-            traceback.print_exc()
 
     merged_df = pd.concat(merged_data)
     complete_job(job_id)
@@ -508,7 +393,9 @@ def main():
         jobs[job_id] = executor.submit(
             preprocess_input,
             job_id=job_id,
-            file_paths=file_paths
+            file_paths=file_paths,
+            parallel_preprocessing=current_app.config['PARALLEL_PREPROCESSING'],
+            force_ocr=form.force_ocr.data
         )
 
         # update_progress(job_id=job_id, progress=(0, len(form.files.data), True))

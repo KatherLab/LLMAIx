@@ -9,7 +9,6 @@ setup(
         "flask",
         "flask_socketio",
         "pandas",
-        "pdfplumber",
         "openpyxl",
         "lxml", 
     ],
