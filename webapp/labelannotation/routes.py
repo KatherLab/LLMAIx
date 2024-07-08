@@ -1,13 +1,14 @@
+import io
 import json
 import os
+import re
 import tempfile
 import uuid
 import zipfile
 import ast
-import traceback
 import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
-
+import fitz
 
 
 from flask import (
@@ -36,6 +37,7 @@ annotation_file = ""
 pdf_file_zip = ""
 pdf_filepath = ""
 label_type_mapping = {}
+report_summary_dict = {}
 
 @labelannotation.before_request
 def before_request():
@@ -88,6 +90,8 @@ def main():
         pdf_filepath = None
         global label_type_mapping
         label_type_mapping = {}
+        global report_summary_dict
+        report_summary_dict = {}
 
         # First report id
         df = find_llm_output_csv(pdf_file_zip)
@@ -306,159 +310,8 @@ def calculate_metrics(annotation_labels, llm_output_labels, label_type_mapping:d
                 label_metrics[label] = calculate_metrics_boolean(str(annotation_labels[label]), str(llm_output_labels[label]), label)
             elif label_type_mapping[label]['label_type'] == "stringmatch":
                 label_metrics[label] = calculate_metrics_stringmatch(str(annotation_labels[label]), str(llm_output_labels[label]), label)
-            
-
-        #     true_positive = 0
-        #     true_negative = 0
-        #     false_positive = 0
-        #     false_negative = 0
-
-        #     # Compare annotation and output labels
-        #     annotation_value = str(annotation_labels[label])
-        #     output_value = str(llm_output_labels[label])
-
-        #     # True positives
-        #     if annotation_value == output_value:
-        #         true_positive = 1
-        #     # False negatives
-        #     elif output_value not in annotation_labels.values():
-        #         false_negative = 1
-        #     # False positives
-        #     elif annotation_value != output_value:
-        #         false_positive = 1
-        #     # True negatives (excluding true positives)
-
-        #     # Calculate label-wise metrics
-        #     # label_accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
-        #     # label_precision = true_positive / (true_positive + false_positive)
-        #     # label_recall = true_positive / (true_positive + false_negative)
-        #     # label_f1 = 2 * (label_precision * label_recall) / (label_precision + label_recall)
-
-        #     try:
-        #         label_accuracy = true_positive / (true_positive + false_positive + false_negative)
-        #     except ZeroDivisionError:
-        #         label_accuracy = 0.0
-
-        #     try:
-        #         label_precision = true_positive / (true_positive + false_positive)
-        #     except ZeroDivisionError:
-        #         label_precision = 0.0
-
-        #     try:
-        #         label_recall = true_positive / (true_positive + false_negative)
-        #     except ZeroDivisionError:
-        #         label_recall = 0.0
-
-        #     try:
-        #         label_f1 = 2 * (label_precision * label_recall) / (label_precision + label_recall)
-        #     except ZeroDivisionError:
-        #         label_f1 = 0.0
-
-        #     try:
-        #         label_specificity = true_negative / (true_negative + false_positive)
-        #     except ZeroDivisionError:
-        #         label_specificity = 0.0
-
-        #     try:
-        #         label_false_positive_rate = false_positive / (true_negative + false_positive)
-        #     except ZeroDivisionError:
-        #         label_false_positive_rate = 0.0
-
-        #     try:
-        #         label_false_negative_rate = false_negative / (true_positive + false_negative)
-        #     except ZeroDivisionError:
-        #         label_false_negative_rate = 0.0
-
-        #     label_metrics[label] = {
-        #         'tp': true_positive,
-        #         'tn': true_negative,
-        #         'fp': false_positive,
-        #         'fn': false_negative,
-        #         'f1': label_f1,
-        #         'accuracy': label_accuracy,
-        #         'precision': label_precision,
-        #         'recall': label_recall,
-        #         'specificity': label_specificity,
-        #         'false_positive_rate': label_false_positive_rate,
-        #         'false_negative_rate': label_false_negative_rate
-        #     }
-        # else:
-        #     # If the label is not found in llm_output_labels, consider it as false negative
-        #     label_metrics[label] = {
-        #         'tp': 0,
-        #         'tn': 0,
-        #         'fp': 0,
-        #         'fn': 1,
-        #         'f1': 0,
-        #         'accuracy': 0,
-        #         'precision': 0,
-        #         'recall': 0,
-        #         'specificity': 0,
-        #         'false_positive_rate': 0,
-        #         'false_negative_rate': 0
-        #     }
-                
-    # Calculate overall metrics
-    # overall_tp = sum([metrics['tp'] for metrics in label_metrics.values()])
-    # overall_tn = sum([metrics['tn'] for metrics in label_metrics.values()])
-    # overall_fp = sum([metrics['fp'] for metrics in label_metrics.values()])
-    # overall_fn = sum([metrics['fn'] for metrics in label_metrics.values()])
-
-    # overall_accuracy = (overall_tp + overall_tn) / float(overall_tp + overall_tn + overall_fp + overall_fn)
-    # overall_recall = overall_tp / float(overall_tp + overall_fn)
-    # overall_precision = overall_tp / float(overall_tp + overall_fp)
-    # overall_f1 = 2 * (overall_precision * overall_recall) / (overall_precision + overall_recall)
-    # overall_specificity = overall_tn / float(overall_tn + overall_fp)
-    # overall_false_positive_rate = overall_fp / float(overall_fp + overall_tn)
-    # overall_false_negative_rate = overall_fn / float(overall_fn + overall_tp)
 
     overall_accuracy = sum([metric['accuracy'] for metric in label_metrics.values()]) / len(label_metrics)
-
-    # try:
-    #     overall_accuracy = (overall_tp + overall_tn) / float(overall_tp + overall_tn + overall_fp + overall_fn)
-    # except ZeroDivisionError:
-    #     overall_accuracy = 0.0
-
-    # # Calculate overall recall
-    # try:
-    #     overall_recall = overall_tp / float(overall_tp + overall_fn)
-    # except ZeroDivisionError:
-    #     overall_recall = 0.0
-
-    # # Calculate overall precision
-    # try:
-    #     overall_precision = overall_tp / float(overall_tp + overall_fp)
-    # except ZeroDivisionError:
-    #     overall_precision = 0.0
-
-    # Calculate overall F1-score
-    # try:
-    #     if overall_precision + overall_recall == 0:
-    #         overall_f1 = 0.0
-    #     else:
-    #         overall_f1 = 2 * (overall_precision * overall_recall) / (overall_precision + overall_recall)
-    # except ZeroDivisionError:
-    #     overall_f1 = 0.0
-
-    # # Calculate overall specificity
-    # try:
-    #     overall_specificity = overall_tn / float(overall_tn + overall_fp)
-    # except ZeroDivisionError:
-    #     overall_specificity = 0.0
-
-    # # Calculate overall false positive rate
-    # try:
-    #     overall_false_positive_rate = overall_fp / float(overall_fp + overall_tn)
-    # except ZeroDivisionError:
-    #     overall_false_positive_rate = 0.0
-
-    # # Calculate overall false negative rate
-    # try:
-    #     overall_false_negative_rate = overall_fn / float(overall_fn + overall_tp)
-    # except ZeroDivisionError:
-    #     overall_false_negative_rate = 0.0
-
-    
 
     overall_metrics = {
         'accuracy': overall_accuracy,
@@ -973,39 +826,206 @@ def labelannotationmetrics():
 
     # metrics = calculate_metrics(df, df_annotation)
 
-    report_summary_dict = {}
+    global report_summary_dict
+    if report_summary_dict == {}:
 
-    try:
-        metadata = json.loads(df["metadata"].iloc[0])
-    except Exception as e:
-        flash(f"Error loading metadata from llm output file: {e}", "danger")
-        breakpoint()
-        return redirect(url_for("labelannotation.main"))
+        try:
+            metadata = json.loads(df["metadata"].iloc[0])
+        except Exception as e:
+            flash(f"Error loading metadata from llm output file: {e}", "danger")
+            breakpoint()
+            return redirect(url_for("labelannotation.main"))
 
-    report_summary_dict["metadata"] = metadata
+        report_summary_dict["metadata"] = metadata
 
-    # itertuple does not allow spaces in identifiers
-    df = df.rename(columns=lambda x: x.replace(' ', '_'))
-    df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
-    
-    try:
-        report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
-    except Exception as e:
-        flash(f"Something went wrong: {e}", "danger")
-        report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
-        return redirect(url_for("labelannotation.main"))
+        # itertuple does not allow spaces in identifiers
+        df = df.rename(columns=lambda x: x.replace(' ', '_'))
+        df_annotation = df_annotation.rename(columns=lambda x: x.replace(' ', '_'))
+        
+        try:
+            report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
+        except Exception as e:
+            flash(f"Something went wrong: {e}", "danger")
+            report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
+            return redirect(url_for("labelannotation.main"))
 
-    report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
+        report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
 
-    # breakpoint()
+        session["current_labelannotation_job"] = True
 
-    session["current_labelannotation_job"] = True
-
-    check_labels(df, df_annotation, label_type_mapping)
+        check_labels(df, df_annotation, label_type_mapping)
 
     return render_template(
         "labelannotation_metrics.html", report_summary_dict=report_summary_dict, label_type_mapping=label_type_mapping
     )
+
+def generate_export_df(result_dict: list):
+    # Iterate over every report in result_list['report_list'] and add all scores in ['scores'] as one row to the dataframe, use ['id'] as id column
+    # df = pd.DataFrame()
+
+    scores_to_include = []
+
+    for label in result_dict['accumulated_metrics']['label_wise'].keys():
+        for metric in result_dict['accumulated_metrics']['label_wise'][label].keys():
+            if label != "personal_info_list":
+                scores_to_include.append("{}${}".format(label, metric))
+            else:
+                scores_to_include.append(metric)
+
+    # Initialize a dictionary to store the extracted scores
+    data = {"id": []}
+    for score in scores_to_include:
+        data[score] = []
+
+    macro_scores = {}
+
+    accumulated_metrics = result_dict.get("accumulated_metrics", {})
+
+    data['id'].append('type')
+    for score in scores_to_include:
+        data[score].append(label_type_mapping[score.split("$")[0]]['label_type'])
+
+    # Iterate over the list of dictionaries
+    for entry in result_dict["report_list"]:
+        # Append ID to the 'id' list
+        data["id"].append(entry["id"])
+        # Iterate over the scores to include
+        for score in scores_to_include:
+            if "$" in score:
+                label = score.split("$")[0]
+                metric = score.split("$")[1]
+            else:
+                label = "personal_info_list"
+                metric = score
+            # If the score exists in the entry, append it to the corresponding list
+            if label in entry["metrics"]['label_wise'] and metric in entry["metrics"]['label_wise'][label]:
+                data[score].append(entry["metrics"]['label_wise'][label][metric])
+            else:
+                print("Score {} not found in entry {}".format(score, entry["id"]))
+                data[score].append(None)  # Append None if score doesn't exist
+
+            macro_scores[score] = accumulated_metrics['label_wise'][label][metric]
+            # if metric in [
+            #     "true_positives",
+            #     "true_negatives",
+            #     "false_positives",
+            #     "false_negatives",
+            # ]:
+            #     micro_scores[score] = accumulated_metrics['label_wise'][label][metric]
+            # else:
+            #     micro_scores[score] = accumulated_metrics['label_wise'][label][
+            #         f"micro_{metric}"
+            #     ]
+
+    # for key in accumulated_metrics:
+    #     if key.startswith('macro_'):
+    #         macro_scores[key[len('macro_'):]] = float(accumulated_metrics[key])
+    #     elif key.startswith('micro_'):
+    #         micro_scores[key[len('micro_'):]] = float(accumulated_metrics[key])
+    #     elif key.startswith('total_'):
+    #         macro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
+    #         micro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
+
+    # Append macro and micro scores to the DataFrame
+    data["id"].append("macro_scores")
+    for score in scores_to_include:
+        data[score].append(macro_scores.get(score, None))
+
+    # data["id"].append("micro_scores")
+    # for score in scores_to_include:
+    #     data[score].append(micro_scores.get(score, None))
+
+    # Create a DataFrame using the extracted values
+    df = pd.DataFrame(data)
+
+    return df
+
+@labelannotation.route("/labelannotationdownload", methods=["GET"])
+def labelannotationdownload():
+    '''Enables the download of all metrics including confusion matrices.
+
+    Returns:
+        Zip archive with all metrics in csv format and confusion matrices in png format
+    '''
+
+    global report_summary_dict
+    if report_summary_dict == {}:
+        flash("Metrics not yet calculated", "danger")
+        return redirect(url_for("labelannotation.labelannotationmetrics"))
+    
+    df = generate_export_df(report_summary_dict)
+
+
+    # Find the job ID by looking in pdf_file_zip path for a csv file starting with "llm-output-" and using everything after that without the .csv file extension as job id
+    pattern = re.compile(r"llm-output-(.*)\.csv")
+    extracted_parts = []
+    for filename in os.listdir(pdf_file_zip):
+        match = pattern.match(filename)
+        if match:
+            extracted_parts.append(match.group(1))
+    
+    if len (extracted_parts) == 0:
+        flash("No llm output csv found!", "danger")
+        return redirect(url_for("labelannotation.labelannotationmetrics"))
+    else:
+        job_id = extracted_parts[0]
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        # Add the CSV file to the zip
+        csv_buffer = io.BytesIO()
+        df.to_csv(csv_buffer, index=False, float_format="%.4f")
+        csv_buffer.seek(0)
+        zip_file.writestr(f"metrics_{job_id}.csv", csv_buffer.getvalue())
+
+        # Loop through redacted PDFs
+        for report_dict in report_summary_dict["report_list"]:  # Corrected variable name
+            redacted_pdf_filename = os.path.join(pdf_file_zip, f'{report_dict['id']}.pdf')
+            #check if file exists
+            if not os.path.exists(redacted_pdf_filename):
+                flash("Pdf not found: " + redacted_pdf_filename, "danger")
+                return redirect(url_for("labelannotation.labelannotationmetrics"))
+
+            # Apply redactions using PyMuPDF
+            with fitz.open(redacted_pdf_filename) as pdf:
+
+                # Store the redacted PDF content in memory
+                pdf_buffer = io.BytesIO()
+                pdf.save(pdf_buffer)
+                pdf_buffer.seek(0)
+
+                # Add redacted PDF to the zip
+                zip_file.writestr(
+                    os.path.basename(redacted_pdf_filename),
+                    pdf_buffer.getvalue(),
+                )
+                
+        macro_scores_row = df[df['id'] == 'macro_scores'].iloc[0]
+
+        for labelmetric in macro_scores_row.index:
+            if labelmetric != 'id':
+                # label = labelmetric.split('$')[0]
+                metric = labelmetric.split('$')[1]
+
+                if metric == 'confusion_matrix':
+                    confusion_matrix_filepath = os.path.join(pdf_file_zip, file_cache[macro_scores_row[labelmetric]])
+                    # Add confusion matrix to the zip, store it in memory and use the file name of confusion_matrix_filepath
+                    with open(confusion_matrix_filepath, 'rb') as f:
+                        zip_file.writestr(os.path.basename(confusion_matrix_filepath), f.read())
+        
+        # include pdf_file_zip/llm-output-JOBID.csv file in zip
+        zip_file.writestr(f"llm-output-{job_id}.csv", open(os.path.join(pdf_file_zip, f"llm-output-{job_id}.csv"), 'rb').read())
+
+    # Send the zip file as an attachment
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name=f"metrics_{job_id}.zip",
+        mimetype="application/zip",
+    )
+
+
 
 @labelannotation.route("/labelannotationviewer", methods=["GET", "POST"])
 def labelannotationviewer():
