@@ -175,13 +175,6 @@ ws ::= ([ \t\n])?
 - make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
 - When reports are split, put the already extracted information in the input for the next part.
 
-- round to two digits in labelannotation metrics page
-- implement labelannotation confusion matrix
-- labelannotation: metrics download
-- labelannotation: confusion matrix
-- labelannotation: more metrics
-
-- all metrics class-wise
 - experimental: compare embeddings of llm output and annotation: calculate attention and then threshold
 
 - csv in annotation subfolder

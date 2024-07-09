@@ -144,7 +144,7 @@ def preprocess_file(file_path, force_ocr=False):
             merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
         elif file_path.endswith('.txt'):
-            with open(file_path, 'r') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 text = f.read()
             pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.txt')[0]}.pdf")
             save_text_as_pdf(text, pdf_file_save_path)
