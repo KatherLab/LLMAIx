@@ -47,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", type=str, default="choice", choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
     parser.add_argument("--enable-parallel", action="store_true", help="Parallel llama-cpp processing.")
     parser.add_argument("--parallel-slots", type=int, default=1, help="Number of parallel slots for llama processing")
+    parser.add_argument("--no_parallel-preprocessing", action="store_true", help="Disable parallel preprocessing")
     parser.add_argument("--context-size", type=int, default=-1, help="Set custom context size for llama cpp")
     parser.add_argument("--verbose-llama", action="store_true", help="Verbose llama cpp")
 
@@ -63,6 +64,7 @@ if __name__ == "__main__":
     app.config["PARALLEL_SLOTS"] = args.parallel_slots
     app.config["CTX_SIZE"] = args.context_size
     app.config["VERBOSE_LLAMA"] = args.verbose_llama
+    app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
 
     app.config["MODE"] = args.mode
 

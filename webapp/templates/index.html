@@ -11,7 +11,7 @@
             <legend>Select Documents (.pdf, .png, .jpg, .jpeg, .xlsx, .txt, .csv and .docx)</legend>
 
             <div class="row">
-                <div class="form-group col-md-8">
+                <div class="form-group col-md-6">
         
                     {% if form.files.errors %}
                     {{ form.files(class="form-control form-control-lg is-invalid") }}
@@ -38,6 +38,21 @@
                     {% endif %}
 
                     {{ form.text_split.label(class="form-control-label") }}
+                </div>
+                <div class="form-group col-md-2">
+                    
+                    {% if form.force_ocr.errors %}
+                    {{ form.force_ocr(class="form-check form-check-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.force_ocr.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.force_ocr(class="form-check form-check-lg") }}
+                    {% endif %}
+
+                    {{ form.force_ocr.label(class="form-check-label") }}
                 </div>
                 <div class="form-group col-md-2">        
                     <button type="submit" name="submit-form" class="form-control form-control-lg btn btn-secondary">Preprocess Files</button>
@@ -99,6 +114,8 @@
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
 
+        progressBar.className = 'progress-bar bg-success';
+        progressBar.style.width = '100%';
         // Enable download button
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/download?job=' + job_id;
