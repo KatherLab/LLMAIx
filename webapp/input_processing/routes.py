@@ -23,6 +23,7 @@ import fitz
 from . import input_processing
 from .. import socketio
 from .. import set_mode
+from ..llm_processing.utils import is_empty_string_nan_or_none
 
 
 JobID = str
@@ -115,7 +116,7 @@ def preprocess_file(file_path, force_ocr=False):
                 contains_text = False
                 for page_num in range(len(pdf_document)):
                     page = pdf_document.load_page(page_num)
-                    if len(page.get_text()) > 0:
+                    if len(page.get_text()) > 0 and not is_empty_string_nan_or_none(page.get_text()):
                         contains_text = True
                         break
 
