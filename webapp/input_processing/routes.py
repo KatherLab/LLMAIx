@@ -24,6 +24,7 @@ from . import input_processing
 from .. import socketio
 from .. import set_mode
 from ..llm_processing.utils import is_empty_string_nan_or_none
+from ..llm_processing.routes import model_active
 
 
 JobID = str
@@ -81,8 +82,82 @@ def save_text_as_pdf(text, pdf_file_save_path):
 
     pdf.output(pdf_file_save_path)
 
+def pdf_to_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    images = []
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        pix = page.get_pixmap()
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        # Resize image to fit within 1344x1344 while maintaining aspect ratio
+        img.thumbnail((1344, 1344), Image.LANCZOS)
+        images.append(img)
+    return images
 
-def preprocess_file(file_path, force_ocr=False):
+def extract_text_from_images(images, model, processor, device):
+    text_responses = []
+    for image in images:
+        messages = [
+            {"role": "user", "content": "<|image_1|>\nYou are a OCR engine. Extract all text from the image. Do not modify or summarize the text."},
+        ]
+        prompt = processor.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        inputs = processor(prompt, [image], return_tensors="pt").to(device)
+        generation_args = {
+            "max_new_tokens": 10000, # increase this if necessary
+            "temperature": 0.0,
+            "do_sample": False,
+        }
+        generate_ids = model.generate(**inputs, eos_token_id=processor.tokenizer.eos_token_id, **generation_args)
+        generate_ids = generate_ids[:, inputs['input_ids'].shape[1]:]
+        response = processor.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+        text_responses.append(response)
+    return '\n'.join(text_responses)
+
+def ocr_phi3vision(file_path):
+    from PIL import Image
+    from transformers import AutoModelForCausalLM, AutoProcessor
+    import torch
+
+    # Define model and processor
+    model_id = "microsoft/Phi-3-vision-128k-instruct"
+
+    use_flash_attn = False
+
+    # Load the model and processor
+    if torch.cuda.is_available():
+        device = 'cuda'
+        try: 
+            import flash_attn
+            use_flash_attn = True
+        except:
+            print("Flash Attention not available, using Eager Mode")
+
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
+
+    print("Running Phi3Vision OCR on: ", device)
+    if not device == 'cuda':
+        print("Disable Flash Attention, no CUDA device!")
+    model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16 if not device == 'cuda' else "auto", _attn_implementation='flash_attention_2' if use_flash_attn else 'eager')
+    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+
+    if file_path.endswith('.pdf'):
+        images = pdf_to_images(file_path)
+        text = extract_text_from_images(images, model, processor, device)
+        
+        # save_text_as_pdf(text, pdf_file_save_path)
+
+    elif file_path.endswith('.jpg') or file_path.endswith('.jpeg') or file_path.endswith('.png'):
+        text = extract_text_from_images([Image.open(file_path)], model, processor, device)
+
+        # save_text_as_pdf(text, pdf_file_save_path)
+
+    return text
+
+
+def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
@@ -124,23 +199,51 @@ def preprocess_file(file_path, force_ocr=False):
             print("Contains text: ", contains_text)
 
             if not contains_text or force_ocr:
-                ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
-                if shutil.which("tesseract") is not None:
-                    if shutil.which("ocrmypdf") is not None:
-                        subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                if ocr_method == 'tesseract':
+                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
+                    if shutil.which("tesseract") is not None:
+                        if shutil.which("ocrmypdf") is not None:
+                            subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                        else:
+                            return "OCRMyPDF not found but required for OCR."
                     else:
-                        return "OCRMyPDF not found but required for OCR."
+                        return "Tesseract not found but required for OCR."
+
+                elif ocr_method == 'phi3vision':
+                    # ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
+                    
+                    try: 
+                        import transformers
+                    except Exception as e:
+                        print(str(e))
+                        return "Python transformers library not found but required for phi3vision OCR."
+                    
+                    try:
+                        import torch
+                    except Exception as e:
+                        print(str(e))
+                        return "Python torch library not found but required for phi3vision OCR."
+                    
+                    # import torch
+                    # if not torch.cuda.is_available() or not torch.backends.mps.is_available():
+                    #     return "GPU / CUDA device or MPS not found but required for phi3vision OCR."
+
+                    ocr_text = ocr_phi3vision(file_path)
+                    ocr_output_path = file_path
+                
                 else:
-                    return "Tesseract not found but required for OCR."
+                    return "No valid OCR method selected."
 
             else:
                 ocr_output_path = file_path
 
-            with fitz.open(ocr_output_path) as ocr_pdf:
-                ocr_text = ''
-                for page_num in range(len(ocr_pdf)):
-                    page = ocr_pdf.load_page(page_num)
-                    ocr_text += page.get_text()
+            # for phi3vision, take the text directly from the pdf output
+            if not ocr_method == 'phi3vision':
+                with fitz.open(ocr_output_path) as ocr_pdf:
+                    ocr_text = ''
+                    for page_num in range(len(ocr_pdf)):
+                        page = ocr_pdf.load_page(page_num)
+                        ocr_text += page.get_text()
 
             merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
@@ -174,11 +277,11 @@ def preprocess_file(file_path, force_ocr=False):
     return merged_data
 
 
-def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False):
+def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract'):
     merged_data = []
 
     with futures.ThreadPoolExecutor(max_workers=20 if parallel_preprocessing else 1) as inner_executor:
-        future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr): file_path for file_path in file_paths}
+        future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method): file_path for file_path in file_paths}
         
         for i, future in enumerate(futures.as_completed(future_to_file)):
             file_path = future_to_file[future]
@@ -396,7 +499,8 @@ def main():
             job_id=job_id,
             file_paths=file_paths,
             parallel_preprocessing=current_app.config['PARALLEL_PREPROCESSING'],
-            force_ocr=form.force_ocr.data
+            force_ocr=form.force_ocr.data,
+            ocr_method=form.ocr_method.data
         )
 
         # update_progress(job_id=job_id, progress=(0, len(form.files.data), True))

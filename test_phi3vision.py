@@ -30,12 +30,12 @@ def extract_text_from_images(images, model, processor, device):
     text_responses = []
     for image in images:
         messages = [
-            {"role": "user", "content": "\nWhat is shown in this image?"},
+            {"role": "user", "content": "<|image_1|>\You are a OCR engine. Extract all text from the image. Do not modify or summarize the text."},
         ]
         prompt = processor.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = processor(prompt, [image], return_tensors="pt").to(device)
         generation_args = {
-            "max_new_tokens": 500,
+            "max_new_tokens": 5000,
             "temperature": 0.0,
             "do_sample": False,
         }

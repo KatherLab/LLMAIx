@@ -178,3 +178,5 @@ ws ::= ([ \t\n])?
 - experimental: compare embeddings of llm output and annotation: calculate attention and then threshold
 
 - csv in annotation subfolder
+
+- preprocessing job progress: nicer list, tags, metadata

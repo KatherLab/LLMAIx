@@ -11,51 +11,66 @@
             <legend>Select Documents (.pdf, .png, .jpg, .jpeg, .xlsx, .txt, .csv and .docx)</legend>
 
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-4">
         
                     {% if form.files.errors %}
-                    {{ form.files(class="form-control form-control-lg is-invalid") }}
+                    {{ form.files(class="form-control is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.files.errors %}
                         <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                     {% else %}
-                    {{ form.files(class="form-control form-control-lg") }}
+                    {{ form.files(class="form-control") }}
                     {% endif %}
                 </div>
                 <div class="form-group col-md-2">
                     
                     {% if form.text_split.errors %}
-                    {{ form.text_split(class="form-control form-control-lg is-invalid") }}
+                    {{ form.text_split(class="form-control is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.text_split.errors %}
                         <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                     {% else %}
-                    {{ form.text_split(class="form-control form-control-lg") }}
+                    {{ form.text_split(class="form-control") }}
                     {% endif %}
 
                     {{ form.text_split.label(class="form-control-label") }}
                 </div>
                 <div class="form-group col-md-2">
                     
+                    {% if form.ocr_method.errors %}
+                    {{ form.ocr_method(class="form-select is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.ocr_method.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.ocr_method(class="form-select") }}
+                    {% endif %}
+
+                    {{ form.ocr_method.label(class="form-select-label") }}
+                </div>
+                <div class="form-group col-md-2">
+                    
                     {% if form.force_ocr.errors %}
-                    {{ form.force_ocr(class="form-check form-check-lg is-invalid") }}
+                    {{ form.force_ocr(class="form-check is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.force_ocr.errors %}
                         <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                     {% else %}
-                    {{ form.force_ocr(class="form-check form-check-lg") }}
+                    {{ form.force_ocr(class="form-check") }}
                     {% endif %}
 
                     {{ form.force_ocr.label(class="form-check-label") }}
                 </div>
                 <div class="form-group col-md-2">        
-                    <button type="submit" name="submit-form" class="form-control form-control-lg btn btn-secondary">Preprocess Files</button>
+                    <button type="submit" name="submit-form" class="form-control btn btn-secondary">Preprocess Files</button>
 
                 </div>
             </div>

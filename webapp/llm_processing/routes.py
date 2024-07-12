@@ -40,6 +40,7 @@ from .. import set_mode
 
 server_connection: Optional[subprocess.Popen[Any]] = None
 current_model = None
+model_active = False
 
 JobID = str
 llm_jobs: dict[JobID, futures.Future] = {}
@@ -195,7 +196,7 @@ def extract_from_report(
     assert model_path.absolute().parent == model_dir
 
     global new_model
-    global server_connection, current_model
+    global server_connection, current_model, model_active
     if current_model != model_name:
         server_connection and server_connection.kill()
 
@@ -220,6 +221,7 @@ def extract_from_report(
             ] + (["--verbose"] if verbose_llama else []),
         )
         current_model = model_name
+        model_active = True
         time.sleep(5)
 
         try:
@@ -250,6 +252,9 @@ def extract_from_report(
                     message="Server connection error, will keep retrying ...",
                 )
                 time.sleep(5)
+
+    else:
+        model_active = True
 
     print("Server running")
 
@@ -405,6 +410,8 @@ def extract_from_report(
         "grammar": grammar,
         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
+
+    model_active = False
 
     return postprocess_grammar(results, df, llm_metadata, debug), zip_file_path
 

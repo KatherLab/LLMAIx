@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, MultipleFileField, BooleanField
+from wtforms import SubmitField, IntegerField, MultipleFileField, BooleanField, SelectField
 from flask_wtf.file import FileAllowed, FileRequired
 from wtforms import validators
 
@@ -13,6 +13,7 @@ class PreprocessUploadForm(FlaskForm):
     text_split = IntegerField("Split Length", validators=[
                               validators.NumberRange(min=100, max=128000)], default=14000)
     
+    ocr_method = SelectField("OCR Method", choices=[('tesseract', 'Tesseract (OCRmyPDF)'), ('phi3vision', 'Phi3Vision')])
     force_ocr = BooleanField("Force OCR", default=False)
 
     submit = SubmitField("Upload")
