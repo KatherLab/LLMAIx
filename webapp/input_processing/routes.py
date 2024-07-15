@@ -269,7 +269,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path, encoding='utf-8')
+            df = pd.read_csv(file_path)
             for index, row in enumerate(df.itertuples()):
                 text = str(getattr(row, 'report'))
                 id = str(getattr(row, 'id'))
@@ -278,7 +278,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
                 merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, 'id': id}))
 
         elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
-            df = pd.read_excel(file_path, encoding='utf-8')
+            df = pd.read_excel(file_path)
             for index, row in enumerate(df.itertuples()):
                 text = str(getattr(row, 'report'))
                 id = str(getattr(row, 'id'))
