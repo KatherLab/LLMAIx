@@ -184,3 +184,5 @@ ws ::= ([ \t\n])?
 - When no annotation: reannotation column / whole new check&reannotate tab (check + string field or select / accoding to type selection - make type selection load grammar entries) - save as extra csv (so it can be used as annotation file)
 
 - API
+
+- OCR via trOCR (also models fine-tuned on handwriting available) or Nougat OCR
