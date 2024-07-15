@@ -20,6 +20,7 @@ from fpdf import FPDF
 from io import BytesIO
 from docx2pdf import convert as convert_docx
 import fitz
+import traceback
 from . import input_processing
 from .. import socketio
 from .. import set_mode
@@ -29,7 +30,7 @@ from ..llm_processing.routes import model_active
 
 JobID = str
 jobs: dict[JobID, futures.Future] = {}
-executor = futures.ThreadPoolExecutor(5)
+executor = futures.ThreadPoolExecutor(1)
 
 job_progress = {}
 
@@ -94,9 +95,11 @@ def pdf_to_images(pdf_path):
         images.append(img)
     return images
 
-def extract_text_from_images(images, model, processor, device):
+def extract_text_from_images(images, model, model_id, device):
     text_responses = []
+    from transformers import AutoProcessor
     for image in images:
+        processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
         messages = [
             {"role": "user", "content": "<|image_1|>\nYou are a OCR engine. Extract all text from the image. Do not modify or summarize the text."},
         ]
@@ -115,7 +118,7 @@ def extract_text_from_images(images, model, processor, device):
 
 def ocr_phi3vision(file_path):
     from PIL import Image
-    from transformers import AutoModelForCausalLM, AutoProcessor
+    from transformers import AutoModelForCausalLM
     import torch
 
     # Define model and processor
@@ -141,21 +144,126 @@ def ocr_phi3vision(file_path):
     if not device == 'cuda':
         print("Disable Flash Attention, no CUDA device!")
     model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", trust_remote_code=True, torch_dtype=torch.float16 if not device == 'cuda' else "auto", _attn_implementation='flash_attention_2' if use_flash_attn else 'eager')
-    processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
 
     if file_path.endswith('.pdf'):
         images = pdf_to_images(file_path)
-        text = extract_text_from_images(images, model, processor, device)
+        text = extract_text_from_images(images, model, model_id, device)
         
         # save_text_as_pdf(text, pdf_file_save_path)
 
     elif file_path.endswith('.jpg') or file_path.endswith('.jpeg') or file_path.endswith('.png'):
-        text = extract_text_from_images([Image.open(file_path)], model, processor, device)
+        text = extract_text_from_images([Image.open(file_path)], model, model_id, device)
 
         # save_text_as_pdf(text, pdf_file_save_path)
 
+    del model
+
     return text
 
+def scale_bbox(bbox, src_dpi=96, dst_dpi=72):
+    scale_factor = dst_dpi / src_dpi
+    return [coord * scale_factor for coord in bbox]
+
+def estimate_font_size(bbox_width, text_length, char_width_to_height_ratio=0.5):
+    if text_length == 0:  # Prevent division by zero
+        return 12  # Default font size if no text is present
+    avg_char_width = bbox_width / text_length
+    font_size = avg_char_width / char_width_to_height_ratio
+    return font_size
+
+
+def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dpi=72):
+    pdf_document = fitz.open(pdf_path)
+    full_text = ""
+    for page_num, page_ocr in enumerate(ocr_results):
+        page = pdf_document[page_num]
+        for line in page_ocr[0].text_lines:
+            bbox = scale_bbox(line.bbox, src_dpi, dst_dpi)
+            text = line.text
+            # print("Add text: ", text)
+            rect = fitz.Rect(bbox[0], bbox[1], bbox[2], bbox[3])
+            # print("Rect: ", rect)
+            # Estimate font size from bounding box height
+            font_size = estimate_font_size(rect.width, len(text))
+            # print("Estimated font size: ", font_size)
+            # Insert invisible but selectable text
+            page.insert_text(rect.bottom_left, text, fontsize=font_size+1, fontname="helv", render_mode=3)
+            # page.draw_rect(rect, color=(1, 0, 0), width=1) # for debugging
+
+            full_text += text
+    pdf_document.save(output_path)
+    print("Text added to PDF, saved to: ", output_path)
+    pdf_document.close()
+
+    return full_text
+
+
+
+
+def images_to_pdf(images, output_path):
+    images[0].save(output_path, save_all=True, append_images=images[1:], resolution=100.0)
+
+def extract_text_from_images_surya(images, det_model, rec_model, langs):
+    from surya.ocr import run_ocr
+    from surya.model.recognition.processor import load_processor
+    from surya.model.detection.model import load_processor as load_det_processor
+
+    predictions = []
+
+    for image in images:
+        det_processor = load_det_processor()
+        rec_processor = load_processor()
+
+        predictions.append(run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor))
+
+    return predictions
+
+def ocr_surya(file_path, ocr_file_output_path):
+    from PIL import Image
+    
+    from surya.model.detection.model import load_model as load_det_model
+    from surya.model.recognition.model import load_model
+    from surya.input.load import load_pdf
+    
+
+    det_model = load_det_model()
+    rec_model = load_model()
+
+
+    langs = ["de"] # Replace with your languages
+
+    if file_path.endswith('.pdf'):
+        pass
+        
+    elif file_path.endswith(('.jpg', '.jpeg', '.png')):
+        
+        # convert image to pdf
+        from PIL import Image  
+        image = Image.open(file_path)
+
+        # save as file_path but with .pdf extension
+        file_path = file_path.replace(".jpg", ".pdf").replace(".jpeg", ".pdf").replace(".png", ".pdf")
+            
+        image.save(
+            file_path, "PDF", resolution=100.0, save_all=True
+        )
+    
+
+    else:
+        raise ValueError("Unsupported file type")
+    
+    images, names = load_pdf(file_path)
+    ocr_output = extract_text_from_images_surya(images, det_model, rec_model, langs)
+    text = add_text_layer_to_pdf(file_path, ocr_output, ocr_file_output_path)
+
+    del rec_model
+    del det_model
+
+    return text
+
+
+    
+    
 
 def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
     merged_data = []
@@ -231,6 +339,20 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
                     ocr_text = ocr_phi3vision(file_path)
                     ocr_output_path = file_path
                 
+                elif ocr_method == 'surya':
+                    ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
+
+                    try:
+                        import torch
+                        import surya
+                    except Exception as e:
+                        print(str(e))
+                        return "surya or torch pyhton library not found but required for surya OCR."
+
+                    ocr_text = ocr_surya(file_path, ocr_output_path)
+                    # ocr_output_path = file_path
+
+                
                 else:
                     return "No valid OCR method selected."
 
@@ -272,6 +394,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
             return f"Unsupported file format: {file_path}"
 
     except Exception as e:
+        traceback.print_exc()
         return f"Error processing file {file_path}: {e}"
 
     return merged_data
@@ -280,7 +403,13 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
 def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract'):
     merged_data = []
 
-    with futures.ThreadPoolExecutor(max_workers=20 if parallel_preprocessing else 1) as inner_executor:
+    if ocr_method == 'tesseract':
+        max_workers = 20 if parallel_preprocessing else 1
+    else:
+        print("Set max workers to 1 for OCR method: ", ocr_method)
+        max_workers = 1
+
+    with futures.ThreadPoolExecutor(max_workers=max_workers) as inner_executor:
         future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method): file_path for file_path in file_paths}
         
         for i, future in enumerate(futures.as_completed(future_to_file)):
@@ -463,7 +592,7 @@ def download():
 @input_processing.route("/", methods=['GET', 'POST'])
 def main():
 
-    form = PreprocessUploadForm()
+    form = PreprocessUploadForm(method=session.get('mode', 'informationextraction'))
 
     if form.validate_on_submit():
 
