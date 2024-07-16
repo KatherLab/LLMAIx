@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 socketio = SocketIO()
 
-def create_app():
+def create_app(auth_required:bool = False):
     app = Flask(__name__)
 
     app.secret_key = 'jf894puwt8ahg9piofdmhv78943oewmhrtfsud98pmhor3e8r9pi'
@@ -19,19 +19,17 @@ def create_app():
         "katherlab": "scrypt:32768:8:1$GERvnWuqIlJqAiFS$e57df57d7d6b31c05ddc9771d71a8685fcb25ebe8fd6d8253ae5b14052a764f78a5a92b007d5dc90507535383c634f7fed58fe8389759b3c7d3cbfcccf6b3e93"
     }
 
-    print(users['katherlab'])
-
     @auth.verify_password
     def verify_password(username, password):
         if username in users:
             return check_password_hash(users.get(username), password)
         return False
-
     # Apply authentication to all routes
     @app.before_request
     def before_request():
         # Call the login_required method
-        return auth.login_required()(lambda: None)()
+        if auth_required:
+            return auth.login_required()(lambda: None)()
 
     from .input_processing import input_processing
     from .llm_processing import llm_processing

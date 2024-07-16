@@ -4,8 +4,6 @@ import os
 from argparse import ArgumentParser
 from webapp import create_app, socketio
 
-app = create_app()
-
 os.makedirs("logs", exist_ok=True)
 
 log_file_name = datetime.now().strftime(
@@ -53,6 +51,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    app = create_app(auth_required=True if args.host != "localhost" else False)
+
     app.config["MODEL_PATH"] = args.model_path
     app.config["SERVER_PATH"] = args.server_path
     app.config["SERVER_PORT"] = args.port
@@ -69,5 +69,7 @@ if __name__ == "__main__":
     app.config["MODE"] = args.mode
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
+    if args.host != "localhost":
+        print("Requires authentication")
 
     socketio.run(app, debug=args.debug, use_reloader=args.debug, port=args.port, host=args.host)
