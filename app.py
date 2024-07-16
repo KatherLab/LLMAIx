@@ -69,6 +69,8 @@ if __name__ == "__main__":
     app.config["MODE"] = args.mode
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
+    if args.host == "0.0.0.0":
+        print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")
     if args.host != "localhost":
         print("Requires authentication")
 
