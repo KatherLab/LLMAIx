@@ -1,0 +1,8 @@
+patientname;string;1;;1;;;;
+firstname;string;1;;1;;;;
+lastname;string;1;;1;;;;
+sex;string;1;;1;;;;
+patientid;number;1;;7;7;;;
+age;number;1;;1;2;;;
+dateofbirth;string;1;;1;;;;
+;

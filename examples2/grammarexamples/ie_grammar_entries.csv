@@ -1,0 +1,9 @@
+shortness of breath;boolean;1;;1;;;;
+chest pain;boolean;1;;1;;;;
+leg pain or swelling;boolean;1;;1;;;;
+heart palpitations;boolean;1;;1;;;;
+cough;boolean;1;;1;;;;
+dizziness;boolean;1;;1;;;;
+location;options;1;;1;;;main,segmental;
+side;options;1;;1;;;left,right,bilateral;
+;
