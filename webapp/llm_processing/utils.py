@@ -158,7 +158,7 @@ def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'
     for info in personal_info_list:
         if is_empty_string_nan_or_none(info):
             continue
-        matches = re.finditer(re.escape(info), text)
+        matches = re.finditer(re.escape(info.lower()), text.lower())
         for match in matches:
             match_positions.append((match.start(), match.end()))
 
