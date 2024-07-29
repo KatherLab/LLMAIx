@@ -34,4 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+          tags: ghcr.io/katherlab:${{ env.VERSION }}
