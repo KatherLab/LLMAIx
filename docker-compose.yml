@@ -6,7 +6,7 @@ services:
     volumes:
       - ../Downloads:/models
     environment:
-      - SERVER_PATH=${SERVER_PATH:/build/llama.cpp/llama-server}
+      - SERVER_PATH=${SERVER_PATH:-/build/llama.cpp/llama-server}
       - PORT=${PORT:-5000}
       - HOST=${HOST:-0.0.0.0}
       - CONFIG_FILE=${CONFIG_FILE:-config.yml}
