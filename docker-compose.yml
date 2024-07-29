@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    ports:
+      - "19999:${PORT:-5000}"
+    volumes:
+      - ../Downloads:/models
+    environment:
+      - SERVER_PATH=${SERVER_PATH}
+      - PORT=${PORT:-5000}
+      - HOST=${HOST:-0.0.0.0}
+      - CONFIG_FILE=${CONFIG_FILE:-config.yml}
+      - N_GPU_LAYERS=${N_GPU_LAYERS:-80}
+      - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}
+      - DEBUG=${DEBUG:-true}
+      - MODE=${MODE:-choice}
+      - ENABLE_PARALLEL=${ENABLE_PARALLEL:-false}
+      - PARALLEL_SLOTS=${PARALLEL_SLOTS:-1}
+      - NO_PARALLEL_PREPROCESSING=${NO_PARALLEL_PREPROCESSING:-false}
+      - CONTEXT_SIZE=${CONTEXT_SIZE:- -1}
+      - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
