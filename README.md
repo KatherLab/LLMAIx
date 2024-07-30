@@ -1,3 +1,5 @@
+[![Build and Push Docker Image](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml/badge.svg)](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml)
+
 # LLM Anonymizer & Information Extraction Tool
 
 > [!Important]
