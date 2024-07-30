@@ -81,4 +81,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/katherlab/${{ env.IMAGE_NAME}}:${{ env.VERSION }}
+          tags: ghcr.io/${{ env.IMAGE_NAME}}:${{ env.VERSION }}
