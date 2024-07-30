@@ -4,11 +4,18 @@ on:
   release:
     types: [published]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   docker:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+    
       - name: Check disk space
         run: df . -h
       - name: Remove unnecessary files
@@ -45,8 +52,7 @@ jobs:
           echo "some packages purged"
       - name: Check disk space again
         run: df . -h
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -57,9 +63,14 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Extract version from tag
         id: extract_version
@@ -70,4 +81,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/katherlab:${{ env.VERSION }}
+          tags: ghcr.io/katherlab/${{ env.IMAGE_NAME}}:${{ env.VERSION }}
