@@ -446,7 +446,10 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             import ast
 
             # replace all backslash in the content string with nothing
+            content = content.replace("\n","")
+            content = content.replace("\r","")
             content = content.replace("\\", "")
+
 
             try:
                 info_dict_raw = ast.literal_eval(content)

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--server_path",
         type=str,
-        default=r"D:\LLMAnonymizer\llama-b3177-bin-win-cuda-cu12.2.0-x64\llama-server.exe",
+        default=r"D:\LLMAnonymizer\llama-b3486-bin-win-cuda-cu12.2.0-x64\llama-server.exe",
     )
     parser.add_argument(
         "--port",
