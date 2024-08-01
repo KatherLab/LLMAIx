@@ -269,7 +269,7 @@ def calculate_metrics_boolean(annotation_label, llm_output_label, label_name):
 
 def calculate_metrics_stringmatch(annotation_string, llm_output_string, label_name):
     # Create binary labels based on string matching
-    annotation_label = 1 if annotation_string == llm_output_string else 0
+    annotation_label = 1 if str(annotation_string).lower() == str(llm_output_string).lower() else 0
     llm_output_label = 1
     
     # Convert to list format for sklearn
@@ -309,7 +309,7 @@ def calculate_metrics(annotation_labels, llm_output_labels, label_type_mapping:d
             elif label_type_mapping[label]['label_type'] == "boolean":
                 label_metrics[label] = calculate_metrics_boolean(str(annotation_labels[label]), str(llm_output_labels[label]), label)
             elif label_type_mapping[label]['label_type'] == "stringmatch":
-                label_metrics[label] = calculate_metrics_stringmatch(str(annotation_labels[label]), str(llm_output_labels[label]), label)
+                label_metrics[label] = calculate_metrics_stringmatch(str(annotation_labels[label]).lower(), str(llm_output_labels[label]).lower(), label)
 
     overall_accuracy = sum([metric['accuracy'] for metric in label_metrics.values()]) / len(label_metrics)
 
