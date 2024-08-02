@@ -14,7 +14,7 @@ def set_mode_route():
         return redirect(request.referrer)
     allowed_modes = ["anonymizer", "informationextraction"]
     if mode not in allowed_modes:
-        flash(f"Cannot set mode to {mode}, allowed are: {", ".join(allowed_modes)}", "danger")
+        flash(f"Cannot set mode to {mode}, allowed are: {','.join(allowed_modes)}", "danger")
         return redirect(request.referrer)
     if current_app.config['MODE'] == 'choice':
         # print("set mode: ", mode)

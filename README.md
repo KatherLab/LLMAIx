@@ -1,3 +1,5 @@
+[![Build and Push Docker Image](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml/badge.svg)](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml)
+
 # LLM Anonymizer & Information Extraction Tool
 
 > [!Important]
@@ -27,6 +29,22 @@ Web-based tool to extract (personal) information from medical reports and redact
 ## Examples
 
 Examples of doctoral reports in various formats can be found in the `examples` directory.
+
+
+## How to run (Docker)
+
+1. Download/Clone this repository: [https://github.com/KatherLab/LLMAnonymizer](https://github.com/KatherLab/LLMAnonymizer)
+2. Cd to the repo: `cd LLMAnonymizer`
+3. Edit docker-compose.yml with the correct model path. Copy the config.yml from the repo to the model path and adjust it accordingly with your downloaded gguf files.
+4. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
+
+Now access in your browser via `http://localhost:19999`
+
+Alternatively to the first step, just create a `docker-compose.yml` and `config.yml` file. Edit the files according to this repository, no need to download everything!
+
+### Build Docker Image
+
+Run `docker-compose build` inside of the repository.
 
 
 ## Preparation

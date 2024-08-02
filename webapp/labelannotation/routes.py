@@ -982,7 +982,7 @@ def labelannotationdownload():
 
         # Loop through redacted PDFs
         for report_dict in report_summary_dict["report_list"]:  # Corrected variable name
-            redacted_pdf_filename = os.path.join(pdf_file_zip, f'{report_dict['id']}.pdf')
+            redacted_pdf_filename = os.path.join(pdf_file_zip, f'{report_dict["id"]}.pdf')
             #check if file exists
             if not os.path.exists(redacted_pdf_filename):
                 flash("Pdf not found: " + redacted_pdf_filename, "danger")

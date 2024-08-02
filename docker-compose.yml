@@ -1,0 +1,23 @@
+services:
+  web:
+    build: .
+    image: ghcr.io/katherlab/llmanonymizer:v0.1.6
+    ports:
+      - "19999:${PORT:-5000}"
+    volumes:
+      # Adjust: /path/to/your/local/model/dir:/models - don't modify the path after the colon!
+      - ../Downloads:/models
+    environment:
+      - SERVER_PATH=${SERVER_PATH:-/build/llama.cpp/llama-server}
+      - PORT=${PORT:-5000}
+      - HOST=${HOST:-0.0.0.0}
+      - CONFIG_FILE=${CONFIG_FILE:-config.yml}
+      - N_GPU_LAYERS=${N_GPU_LAYERS:-80}
+      - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}
+      - DEBUG=${DEBUG:-true}
+      - MODE=${MODE:-choice}
+      - ENABLE_PARALLEL=${ENABLE_PARALLEL:-false}
+      - PARALLEL_SLOTS=${PARALLEL_SLOTS:-1}
+      - NO_PARALLEL_PREPROCESSING=${NO_PARALLEL_PREPROCESSING:-false}
+      - CONTEXT_SIZE=${CONTEXT_SIZE:- -1}
+      - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
