@@ -21,7 +21,7 @@ logging.debug("Start LLM Anonymizer")
 def create_parser():
     parser = ArgumentParser(description='Web app for llama-cpp')
     parser.add_argument("--model_path", type=str, default=os.getenv('MODEL_PATH', "models"), help="Path where the models are stored which llama cpp can load.")
-    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', "llama-server.exe"), help="Path to the llama server executable.")
+    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', r"D:\LLMAnonymizer\llama-b3486-bin-win-cuda-cu12.2.0-x64\llama-server.exe"), help="Path to the llama server executable.")
     parser.add_argument("--port", type=int, default=int(os.getenv('PORT', 5000)), help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default=os.getenv('HOST', "localhost"))
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
