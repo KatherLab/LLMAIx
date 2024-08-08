@@ -104,7 +104,7 @@
                                             <td class="bg-dark-subtle">{{ report_dict['annotation_labels'][label] }}</td>
                                         {% endif %}
                                     {% else %}
-                                        {% if value == report_dict['annotation_labels'][label] %}
+                                    {% if value|lower == report_dict['annotation_labels'][label]|lower %}
                                         <td class="bg-success-subtle">{{ value }}</td>
                                         <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
                                         {% else %}
