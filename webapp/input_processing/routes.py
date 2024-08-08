@@ -615,6 +615,18 @@ def main():
                 # print("File saved:", file_path)
                 file_paths.append(file_path)
 
+                # read excel and csv files only and check if they have id and report column
+                if file.filename.endswith('.csv'):
+                    df = pd.read_csv(file_path)
+                    if 'id' not in df.columns or 'report' not in df.columns:
+                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        return redirect(url_for('input_processing.main'))
+                elif file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
+                    df = pd.read_excel(file_path)
+                    if 'id' not in df.columns or 'report' not in df.columns:
+                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        return redirect(url_for('input_processing.main'))
+
         update_progress(job_id=job_id, progress=(
             0, len(form.files.data), True))
 
