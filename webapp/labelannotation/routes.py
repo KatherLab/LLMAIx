@@ -713,22 +713,24 @@ def labelannotationselector():
     ]
 
     for label in labels:
-        try:
-            llm_output_values = list(df[label["label_name"]])
-            # Always choose first label TODO might not be what you want
-            # llm_output_values = [ast.literal_eval(value)[0] for value in llm_output_values if value != ""]
-            llm_output_values = extract_first_non_empty_string(llm_output_values)
+        llm_output_values = list(df[label["label_name"]])
+        # Always choose first label TODO might not be what you want
+        # llm_output_values = [ast.literal_eval(value)[0] for value in llm_output_values if value != ""]
+        llm_output_values = extract_first_non_empty_string(llm_output_values)
 
-            annotation_values = [value for value in list(df_annotation[label["label_name"]]) if type(value) == str]
-            if len(set(annotation_values)) == 2 and ("True" in annotation_values and "False" in annotation_values or "true" in annotation_values and "false" in annotation_values or "1" in annotation_values and "0" in annotation_values or 1 in annotation_values and 0 in annotation_values or "yes" in annotation_values and "no" in annotation_values):
-                label["label_type"] = "boolean"
-            elif set(llm_output_values) == set(annotation_values):
-                label["label_type"] = "multiclass"
-            else:
-                label["label_type"] = "stringmatch"
-            label["label_classes"] = ",".join(set(annotation_values))
-        except:
-            breakpoint()
+        if label["label_name"] not in list(df_annotation.keys()):
+            flash(f"Label {label['label_name']} not in the annotation file.", "danger")
+            return redirect(url_for("labelannotation.main"))
+
+        annotation_values = [value for value in list(df_annotation[label["label_name"]]) if isinstance(value, str)]
+        if len(set(annotation_values)) == 2 and ("True" in annotation_values and "False" in annotation_values or "true" in annotation_values and "false" in annotation_values or "1" in annotation_values and "0" in annotation_values or 1 in annotation_values and 0 in annotation_values or "yes" in annotation_values and "no" in annotation_values):
+            label["label_type"] = "boolean"
+        elif set(llm_output_values) == set(annotation_values):
+            label["label_type"] = "multiclass"
+        else:
+            label["label_type"] = "stringmatch"
+        label["label_classes"] = ",".join(set(annotation_values))
+
     
         form.labels.append_entry(label)
 
