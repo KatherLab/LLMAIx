@@ -91,6 +91,15 @@ if __name__ == "__main__":
 
     app.config["MODE"] = args.mode
 
+
+    # if model path is relative, make it absolute
+    if not os.path.isabs(app.config["MODEL_PATH"]):
+        app.config["MODEL_PATH"] = os.path.abspath(app.config["MODEL_PATH"])
+
+    # if server path is relative, make it absolute
+    if not os.path.isabs(app.config["SERVER_PATH"]):
+        app.config["SERVER_PATH"] = os.path.abspath(app.config["SERVER_PATH"])
+
     print("Start Server on http://" + args.host + ":" + str(args.port))
     if args.host == "0.0.0.0":
         print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")

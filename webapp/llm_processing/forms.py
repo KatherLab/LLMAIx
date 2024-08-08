@@ -113,7 +113,7 @@ class LLMPipelineForm(FlaskForm):
         self.model.choices = model_choices
         if model_path:
             self.model.validators = [FileExistsValidator(
-                message='File does not exist.', path=model_path)]
+                message='Model path does not exist.', path=model_path)]
             # self.model.validators.append(FileExistsValidator(message='File does not exist.', path=model_path))
         else:
             raise ValueError("Model path is required")
