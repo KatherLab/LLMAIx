@@ -21,3 +21,11 @@ services:
       - NO_PARALLEL_PREPROCESSING=${NO_PARALLEL_PREPROCESSING:-false}
       - CONTEXT_SIZE=${CONTEXT_SIZE:- -1}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
+      - NO_PASSWORD=${NO_PASSWORD:-false}
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
