@@ -24,3 +24,4 @@ scikit-learn
 prometheus_client
 PyMuPDF
 aiohttp
+openpyxl

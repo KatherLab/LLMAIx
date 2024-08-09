@@ -11,7 +11,7 @@
             <legend>Select Documents (.pdf, .png, .jpg, .jpeg, .xlsx, .txt, .csv and .docx)</legend>
 
             <div class="row">
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-12">
         
                     {% if form.files.errors %}
                     {{ form.files(class="form-control is-invalid") }}
@@ -24,6 +24,8 @@
                     {{ form.files(class="form-control") }}
                     {% endif %}
                 </div>
+            </div>
+            <div class="row mt-3">
                 <div class="form-group col-md-2">
                     
                     {% if form.text_split.errors %}
@@ -39,7 +41,7 @@
 
                     {{ form.text_split.label(class="form-control-label") }}
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
                     
                     {% if form.ocr_method.errors %}
                     {{ form.ocr_method(class="form-select is-invalid") }}
@@ -68,6 +70,21 @@
                     {% endif %}
 
                     {{ form.force_ocr.label(class="form-check-label") }}
+                </div>
+                <div class="form-group col-md-3">
+                    
+                    {% if form.remove_previous_ocr.errors %}
+                    {{ form.remove_previous_ocr(class="form-check is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.remove_previous_ocr.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.remove_previous_ocr(class="form-check") }}
+                    {% endif %}
+
+                    {{ form.remove_previous_ocr.label(class="form-check-label") }}
                 </div>
                 <div class="form-group col-md-2">        
                     <button type="submit" name="submit-form" class="form-control btn btn-secondary">Preprocess Files</button>

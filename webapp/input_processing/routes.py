@@ -218,19 +218,13 @@ def extract_text_from_images_surya(images, det_model, rec_model, langs):
 
     return predictions
 
-def ocr_surya(file_path, ocr_file_output_path):
+def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model):
     from PIL import Image
-    
-    from surya.model.detection.model import load_model as load_det_model
-    from surya.model.recognition.model import load_model
+
     from surya.input.load import load_pdf
-    
-
-    det_model = load_det_model()
-    rec_model = load_model()
 
 
-    langs = ["de"] # Replace with your languages
+    langs = ["de", "en"] 
 
     if file_path.endswith('.pdf'):
         pass
@@ -265,7 +259,7 @@ def ocr_surya(file_path, ocr_file_output_path):
     
     
 
-def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
+def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_previous_ocr=False, det_model=None, rec_model=None):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
@@ -292,6 +286,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
                 image = Image.open(file_path)
                 image.save(pdf_output_path)
                 file_path = pdf_output_path
+                
 
             contains_text = False
             print("Opening PDF: ", file_path)
@@ -307,6 +302,8 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
             print("Contains text: ", contains_text)
 
             if not contains_text or force_ocr:
+                if contains_text and force_ocr and remove_previous_ocr:
+                    remove_selectable_text_from_pdf(file_path)
                 if ocr_method == 'tesseract':
                     ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
                     if shutil.which("tesseract") is not None:
@@ -349,7 +346,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
                         print(str(e))
                         return "surya or torch pyhton library not found but required for surya OCR."
 
-                    ocr_text = ocr_surya(file_path, ocr_output_path)
+                    ocr_text = ocr_surya(file_path, ocr_output_path, det_model, rec_model)
                     # ocr_output_path = file_path
 
                 
@@ -399,18 +396,60 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract'):
 
     return merged_data
 
+def remove_selectable_text_from_pdf(pdf_path):
+    """
+    Remove the selectable text from a PDF document while preserving the actual text graphics.
+    The input PDF file will be overwritten with the modified version.
+    
+    Args:
+        pdf_path (str): The path to the input PDF file.
+    """
+    # Open the PDF file
+    pdf_doc = fitz.open(pdf_path)
 
-def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract'):
+    # Iterate through each page
+    for page in pdf_doc:
+        # Add a redaction annotation covering the entire page
+        page.add_redact_annot(page.rect)
+        
+        # Apply the redaction
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+
+    # Create a temporary file path
+    temp_path = pdf_path + ".temp"
+
+    # Save the modified PDF to the temporary file
+    pdf_doc.save(temp_path)
+
+    # Close the document
+    pdf_doc.close()
+
+    # Remove the original file and rename the temporary file
+    os.remove(pdf_path)
+    os.rename(temp_path, pdf_path)
+
+
+def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract', remove_previous_ocr=False):
     merged_data = []
 
     if ocr_method == 'tesseract':
         max_workers = 20 if parallel_preprocessing else 1
+    elif ocr_method == 'surya':
+        max_workers = 2 if parallel_preprocessing else 1
+        from surya.model.detection.model import load_model as load_det_model
+        from surya.model.recognition.model import load_model
+
+        det_model = load_det_model()
+        rec_model = load_model()
     else:
         print("Set max workers to 1 for OCR method: ", ocr_method)
         max_workers = 1
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as inner_executor:
-        future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method): file_path for file_path in file_paths}
+        if ocr_method == 'surya':
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, remove_previous_ocr, det_model, rec_model): file_path for file_path in file_paths}
+        else:
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, remove_previous_ocr): file_path for file_path in file_paths}
         
         for i, future in enumerate(futures.as_completed(future_to_file)):
             file_path = future_to_file[future]
@@ -615,6 +654,18 @@ def main():
                 # print("File saved:", file_path)
                 file_paths.append(file_path)
 
+                # read excel and csv files only and check if they have id and report column
+                if file.filename.endswith('.csv'):
+                    df = pd.read_csv(file_path)
+                    if 'id' not in df.columns or 'report' not in df.columns:
+                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        return redirect(url_for('input_processing.main'))
+                elif file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
+                    df = pd.read_excel(file_path)
+                    if 'id' not in df.columns or 'report' not in df.columns:
+                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        return redirect(url_for('input_processing.main'))
+
         update_progress(job_id=job_id, progress=(
             0, len(form.files.data), True))
 
@@ -629,7 +680,8 @@ def main():
             file_paths=file_paths,
             parallel_preprocessing=current_app.config['PARALLEL_PREPROCESSING'],
             force_ocr=form.force_ocr.data,
-            ocr_method=form.ocr_method.data
+            ocr_method=form.ocr_method.data,
+            remove_previous_ocr=form.remove_previous_ocr.data,
         )
 
         # update_progress(job_id=job_id, progress=(0, len(form.files.data), True))

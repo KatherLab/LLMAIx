@@ -5,8 +5,5 @@ logs*
 __pycache__
 
 *test_inception_json_parser.py
-test_diff.py
-test_tokenizer.py
-test_report_stuff.py
-test_uima_cas.py
+test_*.py
 output.pdf

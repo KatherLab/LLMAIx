@@ -34,6 +34,7 @@ def create_parser():
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
     parser.add_argument("--context_size", type=int, default=int(os.getenv('CONTEXT_SIZE', -1)), help="Set custom context size for llama cpp")
     parser.add_argument("--verbose_llama", action="store_true", default=os.getenv('VERBOSE_LLAMA', 'false') == 'true', help="Verbose llama cpp")
+    parser.add_argument("--no_password", action="store_true", default=os.getenv('NO_PASSWORD', 'false') == 'true', help="Disable password protection")
     return parser
 
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    app = create_app(auth_required=True if args.host != "localhost" else False)
+    app = create_app(auth_required=True if args.host != "localhost" and not args.no_password else False)
 
     app.config["MODEL_PATH"] = args.model_path
     app.config["SERVER_PATH"] = args.server_path
@@ -90,6 +91,15 @@ if __name__ == "__main__":
     app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
 
     app.config["MODE"] = args.mode
+
+
+    # if model path is relative, make it absolute
+    if not os.path.isabs(app.config["MODEL_PATH"]):
+        app.config["MODEL_PATH"] = os.path.abspath(app.config["MODEL_PATH"])
+
+    # if server path is relative, make it absolute
+    if not os.path.isabs(app.config["SERVER_PATH"]):
+        app.config["SERVER_PATH"] = os.path.abspath(app.config["SERVER_PATH"])
 
     print("Start Server on http://" + args.host + ":" + str(args.port))
     if args.host == "0.0.0.0":

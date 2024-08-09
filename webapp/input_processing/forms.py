@@ -30,5 +30,6 @@ class PreprocessUploadForm(FlaskForm):
 
     ocr_method = SelectField("OCR Method", choices=[('tesseract', 'Tesseract (OCRmyPDF)'), ('phi3vision', 'Phi3Vision'), ('surya', 'Surya')], default='tesseract')
     force_ocr = BooleanField("Force OCR", default=False)
+    remove_previous_ocr = BooleanField("Remove Previous OCR (DANGEROUS)", default=False)
 
     submit = SubmitField("Upload")

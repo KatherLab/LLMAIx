@@ -197,8 +197,11 @@ def extract_from_report(
 
     global new_model
     global server_connection, current_model, model_active
+    print("Current model:", current_model, "New model:", new_model)
     if current_model != model_name:
         server_connection and server_connection.kill()
+
+        print("Starting new server for model", model_name)
 
         new_model = True
         server_connection = subprocess.Popen(
@@ -251,6 +254,7 @@ def extract_from_report(
                     job_id=job_id,
                     message="Server connection error, will keep retrying ...",
                 )
+                print("Server connection error, will keep retrying ...")
                 time.sleep(5)
 
     else:
@@ -706,7 +710,13 @@ def main():
         #     ctx_size=current_app.config['CTX_SIZE'],
         #     n_gpu_layers=current_app.config['N_GPU_LAYERS'],
         #     job_id=job_id,
-        #     zip_file_path=zip_file_path or None
+        #     zip_file_path=zip_file_path or None,
+        #     llamacpp_port=current_app.config["LLAMACPP_PORT"],
+        #     debug=current_app.config["DEBUG"],
+        #     model_name_name=model_name,
+        #     no_parallel=current_app.config['NO_PARALLEL'],
+        #     parallel_slots=current_app.config['PARALLEL_SLOTS'],
+        #     verbose_llama=current_app.config['VERBOSE_LLAMA'],
         # )
 
         update_progress(job_id=job_id, progress=(0, len(df), True))
