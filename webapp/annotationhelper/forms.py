@@ -61,11 +61,12 @@ class ReAnnotationForm(FlaskForm):
                     breakpoint()
                     label_entry.annotator_boolean.errors.append("Invalid value for Annotator Boolean")
                     return False
-            elif label_type == 'stringmatch':
-                if not label_entry.annotator_string.data:
-                    breakpoint()
-                    label_entry.annotator_string.errors.append("Annotator String is required for String Match")
-                    return False
+            # Don't validate strings, can be empty
+            # elif label_type == 'stringmatch':
+            #     if not label_entry.annotator_string.data:
+            #         breakpoint()
+            #         label_entry.annotator_string.errors.append("Annotator String is required for String Match")
+            #         return False
 
         return True
 
