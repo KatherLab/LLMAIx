@@ -79,6 +79,10 @@
                   <a class="nav-link {% if request.endpoint == 'labelannotation.main' or request.endpoint == 'labelannotation.labelannotationviewer' or request.endpoint == 'labelannotation.labelannotationmetrics' %}active{% endif %}"
                     href="{{ url_for('labelannotation.main') }}">Label Annotation Viewer</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.endpoint == 'annotationhelper.annotationhelperform' or request.endpoint == 'annotationhelper.annotationhelperoverview' or request.endpoint == 'annotationhelper.annotationhelperviewer' or request.endpoint == 'annotationhelper.annotationhelperqueue' %}active{% endif %}"
+                    href="{{ url_for('annotationhelper.annotationhelperqueue') }}">Annotation Helper</a>
+                </li>
                 {% endif %}
               </ul>
               <form id="modeForm" action="/set_mode" method="GET" class="d-flex">

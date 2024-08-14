@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    .progress {
+        position: relative; /* Set positioning context for the label */
+    }
+    .progress-bar {
+        min-width: 2em; /* Ensure a minimum width for the progress bar */
+    }
+    .progress-label {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        line-height: 30px; /* Match the height of your progress bar */
+        color: #000; /* Default color for zero progress */
+        z-index: 1; /* Ensure the label is above the progress bar */
+    }
+    .job-container {
+        position: relative;
+        padding-top: 1.5rem;  /* Add some top padding for the floating badge */
+    }
+    .model-badge {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        font-size: 0.8rem;
+        background-color: #17a2b8;  /* Bootstrap info color */
+        color: white;
+        padding: 0.25em 0.6em;
+        border-radius: 10rem;
+    }
+    .creation-time {
+        font-size: 0.9rem;
+        color: #6c757d;  /* Bootstrap secondary text color */
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="content-section">
+    <h1>Annotation Helper Tasks</h1>
+
+    <a href="{{ url_for('annotationhelper.annotationhelperform') }}" class="btn btn-outline-success mb-3">+ Add New Annotation Project</a>
+
+    {% for job_id, annohelper_job in annohelper_queue.items() %}
+    <div class="container p-3 mb-4 border rounded shadow-sm job-container">
+        <span class="model-badge">{{ annohelper_job['metadata']['llm_processing']['model_name'] }}</span>
+        <h3 class="mb-2">Job {{ job_id }}</h3>
+        <p class="creation-time">Created: {{ annohelper_job['creation_datetime'] }}</p>
+        <div class="d-flex align-items-center">
+            <!-- Progress Bar -->
+            <div class="flex-grow-1 me-2">
+                <div class="progress" role="progressbar" aria-valuenow="{{ annohelper_job['completed_records'] }}" aria-valuemin="0"
+                    aria-valuemax="{{ annohelper_job['number_of_records'] }}" style="height: 30px;">
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-success"
+                        style="width: {{ (annohelper_job['completed_records'] / annohelper_job['number_of_records']) * 100 }}%;">
+                    </div>
+                    <span class="progress-label">
+                        {{ annohelper_job['completed_records'] }} / {{ annohelper_job['number_of_records'] }}
+                    </span>
+                </div>
+            </div>
+            <!-- Button -->
+            <div>
+                <a id="overview-{{ job_id }}" href="{{ url_for('annotationhelper.annotationhelperoverview', job_id=job_id) }}" class="btn btn-success">
+                    Show
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div id="flash-messages" class="container mt-3"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const label = bar.parentElement.querySelector('.progress-label');
+            const progress = parseFloat(bar.style.width);
+            if (progress > 0) {
+                label.style.color = '#fff'; // White text on non-zero progress
+            }
+        });
+    });
+    </script>
+
+{% endblock content %}

@@ -1,0 +1,275 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nested-container">
+
+    <a class="btn btn-outline-info mb-3" href="{{ url_for('annotationhelper.annotationhelperoverview', job_id=job_info['job_id']) }}">↩ <i><b>Back to Annotation Helper Summary Page</b></i></a>
+
+    <h2>Annotation Helper Summary Page</h2>
+
+    {% if record_status == "completed" %}
+    <span class="badge rounded-pill text-bg-success float-left">Completed</span>
+    {% elif record_status == "pending" %}
+    <span class="badge rounded-pill text-bg-warning float-left">Pending</span>
+    {% endif %}
+    <br>
+
+    <div class="d-flex justify-content-between align-items-center">
+        
+        <h4 class="mb-0">Report {{ record_index + 1 }}/{{ job_info['number_of_records'] }}: {{ record_id }}</h4>
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+            aria-expanded="false" aria-controls="collapseMetadata">
+            Metadata
+        </button>
+    </div>
+
+
+    <div class="collapse" id="collapseMetadata">
+        <div class="card card-body">
+            <pre>{{ job_info['metadata'] }}</pre>
+        </div>
+    </div>    
+
+        <div class="row mt-4">
+          <div class="col-md-6">
+    
+
+            <div class="card mt-3 mb-3">
+
+                <div class="d-flex justify-content-between align-items-center card-header">
+                    <h3 class="card-title">Check the Annotation</h3>
+
+                </div>
+
+                <div class="card-body shadow-sm">
+                    <form action="" method="post" enctype="multipart/form-data">
+
+                        {{ form.hidden_tag() }}
+
+                        <style>
+                            input[type="checkbox"] {
+                                transform: scale(1);
+                            }
+
+                            .hidden {
+                                display: none;
+                            }
+
+                            .flex-fill {
+                                display: flex;
+                            }
+
+                            .custom-checkbox {
+                                height: calc(1.5em + .75rem + 2px); /* Adjust height to match form-control */
+                                width: calc(1.5em + .75rem + 2px); /* Adjust width to maintain square shape */
+                                margin-right: 0.5rem; /* Optional: Adjust margin if needed */
+                            }
+                            
+                            /* Ensure checkbox container is full height and vertically centered */
+                            .d-flex.align-items-center {
+                                height: 100%; /* Ensures the div takes full height of the table cell */
+                            }
+                            
+                            td {
+                                vertical-align: middle; /* Ensure vertical alignment for all content in table cells */
+                            }
+                                                
+                        </style>
+
+                            
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Label</th>
+                                    <th class="hidden">LLM Field</th>
+                                    <th>Annotation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for label_entry in form.labels %}
+                                <tr>
+                                    <!-- Column for Label Name -->
+                                    <td>
+                                        {{ label_entry.label_name(class="form-control", disabled="disabled") }}
+                                        <input type="hidden" name="{{ label_entry.label_name.name }}" value="{{ label_entry.label_name.data }}">
+                                        <input type="hidden" name="{{ label_entry.label_type.name }}" value="{{ label_entry.label_type.data }}">
+                                    </td>
+                        
+                                    <!-- Column for LLM fields -->
+                                    <td class="hidden">                                    
+                                        {% if label_entry.label_type.data == 'stringmatch' %}
+                                            {{ label_entry.llm_string(class="form-control", disabled="disabled") }}
+                                            <input type="hidden" name="{{ label_entry.llm_string.name }}" value="{{ label_entry.llm_string.data }}">
+
+                                        {% elif label_entry.label_type.data == 'multiclass' %}
+                                            {{ label_entry.llm_categories(class="form-select", disabled="disabled") }}
+                                            <input type="hidden" name="{{ label_entry.llm_categories.name }}" value="{{ label_entry.llm_categories.data }}">
+
+                                        {% elif label_entry.label_type.data == 'boolean' %}
+                                            {{ label_entry.llm_boolean(class="form-check-input", disabled="disabled") }}
+                                            <input type="hidden" name="{{ label_entry.llm_boolean.name }}" value="{{ label_entry.llm_boolean.data }}">
+
+                                        {% endif %}
+
+                                    </td>
+                        
+                                    <!-- Column for Annotator fields -->
+                                    <td>
+                                        {% if label_entry.label_type.data == 'stringmatch' %}
+                                            {{ label_entry.annotator_string(class="form-control") }}
+                                        {% elif label_entry.label_type.data == 'multiclass' %}
+                                            {{ label_entry.annotator_categories(class="form-select") }}
+                                        {% elif label_entry.label_type.data == 'boolean' %}
+                                            <!--{{ label_entry.annotator_boolean(class="form-check-input") }}-->
+                                            <div class="d-flex align-items-center h-100">
+                                                {{ label_entry.annotator_boolean(class="form-check-input custom-checkbox") }}                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <!-- Add hidden field for job_id-->
+                        <input type="hidden" name="job_id" value="{{ job_id }}"> 
+                        <input type="hidden" name="record_id" value="{{ record_id }}">
+                        
+                        <!-- {% if form.errors %}
+                            {{ form.errors }}
+                        {% endif %} -->
+
+                
+                        <div class="row p-3">
+                            <div class="form-group col-md-12">
+                                <div class="position-relative d-flex align-items-center">
+                                    {% if previous_record %}
+                                    <div class="position-absolute start-0">
+                                        {{ form.submit_previous(class="btn btn-secondary") }}
+                                    </div>
+                                    {% endif %}
+                        
+                                    <div class="mx-auto">
+                                        {{ form.submit_save(class="btn btn-primary") }}
+                                    </div>
+                        
+                                    {% if next_record %}
+                                    <div class="position-absolute end-0">
+                                        {{ form.submit_next(class="btn btn-secondary") }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                
+                    </form>
+                
+                </div>
+
+            </div>
+        
+        </div>
+        <div class="col-md-6">
+
+            <div class="card mt-3 mb-3">
+
+                <div class="d-flex justify-content-between align-items-center card-header">
+                    <h3 class="card-title">Check the Annotation</h3>
+
+                </div>
+
+                <div class="card-body shadow-sm p-0">
+                    <iframe src="{{ url_for('annotationhelper.annotationhelperpdfprovider', job_id=job_info['job_id'], record_id=record_id) }}" height="800px" frameborder="0"
+                        width="100%"></iframe>
+
+                </div>
+            </div>
+        
+
+        <!-- <div class="pdf-container">
+            <div class="pdf-viewer shadow-sm">
+                <h3>PDF Document</h3>
+                <iframe src="{{ url_for('annotationhelper.annotationhelperpdfprovider', job_id=job_info['job_id'], record_id=record_id) }}" height="800px" frameborder="0"
+                    width="100%"></iframe>
+            </div>
+        </div> -->        
+
+
+</div>
+
+
+<style>
+    .pdf-container {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .pdf-viewer {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .pdf-viewer-2 {
+        width: 48%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer-3 {
+        width: 32%;
+        /* Adjust width to accommodate spacing */
+        padding: 10px;
+        /* Add spacing between iframes */
+        border: 1px solid #ccc;
+    }
+
+    .pdf-viewer iframe {
+        width: 100%;
+    }
+
+    .navigation-buttons {
+        margin-bottom: 20px;
+    }
+
+    .clearfix {
+        clear: both;
+    }
+
+    .float-left {
+        float: left;
+    }
+
+    .float-right {
+        float: right;
+    }
+
+    .report-number {
+        display: inline-block;
+        margin: 0 10px;
+    }
+
+    .personal-info-list {
+        margin-top: 20px;
+        margin-bottom: 50px;
+    }
+
+    .container-custom {
+        max-width: 95%;
+    }
+
+    .nested-container {
+        position: absolute;
+        left: 50%;
+        /* Position the left edge of the container at the horizontal center */
+        transform: translateX(-50%);
+        /* Move the container to the left by half of its width */
+        width: calc(90vw - 30px);
+        padding: 30px 15px;
+    }
+</style>
+
+{% endblock %}

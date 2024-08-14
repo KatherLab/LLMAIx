@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nested-container">
+
+    <a class="btn btn-outline-info mb-3" href="{{ url_for('annotationhelper.annotationhelperqueue') }}">↩ <i><b>Back to Annotation Helper Queue</b></i></a>
+
+
+    <h2>Annotation Helper for {{job_info['job_id']}}</h2>
+
+    <div class="card mt-3 mb-3 shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Metrics</h3>
+
+                <div>
+                    <span class="badge rounded-pill text-bg-primary">Total Reports: {{ job_info['number_of_records'] }}</span>
+                    <span class="badge rounded-pill text-bg-info">{{ job_info['metadata']['llm_processing']['model_name']}}</span>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="btn-group mb-3">
+        <a href="{{ url_for('annotationhelper.annotationhelperdownload', job_id=job_info['job_id']) }}" class="btn btn-outline-secondary">Download All</a>
+        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
+            aria-expanded="false" aria-controls="collapseMetadata">
+            Show Metadata
+        </button>
+
+    </div>
+
+    <div class="collapse" id="collapseMetadata">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>Experiment Metadata</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <tbody>
+                        <tr>
+                            <th>Preprocessing Date</th>
+                            <td>{{ job_info['metadata']['preprocessing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>LLM Processing Date</th>
+                            <td>{{ job_info['metadata']['llm_processing']['date']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Model Name</th>
+                            <td>{{ job_info['metadata']['llm_processing']['model_name']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Prompt</th>
+                            <td style="overflow:hidden">{{ job_info['metadata']['llm_processing']['prompt']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Temperature</th>
+                            <td>{{ job_info['metadata']['llm_processing']['temperature']}}</td>
+                        </tr>
+                        <tr>
+                            <th>N Predict</th>
+                            <td>{{ job_info['metadata']['llm_processing']['n_predict']}}</td>
+                        </tr>
+                        <tr>
+                            <th>CTX size</th>
+                            <td>{{ job_info['metadata']['llm_processing']['ctx_size']}}</td>
+                        </tr>
+                        <tr>
+                            <th>Grammar</th>
+                            <td style="overflow: hidden;">{{ job_info['metadata']['llm_processing']['grammar']}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="list-group list-group-numbered">
+        {% for record in job_info['record_list'] %}
+        <a class="list-group-item d-flex justify-content-between align-items-start list-group-item-action" href="{{ url_for('annotationhelper.annotationhelperviewer', job_id=job_info['job_id'], record_id=record['record_id']) }}">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">{{record['record_id']}}</div>
+            </div>
+            {% if record['status'] == 'completed' %}
+            <span class="badge text-bg-success rounded-pill">Completed</span>
+            {% else %}
+            <span class="badge text-bg-warning rounded-pill">Pending</span>
+            {% endif %}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+
+<style>
+    .nested-container {
+        padding: 30px 15px;
+    }
+</style>
+</style>
+{% endblock %}

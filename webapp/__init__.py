@@ -35,11 +35,13 @@ def create_app(auth_required:bool = False):
     from .llm_processing import llm_processing
     from .report_redaction import report_redaction
     from .labelannotation import labelannotation
+    from .annotationhelper import annotationhelper
     from .main import main
     app.register_blueprint(input_processing)
     app.register_blueprint(llm_processing)
     app.register_blueprint(report_redaction)
     app.register_blueprint(labelannotation)
+    app.register_blueprint(annotationhelper)
     app.register_blueprint(main)
 
     socketio.init_app(app)
