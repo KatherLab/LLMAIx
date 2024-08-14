@@ -128,6 +128,9 @@ class AnnotationHelperJob:
                 
                 annotated_df.loc[annotated_df['id'] == record['record_id'], label['label']] = label['value_annotator']
 
+        # edit all ids: split on dollar and only take the first part before the last dollar, then split again and remove everything after the last dot
+        annotated_df['id'] = annotated_df['id'].apply(lambda x: '.'.join('$'.join(x.split('$')[:-1]).split('.')[:-1]))
+
         return annotated_df
     
     def _get_label_type(self, label):
