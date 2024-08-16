@@ -500,7 +500,10 @@ def download():
             return redirect(url_for('input_processing.main'))
 
         # split the text in chunks
-        max_length = session['text_split']
+        try:
+            max_length = int(session['text_split'])
+        except:
+            max_length = None
 
         # Add an 'id' column and generate unique IDs for every row
         # df['id'] = df.apply(lambda x: str(uuid.uuid4()), axis=1)
@@ -594,7 +597,7 @@ def download():
         # Split rows containing more than max_length letters
         split_rows = []
         for _, row in df.iterrows():
-            if len(row['report']) > max_length:
+            if max_length and len(row['report']) > max_length:
                 split_texts = split_text(row['report'], max_length)
                 for i, text in enumerate(split_texts):
                     split_row = row.copy()

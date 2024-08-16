@@ -1,7 +1,20 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, MultipleFileField, BooleanField, SelectField
+from wtforms import StringField, SubmitField, IntegerField, MultipleFileField, BooleanField, SelectField, ValidationError
 from flask_wtf.file import FileAllowed, FileRequired
 from wtforms import validators
+
+def validate_optional_integer(form, field):
+    # If field is not empty, attempt to convert and validate it
+    if field.data:
+        try:
+            value = int(field.data)
+        except ValueError:
+            raise ValidationError('Not a valid integer value.')
+
+        # Validate the integer value
+        if not (100 <= value <= 128000):
+            raise ValidationError('Value must be between 100 and 128000.')
+
 
 
 class PreprocessUploadForm(FlaskForm):
@@ -23,9 +36,10 @@ class PreprocessUploadForm(FlaskForm):
     files = MultipleFileField("Upload Files (csv/excel: id and report columns required)", validators=[FileRequired(), FileAllowed(
         ['pdf', 'txt', 'csv', 'jpg', 'png', 'jpeg', 'docx', 'xlsx'], 'Only PDF, TXT, CSV, JPG, PNG, XLSX and DOCX files are allowed!')])
 
-    # Add Integer Fields with values between 100 and 128000
-    text_split = IntegerField("Split Length", validators=[
-                              validators.NumberRange(min=100, max=128000)], default=14000)
+    text_split = StringField(
+        "Split Length (after N characters), set for anonymization of very long reports",
+        validators=[validate_optional_integer]
+    )
 
 
     ocr_method = SelectField("OCR Method", choices=[('tesseract', 'Tesseract (OCRmyPDF)'), ('phi3vision', 'Phi3Vision'), ('surya', 'Surya')], default='tesseract')
