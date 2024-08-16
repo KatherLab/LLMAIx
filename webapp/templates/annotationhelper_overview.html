@@ -1,45 +1,40 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="nested-container">
+<div class="container py-4">
+    <a class="btn btn-outline-info mb-4" href="{{ url_for('annotationhelper.annotationhelperqueue') }}">
+        <i class="bi bi-arrow-left-circle"></i> <b>Back to Annotation Helper Queue</b>
+    </a>
 
-    <a class="btn btn-outline-info mb-3" href="{{ url_for('annotationhelper.annotationhelperqueue') }}">↩ <i><b>Back to Annotation Helper Queue</b></i></a>
+    <h2 class="mb-4">Annotation Helper for {{ job_info['job_id'] }}</h2>
 
-
-    <h2>Annotation Helper for {{job_info['job_id']}}</h2>
-
-    <div class="card mt-3 mb-3 shadow-sm">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3>Metrics</h3>
-
-                <div>
-                    <span class="badge rounded-pill text-bg-primary">Total Reports: {{ job_info['number_of_records'] }}</span>
-                    <span class="badge rounded-pill text-bg-info">{{ job_info['metadata']['llm_processing']['model_name']}}</span>
-
-                </div>
+    <div class="card mt-3 mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Metrics</h3>
+            <div>
+                <span class="badge rounded-pill bg-primary">Total Reports: {{ job_info['number_of_records'] }}</span>
+                <span class="badge rounded-pill bg-info">{{ job_info['metadata']['llm_processing']['model_name']}}</span>
             </div>
         </div>
-
     </div>
 
-
-    <div class="btn-group mb-3">
-        <a href="{{ url_for('annotationhelper.annotationhelperdownload', job_id=job_info['job_id']) }}" class="btn btn-outline-secondary">Download All</a>
+    <div class="btn-group mb-4">
+        <a href="{{ url_for('annotationhelper.annotationhelperdownload', job_id=job_info['job_id']) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-download"></i> Download All
+        </a>
         <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
             aria-expanded="false" aria-controls="collapseMetadata">
-            Show Metadata
+            <i class="bi bi-info-circle"></i> Show Metadata
         </button>
-
     </div>
 
-    <div class="collapse" id="collapseMetadata">
-        <div class="card mb-3">
+    <div class="collapse mb-4" id="collapseMetadata">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h3>Experiment Metadata</h3>
+                <h3 class="mb-0">Experiment Metadata</h3>
             </div>
-            <div class="card-body">
-                <table class="table table-bordered table-hover">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0">
                     <tbody>
                         <tr>
                             <th>Preprocessing Date</th>
@@ -55,7 +50,7 @@
                         </tr>
                         <tr>
                             <th>Prompt</th>
-                            <td style="overflow:hidden">{{ job_info['metadata']['llm_processing']['prompt']}}</td>
+                            <td>{{ job_info['metadata']['llm_processing']['prompt']}}</td>
                         </tr>
                         <tr>
                             <th>Temperature</th>
@@ -66,12 +61,12 @@
                             <td>{{ job_info['metadata']['llm_processing']['n_predict']}}</td>
                         </tr>
                         <tr>
-                            <th>CTX size</th>
+                            <th>CTX Size</th>
                             <td>{{ job_info['metadata']['llm_processing']['ctx_size']}}</td>
                         </tr>
                         <tr>
                             <th>Grammar</th>
-                            <td style="overflow: hidden;">{{ job_info['metadata']['llm_processing']['grammar']}}</td>
+                            <td>{{ job_info['metadata']['llm_processing']['grammar']}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -79,21 +74,22 @@
         </div>
     </div>
 
-    <div class="list-group list-group-numbered">
+    <div class="list-group list-group-flush">
         {% for record in job_info['record_list'] %}
-        <a class="list-group-item d-flex justify-content-between align-items-start list-group-item-action" href="{{ url_for('annotationhelper.annotationhelperviewer', job_id=job_info['job_id'], record_id=record['record_id']) }}">
-            <div class="ms-2 me-auto">
-                <div class="fw-bold">{{record['record_id']}}</div>
+        <a class="list-group-item d-flex justify-content-between align-items-center list-group-item-action" href="{{ url_for('annotationhelper.annotationhelperviewer', job_id=job_info['job_id'], record_id=record['record_id']) }}">
+            <div class="ms-2">
+                <div class="fw-bold">{{ record['record_id'] }}</div>
             </div>
             {% if record['status'] == 'completed' %}
-            <span class="badge text-bg-success rounded-pill">Completed</span>
+            <span class="badge bg-success rounded-pill">Completed</span>
             {% else %}
-            <span class="badge text-bg-warning rounded-pill">Pending</span>
+            <span class="badge bg-warning rounded-pill">Pending</span>
             {% endif %}
-            </a>
+        </a>
         {% endfor %}
     </div>
 </div>
+
 
 
 <style>

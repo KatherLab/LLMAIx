@@ -13,18 +13,25 @@ Web-based tool to extract (personal) information from medical reports and redact
 
 **Features**:
 
-
 - Supports various input formats: pdf, png, jpg, jpeg, txt and docx (only if Word is installed on your system)
-- Performs OCR if necessary
-- Extracts person-related information from the reports using a llama model
+- Performs OCR if necessary (tesseract and surya-ocr)
+- Extracts information from medical reports in JSON format (ensured by a grammar)
+
+**Anonymizer**:
+
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance (configurable)
-- Compare documents and calculate metrics using annotated pdf files ([Inception](https://inception-project.github.io/))
+- Compare documents and calculate metrics using annotated pdf files as a ground truth ([Inception](https://inception-project.github.io/))
 
-**New**:
+**Information Extraction**:
 
-- Information Extraction using LLMs and Metric Calculation on Label-level
+- Information Extraction using LLMs and Metric Calculation based on a ground truth
 
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
+
+**New: Annotation Helper**:
+
+- Speed up your annotation process by using the LLM output as a starting point and only make manual corrections.
+
 
 ## Examples
 
@@ -78,7 +85,15 @@ Run:
 |--config_file|Custom path to the configuration file.|config.yml|
 |--llamacpp_port|On which port to run the llama-cpp server. Default: 2929|2929|
 |--debug|When set, the web app will be started in debug mode and with auto-reload, for debugging and development|
-|--mode|Which mode to run ('choice will interactively ask the user'). Can be `anonymizer`, `informationextraction`, `choice`. Default: 'choice'|choice|
+|--mode|Which mode to run (`choice` will interactively ask the user). Can be `anonymizer`, `informationextraction`, `choice`. Default: 'choice'|choice|
+|--enable_parallel|Enable parallel processing. Default: False|False|
+|--parallel_slots|Number of parallel slots. Only effective when `enable_parallel` is set. Default: 1|1|
+|--no_parallel_preprocessing|Disable parallel preprocessing. Default: False|False|
+|--context_size|Set the KV cache size of the llama cpp server. Remeber: When using parallel processing, each slots gets a fraction of the context size. Consumes GPU memory, be careful! Default: -1|8192|
+|--mlock|Enable memory locking. Default: True|True|
+|--kv_cache_type|Which KV cache type to use. Can save memory, especially for large models and a large kv cache size. Default: 'q8_0'|q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl|
+|--verbose_llama|Enable verbose logging of llama.cpp. Default: False|False|
+|--no_password|Disable password protection. Default: False|False|
 
 ## Usage
 
@@ -139,72 +154,21 @@ The output extends the input zip file with a csv file with columns `report` with
 
 > Adjust the grammar according to the [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md). This causes the llm output to be in a json structure with the desired datapoints. Note: Playing around with this can help, not every model works well with a too restrictive grammar.
 
+
+Example grammar:
 ```
-root   ::= allrecords
-value  ::= object | array | string | number | ("true" | "false" | "null") ws
+root ::= allrecords
 
 allrecords ::= (
   "{"
-  ws "\"patientennachname\":" ws string ","
-  ws "\"patientenvorname\":" ws string ","
-  ws "\"patientengeburtsdatum\":" ws string ","
-  ws "\"patientenid\":" ws string ","
-  ws "\"patientenstrasse\":" ws string ","
-  ws "\"patientenhausnummer\":" ws string ","
-  ws "\"patientenpostleitzahl\":" ws string ","
-  ws "\"patientenstadt\":" ws string ","
+ws "\"patientname\":" ws "\"" char{2,60} "\"" ","
+ws "\"patientsex\":" ws "\"" ( "m" | "w" | "d" ) "\"" ","
+
   ws "}"
   ws
 )
 
-record ::= (
-    "{"
-    ws "\"excerpt\":" ws ( string | "null" ) ","
-    ws "\"present\":" ws ("true" | "false") ws 
-    ws "}"
-    ws
-)
-
-object ::=
-  "{" ws (
-            string ":" ws value
-    ("," ws string ":" ws value)*
-  )? "}" ws
-
-array  ::=
-  "[" ws (
-            value
-    ("," ws value)*
-  )? "]" ws
-
-string ::=
-  "\"" (
-    [^"\\] |
-    "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]) # escapes
-  )* "\"" ws
-
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
-
-# Optional space: by convention, applied in this grammar after literal chars when allowed
 ws ::= ([ \t\n])?
+
+char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
 ```
-
-
-## TODO
-
-- dockerize
-
-- make excluded LLM output variable (what does the LLM answer if the information is unknown / not present in the text)
-- When reports are split, put the already extracted information in the input for the next part.
-
-- experimental: compare embeddings of llm output and annotation: calculate attention and then threshold
-
-- csv in annotation subfolder
-
-- preprocessing job progress: nicer list, tags, metadata
-
-- When no annotation: reannotation column / whole new check&reannotate tab (check + string field or select / accoding to type selection - make type selection load grammar entries) - save as extra csv (so it can be used as annotation file)
-
-- API
-
-- OCR via trOCR (also models fine-tuned on handwriting available) or Nougat OCR

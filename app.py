@@ -21,7 +21,7 @@ logging.debug("Start LLM Anonymizer")
 def create_parser():
     parser = ArgumentParser(description='Web app for llama-cpp')
     parser.add_argument("--model_path", type=str, default=os.getenv('MODEL_PATH', "models"), help="Path where the models are stored which llama cpp can load.")
-    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', r"D:\LLMAnonymizer\llama-b3486-bin-win-cuda-cu12.2.0-x64\llama-server.exe"), help="Path to the llama server executable.")
+    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', r""), help="Path to the llama server executable.")
     parser.add_argument("--port", type=int, default=int(os.getenv('PORT', 5000)), help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default=os.getenv('HOST', "localhost"))
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
@@ -42,37 +42,6 @@ def create_parser():
 
 
 if __name__ == "__main__":
-    # parser = ArgumentParser(description="Parameters to run the KatherLab LLM Pipeline")
-    # parser.add_argument(
-    #     "--model_path",
-    #     type=str,
-    #     default=r"D:\LLM-Pipeline\models",
-    #     help="Path where the models are stored which llama cpp can load.",
-    # )
-    # parser.add_argument(
-    #     "--server_path",
-    #     type=str,
-    #     default=r"D:\LLMAnonymizer\llama-b3177-bin-win-cuda-cu12.2.0-x64\llama-server.exe",
-    # )
-    # parser.add_argument(
-    #     "--port",
-    #     type=int,
-    #     default=5001,
-    #     help="On which port the Web App should be available.",
-    # )
-    # parser.add_argument("--host", type=str, default="localhost")
-    # parser.add_argument("--config_file", type=str, default="config.yml")
-    # parser.add_argument("--n_gpu_layers", type=int, default=80)
-    # parser.add_argument("--llamacpp_port", type=int, default=2929)
-    # parser.add_argument("--debug", action="store_true")
-    # parser.add_argument("--mode", type=str, default="choice", choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
-    # parser.add_argument("--enable-parallel", action="store_true", help="Parallel llama-cpp processing.")
-    # parser.add_argument("--parallel-slots", type=int, default=1, help="Number of parallel slots for llama processing")
-    # parser.add_argument("--no_parallel-preprocessing", action="store_true", help="Disable parallel preprocessing")
-    # parser.add_argument("--context-size", type=int, default=-1, help="Set custom context size for llama cpp")
-    # parser.add_argument("--verbose-llama", action="store_true", help="Verbose llama cpp")
-
-    # args = parser.parse_args()
 
     parser = create_parser()
     args = parser.parse_args()

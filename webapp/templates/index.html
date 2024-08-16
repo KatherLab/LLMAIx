@@ -2,7 +2,8 @@
 {% block content %}
 
 <div class="content-section">
-    <h1>Document Preprocessing</h1>
+    <h1 class="display-4 text-center mb-3">Document Preprocessing</h1>
+
 
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
@@ -26,6 +27,7 @@
                 </div>
             </div>
             <div class="row mt-3">
+                {% if session['mode'] == 'anonymizer' %}
                 <div class="form-group col-md-2">
                     
                     {% if form.text_split.errors %}
@@ -41,6 +43,7 @@
 
                     {{ form.text_split.label(class="form-control-label") }}
                 </div>
+                {% endif %}
                 <div class="form-group col-md-3">
                     
                     {% if form.ocr_method.errors %}
@@ -91,36 +94,106 @@
 
                 </div>
             </div>
+            <style>
+                .info-callout {
+                    border-left: 5px solid #17a2b8; /* Bootstrap info color */
+                    background-color: #e9f7fb; /* Lightened info background */
+                    padding: 15px;
+                    margin-bottom: 5px;
+                    margin-top: 20px;
+                    border-radius: 4px;
+                    color: #0c5460; /* Bootstrap info text color */
+                }
+
+                .warning-callout {
+                    border-left: 5px solid #ffc107; /* Bootstrap warning color */
+                    background-color: #fff3cd; /* Lightened warning background */
+                    padding: 15px;
+                    margin-bottom: 5px;
+                    margin-top: 20px;
+                    border-radius: 4px;
+                    color: #856404; /* Bootstrap warning text color */
+                }
+                
+                /* .callout-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                } */
+            </style>
+    
+            <div class="info-callout">
+                <h4 class="callout-title">Information</h4>
+                <p>Preprocessing is done to transform your data in a standardized format. You can upload your files in many formats.
+                    <br>
+                    <br>
+                    If your file contains no machine-readable text (e.g. images or scanned PDFs), OCR (Optical Character Recognition) will be performed automatically. You can choose between <i><b>Tesseract</b></i> and <i><b>Surya-OCR</b></i>.
+                    <br>
+                    <br>
+                    It might happen that your PDF documents don't contain text but are still recognized as if they contain text. In this case, you can force OCR by checking the <i>Force OCR</i> checkbox.
+                    <br>
+                    <br>
+                    You can also remove previously generated OCR files by checking the <i>Remove Previous OCR</i> checkbox. But be careful: If the text in document is actual text and not an invisible text layer added by a previous OCR run, the whole text will be removed and your document will be empty (except images) afterwards!
+
+                    <br>
+                    <br>
+                    <b>Excel / CSV files:</b> When you upload Excel or CSV files, you need to have a header row with a <b>id</b> and <b>report</b> column! In case of excel files, only the first sheet will be processed.
+
+                    {% if session['mode'] == 'anonymizer' %}
+                    <br>
+                    <br>
+                    <b>Split Length:</b> As the size of the context which a LLM model can process at once is limited, you can split the reports into smaller chunks of N characters. It is however recommended to use a model with a sufficient context size and not to split the text. Text splitting is only supported in the Anonymizer Mode, the Information Extraction Evaluation and Annotation Helper just use the first chunk of each document!
+                    {% endif %}
+                </p>
+            </div>
         </fieldset>
+        
     </form>
 
-    <h1>Document Preprocessing Progress</h1>
-    {% for job_id, progress_tuple in progress.items() %}
-    <div class="container p-2 mb-3">
-        <h3>Job {{ job_id }}</h3>
-        <div class="row">
-            <div class="col-md-11">
-
-                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
-                    {% if progress_tuple[2] %}
-                    <div class="progress-bar overflow-visible bg-success" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</div>
-                    {% else %}
-                    <div class="progress-bar overflow-visible bg-danger" style="width: 100%;" id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
-                    {% endif %}
+    <h1 class="display-4 text-center mb-3">Document Preprocessing Progress</h1>
+        <div class="container">
+            {% for job_id, progress_tuple in progress.items() %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Job {{ job_id }}</h3>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}" style="height: 1.5rem;">
+                                {% if progress_tuple[2] %}
+                                <div class="progress-bar bg-success" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" id="progress-{{ job_id }}">
+                                    <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>
+                                </div>
+                                {% else %}
+                                <div class="progress-bar bg-danger" style="width: 100%;" id="progress-{{ job_id }}">
+                                    <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            {% if progress_tuple[0] == progress_tuple[1] %}
+                            <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
+                            {% elif progress_tuple[2] %}
+                            <button class="btn btn-outline-secondary" disabled>Processing...</button>
+                            {% else %}
+                            <button class="btn btn-outline-danger" disabled>Failed</button>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-1">
-                {% if progress_tuple[0] == progress_tuple[1] %}
-                    <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-success">Download</a>
-                {% elif progress_tuple[2] %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
-                {% else %}
-                    <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
-                {% endif %}
-            </div>
+            {% endfor %}
         </div>
-    </div>
-    {% endfor %}
+
+        <div class="warning-callout">
+            <h4 class="callout-title">Hint</h4>
+
+            <p>
+                If you upload documents / csv / excel / text files which require no OCR it might happen that you just see a empty progress bar or a full progress bar but no Download button. In this case, just reload the page.
+            </p>
+
+        </div>
+
 
 </div>
 

@@ -34,7 +34,7 @@
 </style>
 
 <div class="content-section">
-    <h1>LLM Progress & Results</h1>
+    <h1 class="display-4 text-center mb-3">LLM Processing Progress & Results</h1>
 
     {% if not model_loaded %}
     <div id="loading-circle" class="container text-center">
@@ -63,46 +63,52 @@
     </div>
 
     {% for job_id, progress_tuple in llm_progress.items() %}
-    <div class="container p-2 mb-3">
-        <h3>Job {{ job_id }}</h3>
-        <div class="row">
-            <div class="col-md-11">
-
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h3 class="card-title">Job {{ job_id }}</h3>
+        <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
                 <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
-                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
+                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 1.5rem;">
                     {% if progress_tuple[2] %}
-                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-success"
-                        style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">{{ progress_tuple[0] }} /
-                        {{ progress_tuple[1] }}</div>
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-success"
+                        style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">
+                        <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>
+                    </div>
                     {% else %}
-                    <div id="progress-{{ job_id }}" class="progress-bar overflow-visible bg-danger" style="width: 100%;"
-                        id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-danger" style="width: 100%;">
+                        <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</span>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-            <div class="col-md-1">
+            <div class="ms-3">
                 {% if progress_tuple[0] == progress_tuple[1] %}
-                <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-success">Download</a>
+                <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
                 {% elif progress_tuple[2] %}
-                <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>Download</a>
+                <a id="download-{{ job_id }}" class="btn btn-outline-secondary" disabled>Processing...</a>
                 {% else %}
-                <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>Download</a>
+                <a id="download-{{ job_id }}" class="btn btn-outline-danger" disabled>Failed</a>
                 {% endif %}
             </div>
         </div>
     </div>
-    {% endfor %}
+</div>
+{% endfor %}
 
-    <button id="toggleMetricsButton" class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
+<hr class="bg-danger border-2 border-top border-dark" />
+
+
+    <button id="toggleMetricsButton" class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
         aria-expanded="false" aria-controls="collapseExample">
-        Llama-cpp Metrics
+        Llama-CPP Performance Metrics
     </button>
 
 
     <div class="collapse" id="collapseMetrics">
         <div class="card">
             <div class="card-header">
-                <h3>Llama-cpp Metrics</h3>
+                <h3>Llama-CPP Performance Metrics</h3>
                 <div id="countdown_container">Next update in: <span id="countdown">30</span> seconds</div>
             </div>
 
@@ -148,6 +154,9 @@
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/llm_download?job=' + job_id;
         downloadLink.classList.remove('disabled');
+        downloadLink.classList.remove('btn-outline-secondary');
+        downloadLink.classList.add('btn-outline-success');
+        downloadLink.innerHTML = 'Download';
         downloadLink.removeAttribute('disabled');
     });
 
@@ -167,6 +176,7 @@
         downloadLink.classList.add('disabled');
         downloadLink.setAttribute('disabled', 'disabled');
         downloadLink.className = 'btn btn-danger disabled';
+        downloadLink.innerHTML = 'Failed';
 
     });
 

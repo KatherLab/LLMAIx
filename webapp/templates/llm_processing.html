@@ -2,7 +2,7 @@
 {% block content %}
 
 <div class="content-section">
-    <h1>LLM Information Extraction</h1>
+    <h1 class="display-4 text-center mb-3">LLM Information Extraction</h1>
 
     <form action="" method="post" enctype="multipart/form-data">
 
@@ -258,6 +258,61 @@
 
             <button type="button" id="add-row" class="btn btn-outline-success">Add Rule</button>
         </fieldset> -->
+
+
+
+        <style>
+            .info-callout {
+                border-left: 5px solid #17a2b8; /* Bootstrap info color */
+                background-color: #e9f7fb; /* Lightened info background */
+                padding: 15px;
+                margin-bottom: 5px;
+                margin-top: 20px;
+                border-radius: 4px;
+                color: #0c5460; /* Bootstrap info text color */
+            }
+            
+            .info-callout .callout-title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+        </style>
+
+        <div class="info-callout">
+            <h3 class="callout-title">Information</h3>
+            <p><b>Model / n_predit:</b> Each model has a context size of e.g. 8192 tokens in case of Llama 3. 
+                One token can be a word, parts of a word or a special character. 
+                <br>
+                The parameter <i>n_predict</i> specifies how many tokens the model is allowed to generate. 
+                <br>
+                <br>
+                <b>The whole prompt</b> (including the text from the report) <b>AND the answer</b> which is generated <b>must fit into the model's context size</b>!
+                <br>
+                <br>
+                After submitting your LLM Processing job, this tool will check for each report, if the tokenized prompt (including the report) and the specified maximum length for the answer will fit into the context size!
+                However, if <i>n_predict</i> is too low it might happen that your answer is incomplete and cannot be processed later (e.g. the generation of the JSON output stops midway). 
+                Optimally for <i>n_predict</i> you estimate how many tokens are needed to generate a JSON output according to your grammar and add a bit security margin on top.
+                <br>
+                <br>
+                <b>Temperature:</b> This parameter specifies the randomness / creativity of the model. A value of 0.0 means no randomness, a value of 1.0 means very high randomness.
+                <br>
+                <br>
+                <b>Model:</b> The model to use. Bigger models (with more parameters, e.g. 70B parameters) usually perform better than smaller ones. Smaller ones are faster and require less memory.
+                <br>
+                <br>
+                <b>Prompt:</b> Explain to the model what it should do. The {report} placeholder will be replaced with the report, do not remove it! Formulate the prompt in a way that the model can just continue writing the prompt and this way generates your desired answer.
+                <br>
+                <br>
+                <b>Grammar:</b> To get a output which can be processed automatically it must be in a machine-readable format. In this case a JSON output is desired. 
+                While newer and bigger models tend to generate valid JSON if you instruct it what exactly to generate, this cannot always be guaranteed. The grammar restricts what the model is allowed to generate, for example it can only generate valid JSON. 
+                <br>
+                Please use the <b>Grammar Builder</b> to design the grammar. You can save and load grammars. At the end, press <b>Generate Full Grammar</b> to apply it.
+                <br>
+                You can still instruct the model in the prompt what it should generate and give more instructions per field. The grammar in the end ensures that the output is always in the correct format.
+                <br>
+            </p> 
+        </div>
 
         
 
