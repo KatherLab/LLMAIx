@@ -32,6 +32,9 @@ def create_parser():
     parser.add_argument("--enable_parallel", action="store_true", default=os.getenv('ENABLE_PARALLEL', 'false') == 'true', help="Parallel llama-cpp processing.")
     parser.add_argument("--parallel_slots", type=int, default=int(os.getenv('PARALLEL_SLOTS', 1)), help="Number of parallel slots for llama processing")
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
+    # kv cache type can be q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl
+    parser.add_argument("--kv_cache_type", type=str, default=os.getenv('KV_CACHE_TYPE', 'q8_0'), choices=["q4_0", "q8_0", "f16", "f32", "q5_0", "q5_1", "q4_1", "iq4_nl"], help="KV cache type")
+    parser.add_argument("--mlock", action="store_true", default=os.getenv('MLOCK', 'true') == 'true', help="Enable memory locking")
     parser.add_argument("--context_size", type=int, default=int(os.getenv('CONTEXT_SIZE', -1)), help="Set custom context size for llama cpp")
     parser.add_argument("--verbose_llama", action="store_true", default=os.getenv('VERBOSE_LLAMA', 'false') == 'true', help="Verbose llama cpp")
     parser.add_argument("--no_password", action="store_true", default=os.getenv('NO_PASSWORD', 'false') == 'true', help="Disable password protection")
@@ -89,6 +92,8 @@ if __name__ == "__main__":
     app.config["CTX_SIZE"] = args.context_size
     app.config["VERBOSE_LLAMA"] = args.verbose_llama
     app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
+    app.config["MLOCK"] = args.mlock
+    app.config["KV_CACHE_TYPE"] = args.kv_cache_type
 
     app.config["MODE"] = args.mode
 

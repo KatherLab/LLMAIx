@@ -187,6 +187,8 @@ def extract_from_report(
     no_parallel: bool = False,
     parallel_slots: int = 1,
     verbose_llama: bool = False,
+    kv_cache_type: str = "q8_0",
+    mlock: bool = True,
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -215,13 +217,12 @@ def extract_from_report(
                 str(n_gpu_layers),
                 "--port",
                 str(llamacpp_port),
-                "--chat-template",
-                "llama3",
                 "--metrics",
                 "-np",
                 str(parallel_slots),
                 "-fa",  # flash attention
-            ] + (["--verbose"] if verbose_llama else []),
+            ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
+            (["-ctk", kv_cache_type, "-ctv", kv_cache_type]),
         )
         current_model = model_name
         model_active = True
@@ -276,14 +277,19 @@ def extract_from_report(
             return await response.json()
 
     async def fetch_completion_result(session, prompt_formatted):
+        json_data = {
+            "prompt": prompt_formatted,
+            "n_predict": n_predict,
+            "temperature": temperature,
+        }
+
+        if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:
+            json_data["grammar"] = grammar
+
+
         async with session.post(
             f"http://localhost:{llamacpp_port}/completion", 
-            json={
-                "prompt": prompt_formatted,
-                "n_predict": n_predict,
-                "temperature": temperature,
-                "grammar": grammar,
-            },
+            json=json_data,
             timeout=20 * 60
         ) as response:
             return await response.json()
@@ -370,14 +376,18 @@ def extract_from_report(
                         message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
                     )
 
+                json_data = {
+                    "prompt": prompt_formatted,
+                    "n_predict": n_predict,
+                    "temperature": temperature,
+                }
+
+                if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:
+                    json_data["grammar"] = grammar
+
                 result = requests.post(
                     url=f"http://localhost:{llamacpp_port}/completion",
-                    json={
-                        "prompt": prompt_formatted,
-                        "n_predict": n_predict,
-                        "temperature": temperature,
-                        "grammar": grammar,
-                    },
+                    json=json_data,
                     timeout=20 * 60,
                 )
 

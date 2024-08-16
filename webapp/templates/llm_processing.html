@@ -9,7 +9,7 @@
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3">
-            <legend>Upload preprocessed documents (.zip)</legend>
+            <legend>Upload Preprocessed Documents (.zip)</legend>
 
             <div class="row">
                 <div class="form-group col-md-12">
@@ -124,7 +124,8 @@
                 <div class="tab-pane fade show active" id="nav-grammar" role="tabpanel" aria-labelledby="nav-grammar-tab" tabindex="0">
                     <fieldset class="form-control p-3">
                         <legend>Grammar</legend>
-                        <div class="row">
+                        <span>To ensure that the results are in the correct format.</span>
+                        <div class="row mt-2">
                             <div class="form-group col-md-12">
                                 <!--{{ form.grammar.label(class="form-control-label") }}-->
             
@@ -141,7 +142,7 @@
                             </div>
                         </div>
                     </fieldset>
-                    
+                    <button type="submit" name="submit-form" class="form-control form-control btn btn-secondary">Run LLM Processing</button>
                 </div>
                 <div class="tab-pane fade" id="nav-grammarbuilder" role="tabpanel" aria-labelledby="nav-grammarbuilder-tab" tabindex="0">
                     <fieldset class="form-control p-3">
@@ -275,7 +276,7 @@
                 {% else %}
                 {{ form.submit(class="form-control form-control", id="submit-form") }}
                 {% endif %}-->
-                <button type="submit" name="submit-form" class="form-control form-control btn btn-secondary">Run LLM Processing</button>
+                
             </div>
         </div>
 

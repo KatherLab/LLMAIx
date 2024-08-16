@@ -1,67 +1,34 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileRequired, FileAllowed, DataRequired
+from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, TextAreaField, FileField, FloatField, validators, SelectField, FormField, FieldList, IntegerField
 from wtforms.validators import ValidationError
 import wtforms
 import os
 
-default_prompt = r"""Du bist ein hilfreicher medizinischer Assistent. Im Folgenden findest du Berichte. Bitte extrahiere die gesuchte Information aus dem Bericht. Wenn du die Information nicht findest, antworte null. Bitte generiere die selbe Form wie im Text.
+default_prompt = r"""From the following medical report, extract the following information and return it in JSON format:
 
-Das ist der Bericht:
+    patientname: The full name of the patient.
+    patientsex: The sex of the patient. Use "m" for male, "w" for female, and "d" for diverse.
+
+This is the medical report:
 {report}"""
 
 
-default_grammar = r"""root   ::= allrecords
-value  ::= object | array | string | number | ("true" | "false" | "null") ws
+default_grammar = r"""root ::= allrecords
 
 allrecords ::= (
   "{"
-  ws "\"patientennachname\":" ws string ","
-  ws "\"patientenvorname\":" ws string ","
-  ws "\"patientenname\":" ws string ","
-  ws "\"patientengeschlecht\":" ws string ","
-  ws "\"patientengeburtsdatum\":" ws string ","
-  ws "\"patientenid\":" ws idartiges ","
-  ws "\"patientenstrasse\":" ws string ","
-  ws "\"patientenhausnummer\":" ws string ","
-  ws "\"patientenpostleitzahl\":" ws plz ","
-  ws "\"patientenstadt\":" ws string ","
-  ws "\"patientengeburtsname\":" ws string ","
+ws "\"patientname\":" ws "\"" char{2,60} "\"" ","
+ws "\"patientsex\":" ws "\"" ( "m" | "w" | "d" ) "\"" ","
+
   ws "}"
   ws
 )
 
-record ::= (
-    "{"
-    ws "\"excerpt\":" ws ( string | "null" ) ","
-    ws "\"present\":" ws ("true" | "false") ws 
-    ws "}"
-    ws
-)
+ws ::= ([ \t\n])?
 
-object ::=
-  "{" ws (
-            string ":" ws value
-    ("," ws string ":" ws value)*
-  )? "}" ws
-
-array  ::=
-  "[" ws (
-            value
-    ("," ws value)*
-  )? "]" ws
 char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
-string ::=
-  "\"" (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char (char)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)? "\"" ws
-
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
-
-plz ::= ("\"" [0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
-idartiges ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] "\"" | "\"\"") ws
-tel ::= ("\"" [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]? "\"" | "\"\"") ws
-
-# Optional space: by convention, applied in this grammar after literal chars when allowed
-ws ::= ([ \t\n])?"""
+"""
 
 
 class FileExistsValidator:
@@ -125,7 +92,7 @@ class LLMPipelineForm(FlaskForm):
     ])
     grammar = TextAreaField("Grammar:", validators=[], default=default_grammar)
 
-    grammarbuilder = FieldList(FormField(GrammarField), min_entries=1, max_entries=10)
+    grammarbuilder = FieldList(FormField(GrammarField), min_entries=1, max_entries=100)
 
     extra_grammar_rules = TextAreaField("Extra Grammar Rules:", validators=[], default="")
 
