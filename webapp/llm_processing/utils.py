@@ -27,6 +27,34 @@ import pandas as pd
 
 #     return personal_info_list_output
 
+
+def replace_umlauts(text):
+    umlaut_replacements = {
+        'ä': 'ae',
+        'ö': 'oe',
+        'ü': 'ue',
+        'Ä': 'Ae',
+        'Ö': 'Oe',
+        'Ü': 'Ue',
+        'ß': 'ss'
+    }
+    
+    for umlaut, replacement in umlaut_replacements.items():
+        text = text.replace(umlaut, replacement)
+    
+    return text
+
+def add_strings_with_no_umlauts(string_list):
+    new_list = []
+    
+    for string in string_list:
+        new_list.append(string)
+        if any(umlaut in string for umlaut in "äöüÄÖÜß"):
+            new_list.append(replace_umlauts(string))
+    
+    return new_list
+
+
 def convert_personal_info_list(personal_info_list: str) -> list:
     import ast
     from collections import OrderedDict
@@ -42,6 +70,9 @@ def convert_personal_info_list(personal_info_list: str) -> list:
     
     # Use list comprehension to filter out empty strings, "nan", and None
     personal_info_list_output = [item for item in personal_info_list if not is_empty_string_nan_or_none(item)]
+
+    # Add another version without umlauts
+    personal_info_list_output = add_strings_with_no_umlauts(personal_info_list_output)
 
     return personal_info_list_output
 
