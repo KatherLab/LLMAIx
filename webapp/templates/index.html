@@ -174,9 +174,9 @@
                             {% if progress_tuple[0] == progress_tuple[1] %}
                             <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
                             {% elif progress_tuple[2] %}
-                            <button class="btn btn-outline-secondary" disabled>Processing...</button>
+                            <a id="download-{{ job_id }}" class="btn btn-outline-secondary" disabled>Processing...</a>
                             {% else %}
-                            <button class="btn btn-outline-danger" disabled>Failed</button>
+                            <a id="download-{{ job_id }}" class="btn btn-outline-danger" disabled>Failed</a>
                             {% endif %}
                         </div>
                     </div>
@@ -224,6 +224,9 @@
         // Enable download button
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/download?job=' + job_id;
+        downloadLink.classList.remove('btn-outline-secondary');
+        downloadLink.classList.add('btn-outline-success');
+        downloadLink.innerHTML = 'Download';
         downloadLink.classList.remove('disabled');
         downloadLink.removeAttribute('disabled');
     });

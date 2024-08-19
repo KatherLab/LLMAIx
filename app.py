@@ -27,6 +27,7 @@ def create_parser():
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
     parser.add_argument("--n_gpu_layers", type=int, default=int(os.getenv('N_GPU_LAYERS', 80)))
     parser.add_argument("--llamacpp_port", type=int, default=int(os.getenv('LLAMACPP_PORT', 2929)))
+    parser.add_argument("--gpu", type=str, default=os.getenv('GPU', "all"), help="Which GPU to use", choices=["all", "0", "1", "2", "3", "4", "5", "6", "7"])
     parser.add_argument("--debug", action="store_true", default=os.getenv('DEBUG', 'false') == 'true')
     parser.add_argument("--mode", type=str, default=os.getenv('MODE', "choice"), choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
     parser.add_argument("--enable_parallel", action="store_true", default=os.getenv('ENABLE_PARALLEL', 'false') == 'true', help="Parallel llama-cpp processing.")
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     app.config["SERVER_PORT"] = args.port
     app.config["CONFIG_FILE"] = args.config_file
     app.config["N_GPU_LAYERS"] = args.n_gpu_layers
+    app.config["GPU"] = args.gpu
     app.config["LLAMACPP_PORT"] = args.llamacpp_port
     app.config["DEBUG"] = args.debug
     app.config["NO_PARALLEL"] = not args.enable_parallel
@@ -66,6 +68,8 @@ if __name__ == "__main__":
 
     app.config["MODE"] = args.mode
 
+    if args.gpu != "all":
+        print("Using GPU " + args.gpu)
 
     # if model path is relative, make it absolute
     if not os.path.isabs(app.config["MODEL_PATH"]):

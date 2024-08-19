@@ -22,14 +22,14 @@
                 <div class="form-group col-md-12">
 
                     {% if form.file.errors %}
-                    {{ form.file(class="form-control form-control-lg is-invalid") }}
+                    {{ form.file(class="form-control form-control is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.file.errors %}
                         <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                     {% else %}
-                    {{ form.file(class="form-control form-control-lg") }}
+                    {{ form.file(class="form-control form-control") }}
                     {% endif %}
                 </div>
 

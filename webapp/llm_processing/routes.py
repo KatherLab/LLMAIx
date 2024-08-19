@@ -189,6 +189,7 @@ def extract_from_report(
     verbose_llama: bool = False,
     kv_cache_type: str = "q8_0",
     mlock: bool = True,
+    gpu: str = "ALL",
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -222,7 +223,8 @@ def extract_from_report(
                 str(parallel_slots),
                 "-fa",  # flash attention
             ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
-            (["-ctk", kv_cache_type, "-ctv", kv_cache_type]),
+            (["-ctk", kv_cache_type, "-ctv", kv_cache_type]) + 
+            (["-sm", "none", "-mg", str(gpu)] if gpu != "ALL" else []),
         )
         current_model = model_name
         model_active = True
@@ -754,6 +756,7 @@ def main():
             no_parallel=current_app.config['NO_PARALLEL'],
             parallel_slots=current_app.config['PARALLEL_SLOTS'],
             verbose_llama=current_app.config['VERBOSE_LLAMA'],
+            gpu=current_app.config['GPU'],
         )
 
         print("Started job successfully!")
