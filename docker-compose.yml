@@ -13,6 +13,7 @@ services:
       - HOST=${HOST:-0.0.0.0}
       - CONFIG_FILE=${CONFIG_FILE:-/models/config.yml}
       - N_GPU_LAYERS=${N_GPU_LAYERS:-80}
+      - GPU=${GPU:-ALL}
       - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}
       - DEBUG=${DEBUG:-true}
       - MODE=${MODE:-choice}

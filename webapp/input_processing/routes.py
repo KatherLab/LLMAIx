@@ -661,12 +661,12 @@ def main():
                 if file.filename.endswith('.csv'):
                     df = pd.read_csv(file_path)
                     if 'id' not in df.columns or 'report' not in df.columns:
-                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        flash(f"CSV file {filename}: Missing 'id' or 'report' column!", "danger")
                         return redirect(url_for('input_processing.main'))
                 elif file.filename.endswith('.xlsx') or file.filename.endswith('.xls'):
                     df = pd.read_excel(file_path)
                     if 'id' not in df.columns or 'report' not in df.columns:
-                        flash(f"File {filename}: Missing 'id' or 'report' column!", "danger")
+                        flash(f"ExcelFile {filename}: Missing 'id' or 'report' column! Are they in the first sheet? Are they without leading or trailing whitespace?", "danger")
                         return redirect(url_for('input_processing.main'))
 
         update_progress(job_id=job_id, progress=(

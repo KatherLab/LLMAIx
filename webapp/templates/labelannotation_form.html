@@ -60,6 +60,46 @@
             </div> -->
         </div>
 
+        <style>
+            .info-callout {
+                border-left: 5px solid #17a2b8; /* Bootstrap info color */
+                background-color: #e9f7fb; /* Lightened info background */
+                padding: 15px;
+                margin-bottom: 5px;
+                margin-top: 20px;
+                border-radius: 4px;
+                color: #0c5460; /* Bootstrap info text color */
+            }
+
+            .warning-callout {
+                border-left: 5px solid #ffc107; /* Bootstrap warning color */
+                background-color: #fff3cd; /* Lightened warning background */
+                padding: 15px;
+                margin-bottom: 5px;
+                margin-top: 20px;
+                border-radius: 4px;
+                color: #856404; /* Bootstrap warning text color */
+            }
+            
+            /* .callout-title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            } */
+        </style>
+
+        <div class="info-callout">
+            <h4 class="callout-title">Information</h4>
+            <p>Your Annotation File should be in .csv or .xlsx format. It must contain an <b>id</b> column and one column for each label. The id column must contain the original filenames (before preprocessing) or the ids which were in the csv / excel file before preprocessing.
+                <br>
+                <br>
+                The names of the label columns must be exactly the same as the names specified in your grammar! 
+                <br>
+                <br>
+                If your labels in the grammar contained whitespaces, they are automatically replaces by underscores. Please make sure that your label column names do not contain whitespaces!
+            </p>
+        </div>
+
     </form>
 
 </div>

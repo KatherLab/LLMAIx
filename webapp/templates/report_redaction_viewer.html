@@ -5,7 +5,10 @@
 
     {% if session["current_redaction_job"] %}
     <!-- Button to go back to metrics page with job_id -->
-    <a class="btn btn-outline-info mb-3" href="{{ url_for('report_redaction.report_redaction_metrics', job_id=session['current_redaction_job']) }}">↩ <i><b>Back to Metrics Summary Page</b></i></a>
+
+    <a class="btn btn-outline-info mb-4" href="{{ url_for('report_redaction.report_redaction_metrics', job_id=session['current_redaction_job']) }}">
+        <i class="bi bi-arrow-left-circle"></i> <b>Back to Metrics Summary Page</b>
+    </a>
     {% endif %}
     <h2>Report Redaction Viewer</h2>
     <div class="d-flex justify-content-between align-items-center">

@@ -122,63 +122,130 @@
 
             </div>
 
+            <div class="row p-3">
+                <div class="form-group col-md-4">
+                    <button type="submit" name="submit-metrics"
+                        class="form-control btn btn-secondary">Calculate Report Redaction Metrics Summary</button>
+                </div>
+                <div class="form-group col-md-4">
+                    <button type="submit" name="submit-viewer" class="form-control btn btn-secondary">Report
+                        Redaction Viewer (document-wise)</button>
+                </div>
+                <div class="form-group col-md-4">
+                    <button type="submit" name="submit-redaction-download"
+                        class="form-control btn btn-secondary">Download Redacted Reports</button>
+                </div>
+            </div>
+
+            <style>
+                .info-callout {
+                    border-left: 5px solid #17a2b8; /* Bootstrap info color */
+                    background-color: #e9f7fb; /* Lightened info background */
+                    padding: 15px;
+                    margin-bottom: 5px;
+                    margin-top: 20px;
+                    border-radius: 4px;
+                    color: #0c5460; /* Bootstrap info text color */
+                }
+    
+                .warning-callout {
+                    border-left: 5px solid #ffc107; /* Bootstrap warning color */
+                    background-color: #fff3cd; /* Lightened warning background */
+                    padding: 15px;
+                    margin-bottom: 5px;
+                    margin-top: 20px;
+                    border-radius: 4px;
+                    color: #856404; /* Bootstrap warning text color */
+                }
+                
+                /* .callout-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                } */
+            </style>
+    
+            <div class="info-callout">
+                <h4 class="callout-title">Information</h4>
+                <p>The ground truth <b>Annotation</b> must be created using the <a href="https://inception-project.github.io/">Inception Annotation Tool</a>.
+                <ol>
+                    <li>Download Inception</li>
+                    <li>Start a basic annotation project, upload the pdf files and annotate the parts of the reports you want to anonymize. Refer to the <a href="https://inception-project.github.io/releases/32.2/docs/user-guide.html">Inception User Guide</a>
+                    </li>
+                    <li>Export the annotated reports in the UIMA CAS JSON format (UIMA CAS JSON 0.4.0)
+                    </li>
+                    <li>Make shure the filename of the exported json files matches the filename of the pdf files (except the extension like .json and .pdf)
+                    </li>
+                    <li>Create a zip file of the exported json files (zip the json files directly, not a directory where they are located!)
+                    </li>
+                </ol>
+
+                The detected information to redact from the LLM will be matched with the document-text in an case-insensitive way. German umlauts are taken care of and both versions are matched.
+                <br>
+                <br>
+                You can use fuzzy matching (still match even if the exact match is not found) by selecting the <b>Fuzzy Matching</b> option. You can set a similarity threshold (min. similarity that this is indeed the information to match), the method and an option to exclude single characters (like a house number which would lead to all occurrences of this number in the document being matched).
+
+                <br>
+                <br>
+
+                The <b>metrics</b> are calculated on a per-character basis for the whole text ignoring whitespaces and other special characters.
+
+
+                <br>
+                <br>
+
+
+                You can also directly download the redacted documents: <b>Download Redacted Documents</b>
+    
+
+                </p>
+            </div>
+
         </fieldset>
 
-        <div class="row p-3">
-            <div class="form-group col-md-4">
-                <button type="submit" name="submit-metrics"
-                    class="form-control btn btn-secondary">Calculate Report Redaction Metrics Summary</button>
-            </div>
-            <div class="form-group col-md-4">
-                <button type="submit" name="submit-viewer" class="form-control btn btn-secondary">Report
-                    Redaction Viewer (document-wise)</button>
-            </div>
-            <div class="form-group col-md-4">
-                <button type="submit" name="submit-redaction-download"
-                    class="form-control btn btn-secondary">Download Redacted Reports</button>
-            </div>
-        </div>
+        
 
     </form>
 </div>
 <div class="content-section pt-3">
 
-    <h1>Report Redaction Progress</h1>
-    {% for job_id, progress_tuple in progress.items() %}
-    <div class="container p-2 mb-3">
-        <h3>Job {{ job_id }}</h3>
-        <div class="row">
-            <div class="col">
-
-                <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
-                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 100%;">
-                    {% if progress_tuple[2] %}
-                    <div class="progress-bar overflow-visible bg-success"
-                        style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" id="progress-{{ job_id }}">
-                        {{ progress_tuple[0] }} / {{ progress_tuple[1] }}</div>
+    <div class="container mt-5">
+        <h1 class="display-4 text-center mb-4">Report Redaction Progress</h1>
+        {% for job_id, progress_tuple in progress.items() %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h5 mb-0">Job {{ job_id }}</h3>
+                    {% if progress_tuple[0] == progress_tuple[1] %}
+                    <a id="download-{{ job_id }}" href="/reportredactionmetrics/{{ job_id }}" class="btn btn-outline-success">
+                        <i class="bi bi-bar-chart-line"></i> View Metrics
+                    </a>
+                    {% elif progress_tuple[2] %}
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-outline-success disabled" disabled>
+                        <i class="bi bi-bar-chart-line"></i> Processing ...
+                    </a>
                     {% else %}
-                    <div class="progress-bar overflow-visible bg-danger" style="width: 100%;"
-                        id="progress-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</div>
+                    <a id="download-{{ job_id }}" href="#" class="btn btn-outline-danger disabled" disabled>
+                        <i class="bi bi-x-circle"></i> Failed
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="progress" style="height: 25px;">
+                    {% if progress_tuple[2] %}
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}">
+                        {{ progress_tuple[0] }} / {{ progress_tuple[1] }}
+                    </div>
+                    {% else %}
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                        {{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED
+                    </div>
                     {% endif %}
                 </div>
             </div>
-            <div class="col-auto">
-                {% if progress_tuple[0] == progress_tuple[1] %}
-                <a id="download-{{ job_id }}" href="/reportredactionmetrics/{{ job_id }}" class="btn btn-success">View
-                    Metrics</a>
-                {% elif progress_tuple[2] %}
-                <a id="download-{{ job_id }}" href="#" class="btn btn-success disabled" disabled>View Metrics</a>
-                {% else %}
-                <a id="download-{{ job_id }}" href="#" class="btn btn-danger disabled" disabled>View Metrics</a>
-                {% endif %}
-            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-
-
-
-
+    
     <div id="flash-messages" class="container"></div>
 </div>
 
@@ -230,6 +297,7 @@
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/reportredactionmetrics/' + job_id;
         downloadLink.classList.remove('disabled');
+        downloadLink.innerText = 'View Metrics';
         downloadLink.removeAttribute('disabled');
     });
 

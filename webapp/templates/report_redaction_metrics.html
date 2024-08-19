@@ -3,11 +3,11 @@
 {% block content %}
 <div class="nested-container">
 
+    <a class="btn btn-outline-info mb-4" href="{{ url_for('report_redaction.main') }}">
+        <i class="bi bi-arrow-left-circle"></i> <b>Back to Report Redaction Form</b>
+    </a>
 
-    <a class="btn btn-outline-info mb-3" href="{{ url_for('report_redaction.main') }}">↩ <i><b>Back to Report Redaction Form</b></i></a>
-
-
-    <h2>Report Redaction Summary</h2>
+    <h1 class="display-4 text-center mb-3">Report Redaction Summary</h1>
 
     <div class="card mt-3 mb-3 shadow-sm">
         <div class="card-header">
@@ -233,13 +233,13 @@
 
     <div class="btn-group mb-3">
         <a href="{{ url_for('report_redaction.download_all', job_id=job_id) }}"
-            class="btn btn-outline-secondary">Download All</a>
+            class="btn btn-outline-secondary"><i class="bi bi-download"></i> Download All</a>
 
         {% if metadata %}
 
         <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetadata"
             aria-expanded="false" aria-controls="collapseMetadata">
-            Show Metadata
+            <i class="bi bi-info-circle"></i> Show Metadata
         </button>
 
         {% endif %}

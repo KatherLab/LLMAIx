@@ -671,7 +671,7 @@ def main():
 
             if df is None:
                 flash(
-                    "Zip file seems to be malformed or in a not supported format! Is there a csv file in it?",
+                    "Preprocessed zip file seems to be malformed or in a not supported format! Is there a csv file in it? Please note that the zip file must not contain a directory!",
                     "danger",
                 )
                 return render_template("llm_processing.html", form=form)
@@ -779,7 +779,7 @@ def llm_download():
     job_id = request.args.get("job")
 
     if job_id not in llm_jobs:
-        flash("Job not found!", "danger")
+        flash("LLM Job not found!", "danger")
         return redirect(url_for("llm_processing.llm_results"))
 
     job = llm_jobs[job_id]

@@ -1040,7 +1040,7 @@ def labelannotationviewer():
 
     df = find_llm_output_csv(pdf_file_zip)
     if df is None or len(df) == 0:
-        flash("No CSV file found in the uploaded file!", "danger")
+        flash("No llm output CSV file found in the uploaded zip file! Is this a llm output zip file? Note: If you extract and re-zip the llm output file, the content must not be in a directory.", "danger")
         return redirect(request.url)
     
     df["report_id_short"] = (
@@ -1062,7 +1062,7 @@ def labelannotationviewer():
     elif annotation_file.endswith(".xlsx"):
         df_annotation = pd.read_excel(annotation_file, dtype=str)
     else:
-        flash("Invalid annotation file format!", "danger")
+        flash("Invalid annotation file format! Only CSV and XLSX files are supported.", "danger")
         return redirect(request.url)
     
     if df_annotation is not None and len(df_annotation) == 0:
