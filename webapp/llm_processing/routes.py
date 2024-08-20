@@ -190,6 +190,7 @@ def extract_from_report(
     kv_cache_type: str = "q8_0",
     mlock: bool = True,
     gpu: str = "ALL",
+    flash_attention: bool = False,
 ) -> dict[Any]:
     print("Extracting from report")
     # Start server with correct model if not already running
@@ -221,10 +222,10 @@ def extract_from_report(
                 "--metrics",
                 "-np",
                 str(parallel_slots),
-                "-fa",  # flash attention
             ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
             (["-ctk", kv_cache_type, "-ctv", kv_cache_type]) + 
-            (["-sm", "none", "-mg", str(gpu)] if gpu != "ALL" else []),
+            (["-sm", "none", "-mg", str(gpu)] if gpu != "ALL" else [])+
+            (["-fa"] if flash_attention else []),
         )
         current_model = model_name
         model_active = True
@@ -240,16 +241,7 @@ def extract_from_report(
         while True:
             try:
                 response = requests.get(f"http://localhost:{llamacpp_port}/health")
-                if response.json()["status"] == "ok":
-                    break
-                elif response.json()["status"] == "error":
-                    socketio.emit("load_failed")
-                    return
-                elif response.json()["status"] == "no slot available":
-                    warning_job(
-                        job_id=job_id,
-                        message="Model loaded, but currently no slots available",
-                    )
+                if response.status_code == 200 and response.json()["status"] == "ok":
                     break
                 time.sleep(1)
             except requests.exceptions.ConnectionError:
@@ -298,52 +290,61 @@ def extract_from_report(
 
     async def process_report(session, report, id, index, progress_bar, skipped):
         # global skipped
-        if is_empty_string_nan_or_none(report):
-            print("SKIPPING EMPTY REPORT!")
-            skipped += 1
-            update_progress(
-                job_id=job_id, progress=(progress_bar.n + 1 - skipped, len(df) - skipped, True)
-            )
+        try:
+            if is_empty_string_nan_or_none(report):
+                print("SKIPPING EMPTY REPORT!")
+                skipped += 1
+                update_progress(
+                    job_id=job_id, progress=(progress_bar.n + 1 - skipped, len(df) - skipped, True)
+                )
+                progress_bar.update(1)
+                return
+
+            for symptom in symptoms:
+                prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+                
+                tokenized_result = await fetch_tokenized_result(session, prompt_formatted)
+                num_prompt_tokens = len(tokenized_result["tokens"])
+
+                if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
+                    print(
+                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
+                    )
+                    warning_job(
+                        job_id=job_id,
+                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
+                    )
+
+                summary = await fetch_completion_result(session, prompt_formatted)
+
+                if id not in results:
+                    results[id] = {}
+
+                results[id]["report"] = report
+                results[id]["symptom"] = symptom
+                results[id]["summary"] = summary
+
             progress_bar.update(1)
-            return
-
-        for symptom in symptoms:
-            prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+            update_progress(
+                job_id=job_id, progress=(progress_bar.n - skipped, len(df) - skipped, True)
+            )
+        except Exception as e:
+            print("REPORT ERROR - ", id)
+            print(e)
             
-            tokenized_result = await fetch_tokenized_result(session, prompt_formatted)
-            num_prompt_tokens = len(tokenized_result["tokens"])
-
-            if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
-                print(
-                    f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
-                )
-                warning_job(
-                    job_id=job_id,
-                    message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
-                )
-
-            summary = await fetch_completion_result(session, prompt_formatted)
-
-            if id not in results:
-                results[id] = {}
-
-            results[id]["report"] = report
-            results[id]["symptom"] = symptom
-            results[id]["summary"] = summary
-
-        progress_bar.update(1)
-        update_progress(
-            job_id=job_id, progress=(progress_bar.n - skipped, len(df) - skipped, True)
-        )
 
     async def main():
         async with aiohttp.ClientSession() as session:
-            with tqdm(total=len(df), desc="Processing Reports") as progress_bar:
-                tasks = []
-                for i, (report, id) in enumerate(zip(df.report, df.id)):
-                    print("parsing report: ", i)
-                    tasks.append(process_report(session, report, id, i, progress_bar, skipped))
-                await asyncio.gather(*tasks)
+            try:
+                with tqdm(total=len(df), desc="Processing Reports") as progress_bar:
+                    tasks = []
+                    for i, (report, id) in enumerate(zip(df.report, df.id)):
+                        print("parsing report: ", i)
+                        tasks.append(process_report(session, report, id, i, progress_bar, skipped))
+                    await asyncio.gather(*tasks)
+            except Exception as e:
+                print("PARALLEL ERROR:")
+                print(e)
 
     if not no_parallel:
         print("RUN PARALLELLY")
@@ -382,6 +383,7 @@ def extract_from_report(
                     "prompt": prompt_formatted,
                     "n_predict": n_predict,
                     "temperature": temperature,
+                    "cache_prompt": True,
                 }
 
                 if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:
@@ -565,26 +567,48 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
 
     return aggregated_df, error_count
 
+def is_path(string):
+    # Check for directory separators
+    if '/' in string or '\\' in string:
+        return True
 
-def get_context_size(yaml_filename, model_name, context_size_config):
+    # Check if it's an absolute path
+    if os.path.isabs(string):
+        return True
 
-    if context_size_config is not None and context_size_config > 0:
-        return context_size_config
+    # Check if the directory part of the path exists
+    if os.path.dirname(string) and os.path.exists(os.path.dirname(string)):
+        return True
+
+    return False
+
+def get_model_config(model_dir, config_file, model_file_path):
+
+    # Example model config:
+    # models:
+    #     - name: "llama3.1_8b_instruct_q8"
+    #         display_name: "LLaMA 3.1 8B Instruct Q8_0"
+    #         file_name: "Meta-Llama-3.1-8B-Instruct-Q8_0.gguf"
+    #         model_context_size: 128000
+    #         kv_cache_size: 128000
+    #         kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
+    #         flash_attention: true # does not work for some models
+    #         mlock: true
+    #         server_slots: 8
+    #         seed: 42
+    #         n_gpu_layers: 33
 
     import yaml
 
-    with open(yaml_filename, "r") as file:
+    if not is_path(config_file):
+        config_file = os.path.join(model_dir, config_file)
+
+    with open(config_file, "r") as file:
         config_data = yaml.safe_load(file)
 
-    # print(config_data)
-    # print("Find ", model_name)
-
-    for model in config_data["models"]:
-        if model["path_to_gguf"] == model_name:
-            return int(model["context_size"])
-
-    print("FAILED TO FIND CONTEXT SIZE")
-    return None  # Model not found in the YAML file
+        for model_dict in config_data["models"]:
+            if model_dict["file_name"] == model_file_path:
+                return model_dict
 
 
 @llm_processing.route("/llm", methods=["GET", "POST"])
@@ -593,14 +617,20 @@ def main():
     try:
         import yaml
 
-        with open(current_app.config["CONFIG_FILE"], 'r') as file:
+        config_file_path = current_app.config["CONFIG_FILE"]
+
+        if not is_path(config_file_path):
+            config_file_path = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
+
+        with open(config_file_path, 'r') as file:
             config_data = yaml.safe_load(file)
     except Exception as e:
         flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
         return redirect(request.referrer)
 
+
     form = LLMPipelineForm(
-        current_app.config["CONFIG_FILE"], current_app.config["MODEL_PATH"]
+        config_file_path, current_app.config["MODEL_PATH"]
     )
     form.variables.render_kw = {"disabled": "disabled"}
 
@@ -709,6 +739,8 @@ def main():
         print("Run job!")
         global llm_jobs
 
+        model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
+
         # extract_from_report(
         #     df=df,
         #     model_name=form.model.data,
@@ -744,19 +776,20 @@ def main():
             model_path=current_app.config["MODEL_PATH"],
             server_path=current_app.config["SERVER_PATH"],
             n_predict = form.n_predict.data,
-            ctx_size=get_context_size(
-                current_app.config["CONFIG_FILE"], form.model.data, current_app.config['CTX_SIZE']
-            ),
-            n_gpu_layers=current_app.config["N_GPU_LAYERS"],
+            ctx_size=model_config['kv_cache_size'],
+            n_gpu_layers=model_config['n_gpu_layers'],
             job_id=job_id,
             zip_file_path=zip_file_path or None,
             llamacpp_port=current_app.config["LLAMACPP_PORT"],
             debug=current_app.config["DEBUG"],
             model_name_name=model_name,
             no_parallel=current_app.config['NO_PARALLEL'],
-            parallel_slots=current_app.config['PARALLEL_SLOTS'],
+            parallel_slots=model_config['server_slots'],
             verbose_llama=current_app.config['VERBOSE_LLAMA'],
             gpu=current_app.config['GPU'],
+            flash_attention=model_config['flash_attention'],
+            mlock=model_config['mlock'],
+            kv_cache_type=model_config['kv_cache_quants'],
         )
 
         print("Started job successfully!")

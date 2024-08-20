@@ -73,7 +73,7 @@ class LLMPipelineForm(FlaskForm):
             config_data = yaml.safe_load(file)
 
         # Extract model choices from config data
-        model_choices = [(model["path_to_gguf"], model["name"])
+        model_choices = [(model["file_name"], model["display_name"])
                          for model in config_data["models"]]
 
         # Set choices for the model field

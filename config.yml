@@ -1,58 +1,15 @@
 models:
-  - name: "LLaMA 2 7b chat sauerkraut"
-    path_to_gguf: "sauerkrautlm-7b-v1.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "LLaMA 2 13b chat sauerkraut"
-    path_to_gguf: "sauerkrautlm-13b-v1.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "LLaMA 2 70b chat sauerkraut"
-    path_to_gguf: "sauerkrautlm-70b-v1.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "Mistral 7b Instruct"
-    path_to_gguf: "mistral-7b-instruct-v0.1.Q5_K_M.gguf"
-    context_size: 8192
-  - name: "Mistral 8x7b Instruct"
-    path_to_gguf: "mixtral-8x7b-instruct-v0.1.Q5_K_M.gguf"
-    context_size: 8192
-  - name: "LLaMA 3 8B Instruct Q5_K_M"
-    path_to_gguf: "Meta-Llama-3-8B-Instruct.Q5_K_M.gguf"
-    context_size: 8192
-  - name: "LLaMA 3 70B Instruct Q5_K_M"
-    path_to_gguf: "Meta-Llama-3-70B-Instruct.Q5_K_M.gguf"
-    context_size: 8192
-  - name: "LLaMA 3 70B Instruct Q4_K_M"
-    path_to_gguf: "Meta-Llama-3-70B-Instruct.Q4_K_M.gguf"
-    context_size: 8192
-  - name: "Phi 3 mini 128k instruct Q8"
-    path_to_gguf: "Phi-3-mini-128k-instruct.Q8_0.gguf"
-    context_size: 64000
-  - name: "Phi 3 mini 4k Instruct fp16"
-    path_to_gguf: "Phi-3-mini-4k-instruct-fp16.gguf"
-    context_size: 4096
-  - name: "Gemma 7B Q4_K_M"
-    path_to_gguf: "gemma-7b.Q4_K_M.gguf"
-    context_size: 8192
-  - name: "LLaMA 2 7b chat"
-    path_to_gguf: "llama-2-7b-chat.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "LLaMA 2 13b chat"
-    path_to_gguf: "llama-2-13b-chat.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "LLaMA 2 70b chat"
-    path_to_gguf: "llama-2-70b-chat.Q5_K_M.gguf"
-    context_size: 4096
-  - name: "Qwen 2 7b Instruct Q5_K_M"
-    path_to_gguf: "qwen2-7b-instruct-q5_k_m.gguf"
-    context_size: 32768
-  - name: "Qwen 2 72b Instruct Q4_K_M"
-    path_to_gguf: "qwen2-72b-instruct-q4_k_m.gguf"
-    context_size: 32768
-  - name: "Meta-Llama-3.1 8B-Instruct"
-    path_to_gguf: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
-    context_size: 128000
-  - name: "Meta-Llama-3.1 70B-Instruct"
-    path_to_gguf: "Meta-Llama-3.1-70B-Instruct-Q4_K_M.gguf"
-    context_size: 16000
+  - name: "llama3.1_8b_instruct_q5km"
+    display_name: "LLaMA 3.1 8B Instruct Q5_K_M"
+    file_name: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
+    model_context_size: 128000
+    kv_cache_size: 16000
+    kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
+    flash_attention: true # does not work for some models
+    mlock: true
+    server_slots: 2
+    seed: 42
+    n_gpu_layers: 33
 
     
 
