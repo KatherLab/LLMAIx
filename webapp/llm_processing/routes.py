@@ -222,6 +222,13 @@ def extract_from_report(
                 "--metrics",
                 "-np",
                 str(parallel_slots),
+                "-cb",
+                "-ns",
+                "128",
+                "-b",
+                "2048",
+                "-ub",
+                "2048",
             ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
             (["-ctk", kv_cache_type, "-ctv", kv_cache_type]) + 
             (["-sm", "none", "-mg", str(gpu)] if gpu != "ALL" else [])+
@@ -275,6 +282,7 @@ def extract_from_report(
             "prompt": prompt_formatted,
             "n_predict": n_predict,
             "temperature": temperature,
+            "cache_prompt": True
         }
 
         if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:

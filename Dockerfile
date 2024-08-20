@@ -23,7 +23,7 @@ WORKDIR /build
 # Clone and build llama.cpp
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
-    CUDA_DOCKER_ARCH=compute_86 make GGML_CUDA=1 -j 2
+    CUDA_DOCKER_ARCH=compute_89 make GGML_CUDA=1 -j 8
 
 
 # Set the working directory
@@ -33,7 +33,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Hopefully with CUDA support
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+# RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
 
 # Install the required Python packages
