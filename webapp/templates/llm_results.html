@@ -2,6 +2,8 @@
 {% block content %}
 
 <style>
+
+
     .loading-circle {
         border: 4px solid #f3f3f3;
         /* Light grey */
@@ -30,6 +32,21 @@
 
     .visible {
         display: block;
+    }
+
+    .progress {
+        position: relative; /* Set positioning context for the label */
+    }
+    .progress-bar {
+        min-width: 2em; /* Ensure a minimum width for the progress bar */
+    }
+    .progress-label {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        line-height: 30px; /* Match the height of your progress bar */
+        color: #000; /* Default color for zero progress */
+        z-index: 1; /* Ensure the label is above the progress bar */
     }
 </style>
 
@@ -67,14 +84,17 @@
     <div class="card-body">
         <h3 class="card-title">Job {{ job_id }}</h3>
         <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
+            <div class="flex-grow-1 me-2">
                 <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
-                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 1.5rem;">
+                    aria-valuemax="{{ progress_tuple[1] }}" style="height: 30px;">
                     {% if progress_tuple[2] %}
                     <div id="progress-{{ job_id }}" class="progress-bar bg-success"
                         style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">
-                        <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>
+                        <!--<span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>-->
                     </div>
+                    <span class="progress-label" id="progress-label-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>
+
+                    
                     {% else %}
                     <div id="progress-{{ job_id }}" class="progress-bar bg-danger" style="width: 100%;">
                         <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</span>
@@ -86,9 +106,9 @@
                 {% if progress_tuple[0] == progress_tuple[1] %}
                 <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
                 {% elif progress_tuple[2] %}
-                <a id="download-{{ job_id }}" class="btn btn-outline-secondary" disabled>Processing...</a>
+                <a id="download-{{ job_id }}" class="btn btn-outline-secondary disabled" disabled>Processing...</a>
                 {% else %}
-                <a id="download-{{ job_id }}" class="btn btn-outline-danger" disabled>Failed</a>
+                <a id="download-{{ job_id }}" class="btn btn-outline-danger disabled" disabled>Failed</a>
                 {% endif %}
             </div>
         </div>
@@ -126,6 +146,19 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
 <script>
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                const label = bar.parentElement.querySelector('.progress-label');
+                const progress = parseFloat(bar.style.width);
+                if (progress > 0) {
+                    label.style.color = '#fff'; // White text on non-zero progress
+                }
+            });
+        });
+
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     socket.on('llm_progress_update', function (data) {
@@ -138,7 +171,17 @@
         var progressBar = document.getElementById('progress-' + job_id);
         if (progressBar) {
             progressBar.style.width = (progress / totalSteps) * 100 + '%';
-            progressBar.innerText = progress + ' / ' + totalSteps + ' Remaining Time: ' + remaining_time;
+            // progressBar.innerText = progress + ' / ' + totalSteps + ' Remaining Time: ' + remaining_time;
+        }
+
+        var progress_label = document.getElementById('progress-label-' + job_id);
+        if (progress_label) {
+            progress_label.innerText = progress + ' / ' + totalSteps + ' Remaining Time: ' + remaining_time;
+        }
+
+        // make progress label text white if progress is bigger than 50%
+        if (progress > totalSteps * 0.5) {
+            progress_label.style.color = '#fff';
         }
     });
 
