@@ -320,7 +320,7 @@ def extract_from_report(
                     )
                     warning_job(
                         job_id=job_id,
-                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
+                        message=f"Report: {id}. Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
                     )
 
                 summary = await fetch_completion_result(session, prompt_formatted)
