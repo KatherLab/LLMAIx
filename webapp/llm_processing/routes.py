@@ -231,7 +231,7 @@ def extract_from_report(
                 "2048",
             ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
             (["-ctk", kv_cache_type, "-ctv", kv_cache_type] if kv_cache_type != "" else []) + 
-            (["-sm", "none", "-mg", str(gpu)] if gpu != "ALL" else [])+
+            (["-sm", "none", "-mg", str(gpu)] if gpu not in ["all", "ALL", "mps", ""] else [])+
             (["-fa"] if flash_attention else []),
         )
         current_model = model_name
@@ -307,6 +307,8 @@ def extract_from_report(
                 )
                 progress_bar.update(1)
                 return
+            
+            print("llm processing report: ", index)
 
             for symptom in symptoms:
                 prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
@@ -339,6 +341,18 @@ def extract_from_report(
         except Exception as e:
             print("REPORT ERROR - ", id)
             print(e)
+
+    # always submit a few more jobs, so the server can run without interruption
+    MAX_CONCURRENT_REQUESTS = parallel_slots + 5
+
+    # Semaphore to limit the number of concurrent requests
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+
+    async def process_report_limited(session, report, id, i, progress_bar, skipped):
+        async with semaphore:  # Limit the number of concurrent requests
+            return await process_report(session, report, id, i, progress_bar, skipped)
+
+
             
 
     async def main():
@@ -348,7 +362,7 @@ def extract_from_report(
                     tasks = []
                     for i, (report, id) in enumerate(zip(df.report, df.id)):
                         print("parsing report: ", i)
-                        tasks.append(process_report(session, report, id, i, progress_bar, skipped))
+                        tasks.append(process_report_limited(session, report, id, i, progress_bar, skipped))
                     await asyncio.gather(*tasks)
             except Exception as e:
                 print("PARALLEL ERROR:")
