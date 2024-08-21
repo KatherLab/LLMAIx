@@ -10,7 +10,4 @@ models:
     server_slots: 2
     seed: 42
     n_gpu_layers: 33
-
-    
-
     

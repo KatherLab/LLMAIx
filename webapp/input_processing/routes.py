@@ -364,6 +364,8 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                         page = ocr_pdf.load_page(page_num)
                         ocr_text += page.get_text()
 
+            ocr_text = ocr_text.replace("'", "").replace('"', '')
+
             merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
         elif file_path.endswith('.txt'):
@@ -553,6 +555,7 @@ def download():
 
                 # Drop unnecessary columns and save the dataframe to a CSV file
                 df.drop(columns=['filepath'], inplace=True)
+                df['report'] = df['report'].str.replace('\n', '\\n')
                 df.to_csv(csv_filepath, index=False)
 
                 # Write the CSV file to the zip archive
