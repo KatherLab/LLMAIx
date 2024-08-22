@@ -60,7 +60,7 @@ def convert_personal_info_list(personal_info_list: str) -> list:
     from collections import OrderedDict
 
     # Clean the input string
-    personal_info_list = personal_info_list.replace("nan,", "").replace("'',", "")
+    personal_info_list = personal_info_list.replace("nan,", "").replace("'',", "").replace("nan", '')
     
     # Convert to list
     personal_info_list = ast.literal_eval(personal_info_list)
