@@ -155,6 +155,9 @@ def main():
         session["threshold"] = form.threshold.data
         session["exclude_single_chars"] = form.exclude_single_chars.data
         session["scorer"] = form.scorer.data
+        
+        session["ignore_labels"] = form.ignore_labels.data.split(";")
+        print("Ignore labels: ", session["ignore_labels"])
 
         session["redacted_pdf_filename"] = None
         session["annotation_pdf_filepath"] = None
@@ -181,7 +184,7 @@ def main():
         
         if 'submit-redaction-download' in request.form:
 
-            def convert_personal_info_dict(df, report_id):
+            def convert_personal_info_dict(df, report_id, ignore_labels:list[str] = []):
                 try:
                     # Extract all column values for the current report ID, except column 'id', 'report', 'metadata' and 'report_redacted', put them in a dict with the column name as the key
 
@@ -193,6 +196,7 @@ def main():
                             and column_name != "metadata"
                             and column_name != "report_redacted"
                             and column_name != "masked_report"
+                            and column_name not in ignore_labels
                         ):
                             personal_info_dict[column_name] = df[df["id"] == report_id][
                                 column_name
@@ -326,7 +330,8 @@ def main():
                 enable_fuzzy=session.get('enable_fuzzy', False), 
                 threshold=session.get('threshold', 90), 
                 exclude_single_chars=session.get('exclude_single_chars', False), 
-                scorer=session.get('scorer', None)
+                scorer=session.get('scorer', None),
+                ignore_labels=session.get('ignore_labels', [])
             )
 
             # wait 0.5s
@@ -346,7 +351,7 @@ def main():
     )
 
 
-def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy=False, threshold=90, exclude_single_chars=False, scorer=None):
+def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy=False, threshold=90, exclude_single_chars=False, scorer=None,ignore_labels:list[str]=[]):
     # print("Run Report List Generator")
     report_list = []
 
@@ -387,6 +392,7 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
             personal_info_dict = {
                 key: convert_personal_info_list(value)
                 for key, value in personal_info_dict.items()
+                if key not in ignore_labels
             }
 
             orig_pdf_path = os.path.join(pdf_file_zip, f"{row['id']}.pdf")
@@ -442,6 +448,8 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
                         value,
                         report_dict["original_text"],
                     )
+                elif key in ignore_labels:
+                    report_dict["scores"][key] = {}
                 else:
                     print(
                         "Key not found in annotated_text_labelwise: ",
@@ -449,8 +457,6 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
                         " in report: ",
                         row["id"],
                     )
-
-            # report_dict['scores'], report_dict["confusion_matrix_filepath"] =
 
             report_list.append(report_dict)
 
@@ -805,6 +811,7 @@ def report_redaction_viewer(report_id):
     try:
         # Extract all column values for the current report ID, except column 'id', 'report', 'metadata' and 'report_redacted', put them in a dict with the column name as the key
 
+        print("Viewer: IGNORE ", session.get("ignore_labels", []))
         personal_info_dict = {}
         for column_name in df.columns:
             if (
@@ -813,6 +820,7 @@ def report_redaction_viewer(report_id):
                 and column_name != "metadata"
                 and column_name != "report_redacted"
                 and column_name != "masked_report"
+                and column_name not in session.get("ignore_labels", [])
             ):
                 personal_info_dict[column_name] = df[df["id"] == report_id][
                     column_name
@@ -826,7 +834,10 @@ def report_redaction_viewer(report_id):
     personal_info_dict = {
         key: convert_personal_info_list(value)
         for key, value in personal_info_dict.items()
+        if key not in session.get("ignore_labels", [])
     }
+
+    print("personal_info_dict", personal_info_dict)
 
     # personal_info_list = convert_personal_info_list(personal_info_list)
 
@@ -1059,7 +1070,21 @@ def load_redacted_pdf(
 
     # dollartext_redacted = generated_dollartext_stringlist(filename, personal_info_list, fuzzy_matches, ignore_short_sequences=1 if exclude_single_chars else 0, text=text)
 
+    # regenerate personal_info_dict["personal_info_list"] with the other keys in the dict, if they are there
+
+    personal_info_dict["personal_info_list"] = []
+    for key, value in personal_info_dict.items():
+        if key != "personal_info_list":
+            personal_info_dict["personal_info_list"].extend(value)
+
+    fuzzy_matches_dict["personal_info_list"] = []
+    for key, value in fuzzy_matches_dict.items():
+        if key != "personal_info_list":
+            fuzzy_matches_dict["personal_info_list"].extend(value)
+
+
     # Redact with full personal info
+
     anonymize_pdf(
         filename,
         personal_info_dict["personal_info_list"],

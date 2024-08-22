@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import SubmitField, BooleanField, FileField, validators, SelectField, IntegerField
+from wtforms import StringField, SubmitField, BooleanField, FileField, validators, SelectField, IntegerField
 
 
 class ReportRedactionForm(FlaskForm):
@@ -22,6 +22,8 @@ class ReportRedactionForm(FlaskForm):
                          ('QRatio', 'QRatio'), ('WRatio', 'WRatio')])
 
     exclude_single_chars = BooleanField("Exclude single characters")
+
+    ignore_labels = StringField("Ignore Labels (separated by semi-colon)", validators=[validators.Optional()])
 
     submit = SubmitField("Report Redaction Viewer")
     submit_scores = SubmitField("Report Redaction Metrics")

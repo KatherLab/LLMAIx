@@ -352,9 +352,6 @@ def extract_from_report(
         async with semaphore:  # Limit the number of concurrent requests
             return await process_report(session, report, id, i, progress_bar, skipped)
 
-
-            
-
     async def main():
         async with aiohttp.ClientSession() as session:
             try:
