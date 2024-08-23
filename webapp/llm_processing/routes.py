@@ -79,7 +79,8 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
     llm_progress[job_id] = progress
 
     # Calculate elapsed time since the job started
-    if job_id not in start_times:
+
+    if job_id not in start_times or progress[0] == 0:
         start_times[job_id] = time.time()
     elapsed_time = time.time() - start_times[job_id]
 
@@ -364,6 +365,10 @@ def extract_from_report(
             except Exception as e:
                 print("PARALLEL ERROR:")
                 print(e)
+
+    update_progress(
+        job_id=job_id, progress=(0, len(df), True)
+    )
 
     if not no_parallel:
         print("RUN PARALLELLY")

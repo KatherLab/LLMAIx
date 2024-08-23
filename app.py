@@ -32,7 +32,7 @@ def create_parser():
     parser.add_argument("--gpu", type=str, default=os.getenv('GPU', "all"), help="Which GPU to use", choices=["all", "0", "1", "2", "3", "4", "5", "6", "7", "mps"])
     parser.add_argument("--debug", action="store_true", default=os.getenv('DEBUG', 'false') == 'true')
     parser.add_argument("--mode", type=str, default=os.getenv('MODE', "choice"), choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
-    parser.add_argument("--enable_parallel", action="store_true", default=os.getenv('ENABLE_PARALLEL', 'false') == 'true', help="Parallel llama-cpp processing.")
+    parser.add_argument("--disable_parallel", action="store_true", default=os.getenv('DISABLE_PARALLEL', 'false') == 'true', help="Disable parallel llama-cpp processing.")
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
     # kv cache type can be q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl
     parser.add_argument("--context_size", type=int, default=int(os.getenv('CONTEXT_SIZE', -1)), help="Set custom context size for llama cpp")
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     app.config["GPU"] = args.gpu
     app.config["LLAMACPP_PORT"] = args.llamacpp_port
     app.config["DEBUG"] = args.debug
-    app.config["NO_PARALLEL"] = not args.enable_parallel
+    app.config["NO_PARALLEL"] = args.disable_parallel
     app.config["VERBOSE_LLAMA"] = args.verbose_llama
     app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
 
