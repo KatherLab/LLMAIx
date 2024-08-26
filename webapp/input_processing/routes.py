@@ -83,6 +83,66 @@ def save_text_as_pdf(text, pdf_file_save_path):
 
     pdf.output(pdf_file_save_path)
 
+def create_pdf(text, filename):
+    # Create a new PDF with A4 format
+    doc = fitz.open()
+    
+    # Set up the font and margins
+    font = "helv"
+    fontsize = 11
+    line_height = fontsize * 1.2
+    margin_left = 50
+    margin_top = 50
+    margin_right = 50
+    margin_bottom = 50
+    
+    # Calculate available text area
+    page_width = 595  # A4 width in points
+    page_height = 842  # A4 height in points
+    text_width = page_width - margin_left - margin_right
+    text_height = page_height - margin_top - margin_bottom
+    
+    # Function to add a new page
+    def add_page():
+        return doc.new_page(width=page_width, height=page_height)
+    
+    # Initialize the first page
+    page = add_page()
+    current_y = margin_top
+    
+    # Split text into words
+    words = text.split()
+    
+    # Process words
+    line = []
+    for word in words:
+        line.append(word)
+        # Check if current line fits within text width
+        line_width = fitz.get_text_length(" ".join(line), fontname=font, fontsize=fontsize)
+        if line_width > text_width:
+            # Remove last word and write current line
+            line.pop()
+            line_text = " ".join(line)
+            page.insert_text(fitz.Point(margin_left, current_y), line_text, fontname=font, fontsize=fontsize)
+            current_y += line_height
+            
+            # Check if we need a new page
+            if current_y + line_height > page_height - margin_bottom:
+                page = add_page()
+                current_y = margin_top
+            
+            # Start new line with the word that didn't fit
+            line = [word]
+        
+    # Write the last line if there's any content left
+    if line:
+        line_text = " ".join(line)
+        page.insert_text(fitz.Point(margin_left, current_y), line_text, fontname=font, fontsize=fontsize)
+    
+    # Save the PDF
+    doc.save(filename)
+    doc.close()
+
 def pdf_to_images(pdf_path):
     doc = fitz.open(pdf_path)
     images = []
@@ -268,7 +328,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                 text = str(getattr(row, 'report'))
                 id = str(getattr(row, 'id'))
                 pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
-                save_text_as_pdf(text, pdf_file_save_path)
+                create_pdf(text, pdf_file_save_path)
                 merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, 'id': id}))
 
         elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
@@ -277,7 +337,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                 text = str(getattr(row, 'report'))
                 id = str(getattr(row, 'id'))
                 pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"{os.path.splitext(os.path.basename(file_path))[0]}-{index}.pdf")
-                save_text_as_pdf(text, pdf_file_save_path)
+                create_pdf(text, pdf_file_save_path)
                 merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, "id": id}))
 
         elif file_path.endswith(('.pdf', '.jpg', '.jpeg', '.png')):
