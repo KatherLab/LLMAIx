@@ -1,4 +1,3 @@
-from concurrent import futures
 import io
 import os
 import tempfile
@@ -13,7 +12,30 @@ from . import annotationhelper
 from .forms import AnnotationHelperForm, LabelSelectorForm, ReAnnotationForm
 
 class AnnotationHelperJob:
-    def __init__(self, job_id, llm_output_file_path, llm_output_df):
+    """
+    Class representing an annotation helper job.
+    """
+    def __init__(self, job_id: str, llm_output_file_path: str, llm_output_df: pd.DataFrame) -> None:
+        """
+        Initialize an AnnotationHelperJob instance.
+
+        Parameters
+        ----------
+        job_id : str
+            Unique identifier for the job.
+        llm_output_file_path : str
+            Path to the LLM output file that was used to create this job.
+        llm_output_df : pandas.DataFrame
+            DataFrame containing the LLM output.
+
+        Notes
+        -----
+        The job creation time is stored as a string in the format "dd.mm.yyyy hh:mm:ss".
+        The metadata dictionary is extracted from the first row of the LLM output DataFrame.
+        The record list is a list of dictionaries containing the record id, report text, labels and status.
+        The labels list is a list of strings containing all unique labels from the LLM output.
+        The label type mapping is a dictionary mapping each label to its type (string, boolean, or float).
+        """
         self.job_id = job_id
         self.llm_output_df = llm_output_df
         self.llm_output_file_path = llm_output_file_path
@@ -44,8 +66,14 @@ class AnnotationHelperJob:
 
             self.record_list.append(record_entry)
             
-    def _get_unique_labels(self):
-        labels = set()
+    def _get_unique_labels(self) -> list[str]:
+        """
+        Get all unique labels from the LLM output.
+
+        Returns:
+            list[str]: A list of all unique labels from the LLM output.
+        """
+        labels: set[str] = set()
         for index, row in self.llm_output_df.iterrows():
             for column in row.index:
                 if column not in ['id', 'report', 'metadata', 'masked_report', 'personal_info_list']:

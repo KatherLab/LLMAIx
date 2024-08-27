@@ -39,14 +39,6 @@ class InceptionAnnotationParser:
         self.annotations = self.get_annotations()
         self.unique_labels = self._get_unique_labels()
         self.colormap = self.generate_colormap(self.unique_labels)
-        
-
-    # def _load_json(self, json_file):
-    #     if isinstance(json_file, dict):
-    #         return json_file["%FEATURE_STRUCTURES"]
-    #     with open(json_file, 'r') as f:
-    #         data = json.load(f)
-    #     return data["%FEATURE_STRUCTURES"]
 
     def get_sofastring(self) -> str:
         """
@@ -57,10 +49,16 @@ class InceptionAnnotationParser:
         """
         return self.cas.sofa_string
 
-    def _get_unique_labels(self):
-        labels = set()
-        for annotation in self.annotations: 
-            try: 
+    def _get_unique_labels(self) -> set[str]:
+        """
+        Get all unique labels from the annotations.
+
+        Returns:
+            set[str]: A set of all unique labels from the annotations.
+        """
+        labels: set[str] = set()
+        for annotation in self.annotations:  
+            try:
                 labels.add(annotation["label"])
             except Exception as e:
                 print(str(e))

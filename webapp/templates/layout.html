@@ -9,11 +9,11 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   {% if not session['mode'] or session['mode'] == 'choice' %}
-  <title>Choose LLM Tool Mode</title>
+  <title>Choose LLM-AIx Mode</title>
   {% elif session['mode'] == 'anonymizer' %}
-  <title>LLM Anonymizer</title>
+  <title>LLM-AIx Anonymizer</title>
   {% elif session['mode'] == 'informationextraction' %}
-  <title>LLM Information Extraction</title>
+  <title>LLM-AIx Information Extraction</title>
   {% endif %}
   <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
@@ -26,8 +26,8 @@
     <div class="overlay-content">
       <form action="/set_mode" method="GET">
         <h2>Choose Mode</h2>
-        <button type="submit" class="btn btn-outline-danger" name="mode" value="anonymizer">LLM Anonymizer</button>
-        <button type="submit" class="btn btn-outline-success" name="mode" value="informationextraction">LLM Information
+        <button type="submit" class="btn btn-outline-danger" name="mode" value="anonymizer">LLM-AIx Anonymizer</button>
+        <button type="submit" class="btn btn-outline-success" name="mode" value="informationextraction">LLM-AIx Information
           Extraction</button>
       </form>
     </div>
@@ -44,11 +44,9 @@
           {% endif %}
           <div class="container-fluid">
             {% if session['mode'] == 'anonymizer' %}
-            <span class="navbar-brand mb-0 h1">LLM Anonymizer</span>
-            <!--<a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Anonymizer</a>-->
+            <span class="navbar-brand mb-0 h1">LLM-AIx Anonymizer</span>
             {% elif session['mode'] == 'informationextraction' %}
-            <span class="navbar-brand mb-0 h1">LLM Information Extraction</span>
-            <!--<a class="navbar-brand" href="{{ url_for('input_processing.main') }}">LLM Information Extraction</a>-->
+            <span class="navbar-brand mb-0 h1">LLM-AIx Information Extraction</span>
             {% endif %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
               data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -131,10 +129,6 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script>
-    //$(".nav-link").on("click", function () {
-    //  $(".nav-link.active").removeClass("active");
-    //  $(this).addClass("active");
-    //});
 
     document.addEventListener("DOMContentLoaded", function () {
       // Add event listener to mode select element

@@ -20,7 +20,7 @@ def set_mode_route():
         # print("set mode: ", mode)
         session['mode'] = mode
     else:
-        flash(f"Cannot change model: The application was launched with --mode {current_app.config['MODE']} option.", "danger")
+        flash(f"Cannot change mode: The application was launched with --mode {current_app.config['MODE']} option.", "danger")
 
     if session['mode'] == 'anonymizer' and "labelannotation" in request.referrer:
         flash("Switched to Anonymizer", "info")
@@ -29,7 +29,5 @@ def set_mode_route():
     if session['mode'] == 'informationextraction' and "reportredaction" in request.referrer:
         flash("Switched to Information Extraction", "info")
         return redirect(url_for("labelannotation.main"))
-    # breakpoint()
-    # redirect to the page where the request came from
-    # print("Mode is: ", session['mode'])
+    
     return redirect(request.referrer)

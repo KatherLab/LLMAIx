@@ -16,7 +16,6 @@ from odf import teletype
 from odf.opendocument import load
 import uuid
 import zipfile
-from fpdf import FPDF
 from io import BytesIO
 from docx2pdf import convert as convert_docx
 import fitz
@@ -25,7 +24,6 @@ from . import input_processing
 from .. import socketio
 from .. import set_mode
 from ..llm_processing.utils import is_empty_string_nan_or_none
-from ..llm_processing.routes import model_active
 
 
 JobID = str
@@ -72,16 +70,6 @@ def complete_job(job_id):
 
     global job_progress
     socketio.emit('progress_complete', {'job_id': job_id})
-
-
-def save_text_as_pdf(text, pdf_file_save_path):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    pdf.multi_cell(0, 6, txt=text)
-
-    pdf.output(pdf_file_save_path)
 
 def create_pdf(text, filename):
     # Create a new PDF with A4 format
@@ -209,12 +197,8 @@ def ocr_phi3vision(file_path):
         images = pdf_to_images(file_path)
         text = extract_text_from_images(images, model, model_id, device)
         
-        # save_text_as_pdf(text, pdf_file_save_path)
-
     elif file_path.endswith('.jpg') or file_path.endswith('.jpeg') or file_path.endswith('.png'):
         text = extract_text_from_images([Image.open(file_path)], model, model_id, device)
-
-        # save_text_as_pdf(text, pdf_file_save_path)
 
     del model
 
@@ -432,7 +416,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
             with open(file_path, 'r', encoding='utf-8') as f:
                 text = f.read()
             pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.txt')[0]}.pdf")
-            save_text_as_pdf(text, pdf_file_save_path)
+            create_pdf(text, pdf_file_save_path)
             merged_data.append(pd.DataFrame({'report': [text], 'filepath': pdf_file_save_path, 'id': ''}))
 
         elif file_path.endswith('.docx'):

@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import FieldList, Form, FormField, SelectField, StringField, SubmitField, FileField, BooleanField
 from flask_wtf.file import FileAllowed, FileRequired
-from wtforms import validators
 
 class ReAnnotationField(Form):
     label_name = StringField("Label Name")

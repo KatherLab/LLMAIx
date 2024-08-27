@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="LLMAnonymizer",
+    name="LLM-AIx",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
@@ -19,6 +19,6 @@ setup(
     test_suite="tests",
     author="KatherLab",
     author_email="jakob-nikolas.kather@alumni.dkfz.de",
-    description="Anonymize medical reports using LLMs.",
-    url="https://github.com/KatherLab/LLMAnonymizer",
+    description="LLM-AIx - A pipeline for information extraction and anonymization of medical documents",
+    url="https://github.com/KatherLab/LLM-AIx",
 )

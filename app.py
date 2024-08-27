@@ -9,7 +9,7 @@ from webapp import create_app, socketio
 os.makedirs("logs", exist_ok=True)
 
 log_file_name = datetime.now().strftime(
-    os.path.join("logs", "llmanonymizer_%H_%M_%d_%m_%Y.log")
+    os.path.join("logs", "llmaix_%H_%M_%d_%m_%Y.log")
 )
 logging.basicConfig(
     level=logging.DEBUG,
@@ -18,9 +18,9 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-logging.debug("Start LLM Anonymizer")
+logging.debug("Starting LLM-AIx ...")
 
-def create_parser():
+def create_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Web app for llama-cpp')
     parser.add_argument("--model_path", type=str, default=os.getenv('MODEL_PATH', "models"), help="Path where the models are stored which llama cpp can load.")
     parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', r""), help="Path to the llama server executable.")
@@ -34,7 +34,6 @@ def create_parser():
     parser.add_argument("--mode", type=str, default=os.getenv('MODE', "choice"), choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
     parser.add_argument("--disable_parallel", action="store_true", default=os.getenv('DISABLE_PARALLEL', 'false') == 'true', help="Disable parallel llama-cpp processing.")
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
-    # kv cache type can be q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl
     parser.add_argument("--context_size", type=int, default=int(os.getenv('CONTEXT_SIZE', -1)), help="Set custom context size for llama cpp")
     parser.add_argument("--verbose_llama", action="store_true", default=os.getenv('VERBOSE_LLAMA', 'false') == 'true', help="Verbose llama cpp")
     parser.add_argument("--no_password", action="store_true", default=os.getenv('NO_PASSWORD', 'false') == 'true', help="Disable password protection")
@@ -174,7 +173,7 @@ if __name__ == "__main__":
 
     check_model_config(app.config["MODEL_PATH"], app.config["CONFIG_FILE"],)
 
-    print("Start Server on http://" + args.host + ":" + str(args.port))
+    print("Start Webserver on http://" + args.host + ":" + str(args.port))
     if args.host == "0.0.0.0":
         print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")
     if args.host != "localhost":

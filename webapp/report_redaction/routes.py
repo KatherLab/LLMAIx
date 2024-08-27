@@ -316,10 +316,7 @@ def main():
             )
             update_progress(job_id=job_id, progress=(0, len(df), True))
 
-            # report_list = generate_report_list(df, job_id, session['pdf_file_zip'], session['annotation_file'], session.get('enable_fuzzy', False), session.get('threshold', 90), session.get('exclude_single_chars', False), session.get('scorer', None))
-
-            print("Start Job")
-
+            print("Start Redaction Job")
             global report_redaction_jobs
             report_redaction_jobs[job_id] = executor.submit(
                 generate_report_list,
@@ -710,15 +707,6 @@ def generate_export_df(result_dict: list):
                     f"micro_{metric}"
                 ]
 
-    # for key in accumulated_metrics:
-    #     if key.startswith('macro_'):
-    #         macro_scores[key[len('macro_'):]] = float(accumulated_metrics[key])
-    #     elif key.startswith('micro_'):
-    #         micro_scores[key[len('micro_'):]] = float(accumulated_metrics[key])
-    #     elif key.startswith('total_'):
-    #         macro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
-    #         micro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
-
     # Append macro and micro scores to the DataFrame
     data["id"].append("macro_scores")
     for score in scores_to_include:
@@ -838,8 +826,6 @@ def report_redaction_viewer(report_id):
     }
 
     print("personal_info_dict", personal_info_dict)
-
-    # personal_info_list = convert_personal_info_list(personal_info_list)
 
     # Find the previous and next report IDs if they exist
     previous_id = df.at[current_index - 1, "id"] if current_index > 0 else None
@@ -1099,8 +1085,6 @@ def load_redacted_pdf(
         personal_info_dict,
         fuzzy_matches_dict,
     )
-
-    # socketio.emit('reportredaction_done', {'enable_fuzzy': session.get('enable_fuzzy', False), 'threshold': session.get('threshold', 90), 'fuzzy_matches': fuzzy_matches})
 
 
 @report_redaction.route("/reportredactionfileredacted/<string:id>")

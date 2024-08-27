@@ -20,7 +20,7 @@ RUN apt update && \
 
 WORKDIR /build
 
-# Clone and build llama.cpp
+# Clone and build llama.cpp - adjust the compute level to your GPU
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
     CUDA_DOCKER_ARCH=compute_86 make GGML_CUDA=1 -j 8
@@ -32,9 +32,7 @@ WORKDIR /app
 # Copy the requirements file into the image
 COPY requirements.txt .
 
-# Hopefully with CUDA support
 # RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
-
 
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt

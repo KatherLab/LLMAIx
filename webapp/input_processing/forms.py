@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField, MultipleFileField, BooleanField, SelectField, ValidationError
+from wtforms import StringField, SubmitField, MultipleFileField, BooleanField, SelectField, ValidationError
 from flask_wtf.file import FileAllowed, FileRequired
-from wtforms import validators
 
 def validate_optional_integer(form, field):
     # If field is not empty, attempt to convert and validate it
@@ -14,7 +13,6 @@ def validate_optional_integer(form, field):
         # Validate the integer value
         if not (100 <= value <= 128000):
             raise ValidationError('Value must be between 100 and 128000.')
-
 
 
 class PreprocessUploadForm(FlaskForm):

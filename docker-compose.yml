@@ -6,11 +6,12 @@ services:
       - "19999:${PORT:-5000}"
     volumes:
       # Adjust: /path/to/your/local/model/dir:/models - don't modify the path after the colon!
-      - /path/to/your/local/model/dir:/models
+      - /PATH/TO/YOUR/LOCAL/MODEL/DIR:/models
     environment:
       - SERVER_PATH=${SERVER_PATH:-/build/llama.cpp/llama-server}
       - PORT=${PORT:-5000}
       - HOST=${HOST:-0.0.0.0}
+      # Adjust if your model config in your models directory has another name than config.yml
       - CONFIG_FILE=${CONFIG_FILE:-/models/config.yml}
       - GPU=${GPU:-ALL}
       - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}

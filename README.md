@@ -1,13 +1,13 @@
 [![Build and Push Docker Image](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml/badge.svg)](https://github.com/KatherLab/LLMAnonymizer/actions/workflows/docker-image.yml)
 
-# LLM Anonymizer & Information Extraction Tool
+# LLM-AIx - Information Extraction & Anonymization
 
 > [!Important]
 > This tool is in active development and is still undergoing major changes. 
 > 
 > **Use for research purposes only!**
 
-![alt text](image.png)
+![alt text](static/image.png)
 
 Web-based tool to extract (personal) information from medical reports and redact and evaluate anonymization as well as extracted information.
 
@@ -26,7 +26,7 @@ Web-based tool to extract (personal) information from medical reports and redact
 
 - Information Extraction using LLMs and Metric Calculation based on a ground truth
 
-![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](image_redaction_view.png)
+![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](static/image_redaction_view.png)
 
 **New: Annotation Helper**:
 
@@ -42,11 +42,27 @@ Examples of doctoral reports in various formats can be found in the `examples` d
 
 Create a directory somewhere on your system where you download the .gguf model files to. Create a config.yml file in the same directory according to the config.yml file in this repository.
 
+Example config.yml file:
+```yaml
+models:
+  - name: "llama3.1_8b_instruct_q5km"
+    display_name: "LLaMA 3.1 8B Instruct Q5_K_M"
+    file_name: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
+    model_context_size: 128000 # Right now only informative.
+    kv_cache_size: 16000 # Which size should the llama.cpp KV Cache have?
+    kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
+    flash_attention: true # does not work for some models
+    mlock: true
+    server_slots: 2 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
+    seed: 42 # Random initialization
+    n_gpu_layers: 33 # How many layers to offload to the GPU, fastest if all are offloaded
+```
+
 ## How to run (Docker)
 
-1. Download/Clone this repository: [https://github.com/KatherLab/LLMAnonymizer](https://github.com/KatherLab/LLMAnonymizer)
-2. Cd to the repo: `cd LLMAnonymizer`
-3. Edit docker-compose.yml with the correct model path. Inside of this model path should be the .gguf files as well as the adapted config.yml.
+1. Download/Clone this repository: [https://github.com/KatherLab/LLM-AIx](https://github.com/KatherLab/LLM-AIx)
+2. Cd to the repo: `cd LLM-AIx`
+3. Edit docker-compose.yml with the correct model path. Inside of this model path should be the .gguf files as well as the adapted `config.yml` file.
 4. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
 
 Now access in your browser via `http://localhost:19999`
@@ -86,12 +102,8 @@ Run:
 |--llamacpp_port|On which port to run the llama-cpp server. Default: 2929|2929|
 |--debug|When set, the web app will be started in debug mode and with auto-reload, for debugging and development|
 |--mode|Which mode to run (`choice` will interactively ask the user). Can be `anonymizer`, `informationextraction`, `choice`. Default: 'choice'|choice|
-|--enable_parallel|Enable parallel processing. Default: False|False|
-|--parallel_slots|Number of parallel slots. Only effective when `enable_parallel` is set. Default: 1|1|
+|--disable_parallel|Disable parallel llama.cpp processing. Default: False|False|
 |--no_parallel_preprocessing|Disable parallel preprocessing. Default: False|False|
-|--context_size|Set the KV cache size of the llama cpp server. Remeber: When using parallel processing, each slots gets a fraction of the context size. Consumes GPU memory, be careful! Default: -1|8192|
-|--mlock|Enable memory locking. Default: True|True|
-|--kv_cache_type|Which KV cache type to use. Can save memory, especially for large models and a large kv cache size. Default: 'q8_0'|q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl|
 |--verbose_llama|Enable verbose logging of llama.cpp. Default: False|False|
 |--no_password|Disable password protection. Default: False|False|
 
@@ -101,7 +113,7 @@ Run:
 
 - Click on **Preprocessing**
 
-First, all input files are preprocessed to a csv file which contains all text from all reports. Currently pdf, docx, odf, txt, png and jpg files can be used as input. If necessary, text recognition (OCR) is applied. 
+First, all input files are preprocessed to  a csv file which contains all text from all reports. Currently pdf, docx, odf, txt, png and jpg files can be used as input. If necessary, text recognition (OCR) is applied. 
 
 The output is a zip file containing the csv file and the pdf files with a text layer.
 
@@ -150,7 +162,7 @@ The output extends the input zip file with a csv file with columns `report` with
 > [!Tip]
 > **Use the new Grammar Builder**
 > 
-> ![Grammar Builder Tool](image_grammarbuilder.png)
+> ![Grammar Builder Tool](static/image_grammarbuilder.png)
 
 > Adjust the grammar according to the [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md). This causes the llm output to be in a json structure with the desired datapoints. Note: Playing around with this can help, not every model works well with a too restrictive grammar.
 

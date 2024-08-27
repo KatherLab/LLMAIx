@@ -4,7 +4,6 @@ Flask-WTF
 Flask-SQLAlchemy
 dkpro-cassis
 docx2pdf
-fpdf2
 matplotlib
 numpy
 odfpy
