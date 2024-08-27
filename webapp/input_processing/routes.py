@@ -615,6 +615,7 @@ def download():
 
                 # Drop unnecessary columns and save the dataframe to a CSV file
                 df.drop(columns=['filepath'], inplace=True)
+                df.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=["",""], regex=True, inplace=True)
                 df['report'] = df['report'].str.replace('\n', '\\n')
                 df.to_csv(csv_filepath, index=False)
 
