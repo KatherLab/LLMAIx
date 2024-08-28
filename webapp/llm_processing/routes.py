@@ -65,8 +65,8 @@ def format_time(seconds):
         return f"{seconds / 86400:.1f}d"
 
 
-def push_llm_metrics(metrics):
-    socketio.emit("llm_metrics", {"metrics": metrics})
+# def push_llm_metrics(metrics):
+#     socketio.emit("llm_metrics", {"metrics": metrics})
 
 
 def update_progress(job_id, progress: tuple[int, int, bool]):
@@ -252,7 +252,7 @@ def extract_from_report(
                 response = requests.get(f"http://localhost:{llamacpp_port}/health")
                 if response.status_code == 200 and response.json()["status"] == "ok":
                     break
-                time.sleep(1)
+                time.sleep(2)
             except requests.exceptions.ConnectionError:
                 warning_job(
                     job_id=job_id,
@@ -335,6 +335,12 @@ def extract_from_report(
                 results[id]["report"] = report
                 results[id]["symptom"] = symptom
                 results[id]["summary"] = summary
+
+                if summary["stopped_limit"]:
+                    warning_job(
+                            job_id=job_id,
+                            message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens (limit reached), the results might be incomplete! Please increase n_predict!",
+                        )
 
             progress_bar.update(1)
             update_progress(
@@ -420,11 +426,11 @@ def extract_from_report(
                     timeout=20 * 60,
                 )
 
-                url = f"http://localhost:{llamacpp_port}/metrics"
-                metrics_text = fetch_metrics(url)
-                metrics_dict = parse_metrics(metrics_text)
+                # url = f"http://localhost:{llamacpp_port}/metrics"
+                # metrics_text = fetch_metrics(url)
+                # metrics_dict = parse_metrics(metrics_text)
 
-                push_llm_metrics(metrics_dict)
+                # push_llm_metrics(metrics_dict)
 
                 summary = result.json()
                 if id not in results:
@@ -433,6 +439,12 @@ def extract_from_report(
                 results[id]["report"] = report
                 results[id]["symptom"] = symptom
                 results[id]["summary"] = summary
+
+                if summary["stopped_limit"]:
+                    warning_job(
+                        job_id=job_id,
+                        message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens (limit reached), the results might be incomplete! Please increase n_predict!",
+                    )
 
             print(f"Report {i} completed.")
             update_progress(
@@ -459,7 +471,7 @@ def extract_from_report(
     result_df, errors = postprocess_grammar(results, df, llm_metadata, debug)
 
     if errors:
-        warning_job(job_id=job_id, message="Postprocessing Errors: " + str(errors))
+        warning_job(job_id=job_id, message=f"Postprocessing: {errors} reports failed! The LLM did probably not generate valid JSON.")
 
     return (result_df, errors), zip_file_path
 
