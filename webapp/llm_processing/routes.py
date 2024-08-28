@@ -516,8 +516,8 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             print("Error:", e)
             print("TRACEBACK:", traceback.format_exc())
             print(f"Will ignore the error for report {i} and continue.")
-            if debug:
-                breakpoint()
+            # if debug:
+            #     breakpoint()
             info_dict = {}
             error_count += 1
 
