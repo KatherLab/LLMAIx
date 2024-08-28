@@ -474,7 +474,8 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         # Extract the content of the first field
         content = info["summary"]["content"]
 
-        print("RAW CONTENT: ", content)
+
+        print("RAW SUMMARY: ", info["summary"])
 
         # Parse the content string into a dictionary
         try:
