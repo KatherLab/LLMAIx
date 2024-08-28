@@ -475,7 +475,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         content = info["summary"]["content"]
 
 
-        print("RAW SUMMARY: ", info["summary"])
+        print("RAW LLM OUTPUT: ", info["summary"]["content"])
 
         # Parse the content string into a dictionary
         try:
@@ -500,9 +500,15 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             try:
                 info_dict_raw = ast.literal_eval(content)
             except Exception:
-                content = content.replace(" null,", '' ,' "null",')
-                print("REPLACE NULL")
-                info_dict_raw = ast.literal_eval(content)
+                try:
+                    content = content.replace(" null,", '' ,' "null",')
+                    print("REPLACE NULL")
+                
+                    info_dict_raw = ast.literal_eval(content)
+                except Exception:
+                    print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
+                    info_dict_raw()
+                    error_count += 1
 
             info_dict = {}
             for key, value in info_dict_raw.items():
