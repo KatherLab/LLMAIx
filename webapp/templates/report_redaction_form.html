@@ -87,27 +87,29 @@
             <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Redaction Settings</legend>
     
             <!-- Fuzzy Matching Toggle -->
-            <div class="form-check form-switch mb-4">
-                {% if form.enable_fuzzy.errors %}
-                    {{ form.enable_fuzzy(class="form-check-input is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.enable_fuzzy.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.enable_fuzzy(class="form-check-input") }}
-                {% endif %}
-                <label class="form-check-label d-flex align-items-center" for="enable_fuzzy">
-                    Enable Fuzzy Matching
-                </label>
-            </div>
-    
+        <div class="form-check form-switch mb-4">
+            {% if form.enable_fuzzy.errors %}
+                {{ form.enable_fuzzy(class="form-check-input is-invalid", id="enable_fuzzy") }}
+                <div class="invalid-feedback">
+                    {% for error in form.enable_fuzzy.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.enable_fuzzy(class="form-check-input", id="enable_fuzzy") }}
+            {% endif %}
+            <label class="form-check-label d-flex align-items-center" for="enable_fuzzy">
+                Enable Fuzzy Matching
+            </label>
+        </div>
+
+        <!-- Fuzzy Settings Fields -->
+        <div id="fuzzy-settings" class="fuzzy-settings">
             <!-- Threshold and Scorer -->
             <div class="row mb-4">
                 <div class="col-md-6 mb-3">
                     <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-speedometer"></i></span>
+                        <span class="input-group-text"><i class="bi bi-tachometer fs-5"></i></span>
                         {% if form.threshold.errors %}
                             {{ form.threshold(class="form-control is-invalid") }}
                             <div class="invalid-feedback">
@@ -138,6 +140,7 @@
                     <label for="scorer" class="form-label">Scorer</label>
                 </div>
             </div>
+        </div>
     
             <!-- Exclude Single Characters -->
             <div class="form-check mb-4">
@@ -278,6 +281,26 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var fuzzySwitch = document.getElementById('enable_fuzzy');
+        var fuzzySettings = document.getElementById('fuzzy-settings');
+
+        function toggleFuzzySettings() {
+            if (fuzzySwitch.checked) {
+                fuzzySettings.style.display = 'block';
+            } else {
+                fuzzySettings.style.display = 'none';
+            }
+        }
+
+        // Initial check on page load
+        toggleFuzzySettings();
+
+        // Toggle settings when switch changes
+        fuzzySwitch.addEventListener('change', toggleFuzzySettings);
+    });
+
+
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     socket.on('progress_update', function (data) {
