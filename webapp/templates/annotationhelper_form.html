@@ -16,23 +16,24 @@
         {{ form.hidden_tag() }}
 
         <fieldset class="form-control p-3">
-            <legend>LLM Output File (.zip)</legend>
 
-            <div class="row">
-                <div class="form-group col-md-12">
-
+            <div class="mb-4">
+                <h5 class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-zip fs-3 me-2"></i> <!-- Example icon, adjust as needed -->
+                    LLM Output File (.zip)
+                </h5>
+                <div>
                     {% if form.file.errors %}
-                    {{ form.file(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
+                        {{ form.file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                    {{ form.file(class="form-control form-control") }}
+                        {{ form.file(class="form-control") }}
                     {% endif %}
                 </div>
-
             </div>
         </fieldset>
 

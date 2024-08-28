@@ -1,5 +1,6 @@
 from datetime import datetime
 import tempfile
+import traceback
 import zipfile
 from . import llm_processing
 from .. import socketio
@@ -508,10 +509,12 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                     info_dict[key] = value
 
             # print(f"Successfully parsed LLM output. ({content=})")
-        except Exception:
+        except Exception as e:
             print(
-                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})"
+                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. (Output: {content=})"
             )
+            print("Error:", e)
+            print("TRACEBACK:", traceback.format_exc())
             print(f"Will ignore the error for report {i} and continue.")
             if debug:
                 breakpoint()
@@ -661,6 +664,13 @@ def main():
     if form.validate_on_submit():
         file = request.files["file"]
 
+        if "{report}" not in form.prompt.data:
+            flash(
+                "The prompt must contain the placeholder: {report}",
+                "danger",
+            )
+            return redirect(request.referrer)
+
         if file.filename.endswith(".csv"):
             try:
                 print(file)
@@ -753,7 +763,7 @@ def main():
             + secrets.token_urlsafe(8)
         )
 
-        if not os.path.exists(current_app.config["SERVER_PATH"]):
+        if not os.path.isfile(current_app.config["SERVER_PATH"]):
             flash(
                 "Llama CPP Server executable not found. Did you specify --server_path correctly?",
                 "danger",

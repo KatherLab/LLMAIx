@@ -9,25 +9,6 @@ import io
 import pandas as pd
 
 
-# def convert_personal_info_list(personal_info_list) -> None:
-#     import ast
-#     personal_info_list = personal_info_list.replace("nan,", "")
-#     personal_info_list = personal_info_list.replace("'',", "")
-#     personal_info_list = ast.literal_eval(personal_info_list)
-#     personal_info_list = list(set(personal_info_list))
-#     personal_info_list = [item for item in personal_info_list if item != ""]
-
-#     # TODO include in list comprehension above
-#     personal_info_list_output = []
-#     for info in personal_info_list:
-#         if is_empty_string_nan_or_none(info):
-#             continue
-
-#         personal_info_list_output.append(info)
-
-#     return personal_info_list_output
-
-
 def replace_umlauts(text):
     umlaut_replacements = {
         'ä': 'ae',
@@ -129,12 +110,6 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                     if apply_redaction:
                         page.apply_redactions()
 
-        # Save the modified page
-        # try:
-        #     pdf_document[page_number] = page
-        # except Exception as e:
-        #     print(e)
-
     # Save the modified PDF or return as BytesIO
     if output_pdf_path is None:
         modified_pdf_bytes = io.BytesIO()
@@ -168,7 +143,6 @@ def is_empty_string_nan_or_none(variable) -> bool:
     # If variable is not a recognized type, we assume it's invalid and return True.
     print(f"WARNING: Removed {variable} from list.")
     return True
-
 
 def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'):
     """
@@ -222,43 +196,11 @@ def replace_personal_info(text: str, personal_info_list: dict[str, str], fuzzy_m
     assert len(
         replacement_char) == 1, "replacement_char must be a single character"
 
-    # Replace remaining personal information with asterisks (*)
-    # for info in personal_info_list:
-    #     if is_empty_string_nan_or_none(info):
-    #         continue
-    #     if not generate_dollarstring:
-    #         # masked_text = re.sub(f"\\b{re.escape(info)}\\b", "***", masked_text)
-    #         masked_text = re.sub(re.escape(info), lambda match: replacement_char * 3, masked_text)
-    #     else:
-    #         # masked_text = re.sub(f"\\b{re.escape(info)}\\b", replacement_char * len(info), masked_text)
-    #         # masked_test = re.sub(f"\\b{re.escape(info)}\\b", lambda match: replacement_char * len(match.group(0)), masked_text)
-    #         masked_text = re.sub(re.escape(info), lambda match: replacement_char * len(match.group(0)), masked_text)
-
     fuzzy_list = []
 
     for match_text, score in fuzzy_matches:
         if score >= fuzzy_matching_threshold:
             fuzzy_list.append(match_text)
-
-    # if use_fuzzy_matching:
-    #     for info in personal_info_list:
-    #         if is_empty_string_nan_or_none(info):
-    #             continue
-    #         # Get a list of best matches for the current personal information from the text
-    #         best_matches = process.extract(info, text.split())
-    #         best_score = best_matches[0][1]
-    #         for match_text, score in best_matches:
-    #             if score == best_score and score >= fuzzy_matching_threshold:
-    #                 fuzzy_list.append(match_text)
-    #                 # Replace best matches with asterisks (*) TODO: Seems not to work if only part of a word is redacted (e.g. because of missing space ...)
-    #                 # if not generate_dollarstring:
-    #                 #     # masked_text = re.sub(f"\\b{re.escape(match_text)}\\b", "***", masked_text) #TODO #masked_text.replace(match, '*' * len(match))
-    #                 #     masked_text = re.sub(re.escape(match_text), lambda match: replacement_char * 3, masked_text)
-    #                 # else:
-    #                 #     # masked_text = re.sub(f"\\b{re.escape(match)}\\b", replacement_char * len(match), masked_text)
-    #                 #     masked_text = re.sub(re.escape(match_text), lambda match: replacement_char * len(match.group(0)), masked_text)
-
-    # breakpoint()
 
     personal_info_list = personal_info_list + fuzzy_list
 

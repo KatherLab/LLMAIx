@@ -53,15 +53,15 @@ class GrammarValidator:
                 'Grammar field is required when "Enable Grammar" is checked.')
 
 class GrammarField(wtforms.Form):
-  field_name = StringField('Label Name', validators=[validators.Optional()])
-  field_type = SelectField('Select Type', choices=[('string', 'String'), ('number', 'Number'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
-  string_length = IntegerField('String Max Length (empty=no limit)', [validators.Optional()])
-  string_min_length = IntegerField('String Min Length', [validators.Optional()], default=1)
-  number_length = IntegerField('Number Max Length (empty=no limit)', [validators.Optional()])
-  number_min_length = IntegerField('Number Min Length', [validators.Optional()], default=1)
+  field_name = StringField('Field Name', validators=[validators.Optional()])
+  field_type = SelectField('Field Type', choices=[('string', 'String'), ('number', 'Number'), ('fp-number', 'Floating Point Number'), ('boolean', 'Boolean'), ('options', 'Categories'), ('custom', 'Custom Rule')])
+  string_length = IntegerField('Max Length', [validators.Optional()])
+  string_min_length = IntegerField('Min Length', [validators.Optional()], default=1)
+  number_length = IntegerField('Max Length', [validators.Optional()])
+  number_min_length = IntegerField('Min Length', [validators.Optional()], default=1)
   fp_number_length = IntegerField('FP Number Length', [validators.Optional()])
   options = StringField('Categories (comma-separated)', [validators.Optional()])
-  custom_rule = StringField('Custom Rule (rulename ::= <YOURCUSTOMRULE>)', [validators.Optional()])
+  custom_rule = StringField('Custom Rule (RULENAME ::= <YOURCUSTOMRULE>)', [validators.Optional()])
 
 
 class LLMPipelineForm(FlaskForm):

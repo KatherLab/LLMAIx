@@ -104,7 +104,7 @@
             </div>
             <div class="ms-3">
                 {% if progress_tuple[0] == progress_tuple[1] %}
-                <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
+                <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-outline-success"><i class="bi bi-download"></i> Download</a>
                 {% elif progress_tuple[2] %}
                 <a id="download-{{ job_id }}" class="btn btn-outline-secondary disabled" disabled>Processing...</a>
                 {% else %}
@@ -121,7 +121,7 @@
 
     <button id="toggleMetricsButton" class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetrics"
         aria-expanded="false" aria-controls="collapseExample">
-        Llama-CPP Performance Metrics
+        <i class="bi bi-bar-chart-line"></i> llama.cpp Performance Metrics
     </button>
 
 
@@ -199,7 +199,7 @@
         downloadLink.classList.remove('disabled');
         downloadLink.classList.remove('btn-outline-secondary');
         downloadLink.classList.add('btn-outline-success');
-        downloadLink.innerHTML = 'Download';
+        downloadLink.innerHTML = '<i class="bi bi-download"></i> Download';
         downloadLink.removeAttribute('disabled');
     });
 

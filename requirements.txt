@@ -8,7 +8,6 @@ matplotlib
 numpy
 odfpy
 pandas
-pdfminer.six
 pillow
 PyYAML
 seaborn

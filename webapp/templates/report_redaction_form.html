@@ -1,188 +1,200 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<style>
+    .info-callout {
+        border-left: 5px solid #17a2b8; /* Bootstrap info color */
+        background-color: #e9f7fb; /* Lightened info background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #0c5460; /* Bootstrap info text color */
+    }
+
+    .warning-callout {
+        border-left: 5px solid #ffc107; /* Bootstrap warning color */
+        background-color: #fff3cd; /* Lightened warning background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #856404; /* Bootstrap warning text color */
+    }
+    
+    /* .callout-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    } */
+</style>
+
 <div class="content-section">
     <h1 class="display-4 text-center mb-3">Report Redaction</h1>
 
 
-    <form action="" method="post" enctype="multipart/form-data">
+    <form action="" method="post" enctype="multipart/form-data" class="container mt-4">
 
         {{ form.hidden_tag() }}
-
-        <fieldset class="form-control p-3">
-            <legend>LLM Output File (.zip)</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-
+    
+        <!-- Combined Fieldset -->
+        <fieldset class="border rounded p-4 mb-4">
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">File Uploads</legend>
+    
+            <!-- LLM Output File -->
+            <div class="mb-4">
+                <h5 class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-zip fs-3 me-2"></i>
+                    LLM Output File (.zip)
+                </h5>
+                <div class="input-group">
                     {% if form.file.errors %}
-                    {{ form.file(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
+                        {{ form.file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                    {{ form.file(class="form-control") }}
+                        {{ form.file(class="form-control") }}
                     {% endif %}
                 </div>
-
             </div>
-        </fieldset>
-
-        <fieldset class="form-control p-3">
-            <legend>Optional: Annotation File (.zip)</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-
+    
+            <!-- Annotation File -->
+            <div class="mb-4">
+                <h5 class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-spreadsheet fs-3 me-2"></i>
+                    Optional: Annotation File (.zip)
+                </h5>
+                <div class="input-group">
                     {% if form.annotation_file.errors %}
-                    {{ form.annotation_file(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.annotation_file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
+                        {{ form.annotation_file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.annotation_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                    {{ form.annotation_file(class="form-control") }}
+                        {{ form.annotation_file(class="form-control") }}
                     {% endif %}
                 </div>
-
             </div>
         </fieldset>
-
-
-        <fieldset class="form-control p-3">
-            <legend>Redaction Settings</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-                    {{ form.enable_fuzzy.label(class="form-control-label") }}
-
-                    {% if form.enable_fuzzy.errors %}
+    
+        <!-- Redaction Settings -->
+        <fieldset class="border rounded p-4 mb-4">
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Redaction Settings</legend>
+    
+            <!-- Fuzzy Matching Toggle -->
+            <div class="form-check form-switch mb-4">
+                {% if form.enable_fuzzy.errors %}
                     {{ form.enable_fuzzy(class="form-check-input is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.enable_fuzzy.errors %}
-                        <span>{{ error }}</span>
+                            <span>{{ error }}</span>
                         {% endfor %}
                     </div>
-                    {% else %}
+                {% else %}
                     {{ form.enable_fuzzy(class="form-check-input") }}
-                    {% endif %}
-                </div>
-
+                {% endif %}
+                <label class="form-check-label d-flex align-items-center" for="enable_fuzzy">
+                    Enable Fuzzy Matching
+                </label>
             </div>
-
-            <div class="row">
-                <div class="form-group col-md-3">
-                    {{ form.threshold.label(class="form-control-label") }}
-
-                    {% if form.threshold.errors %}
-                    {{ form.threshold(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.threshold.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+    
+            <!-- Threshold and Scorer -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-speedometer"></i></span>
+                        {% if form.threshold.errors %}
+                            {{ form.threshold(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.threshold.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.threshold(class="form-control") }}
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.threshold(class="form-control") }}
-                    {% endif %}
+                    <label for="threshold" class="form-label">Threshold</label>
                 </div>
-                <div class="form-group col-md-3">
-                    {{ form.scorer.label(class="form-control-label") }}
-
-                    {% if form.scorer.errors %}
-                    {{ form.scorer(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.scorer.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-award fs-5"></i></span>
+                        {% if form.scorer.errors %}
+                            {{ form.scorer(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.scorer.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.scorer(class="form-select") }}
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.scorer(class="form-select") }}
-                    {% endif %}
+                    <label for="scorer" class="form-label">Scorer</label>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-                    {{ form.exclude_single_chars.label(class="form-control-label") }}
-
-                    {% if form.exclude_single_chars.errors %}
+    
+            <!-- Exclude Single Characters -->
+            <div class="form-check mb-4">
+                {% if form.exclude_single_chars.errors %}
                     {{ form.exclude_single_chars(class="form-check-input is-invalid") }}
                     <div class="invalid-feedback">
                         {% for error in form.exclude_single_chars.errors %}
-                        <span>{{ error }}</span>
+                            <span>{{ error }}</span>
                         {% endfor %}
                     </div>
-                    {% else %}
+                {% else %}
                     {{ form.exclude_single_chars(class="form-check-input") }}
-                    {% endif %}
-                </div>
-
+                {% endif %}
+                <label class="form-check-label" for="exclude_single_chars">
+                    Exclude Single Characters
+                </label>
             </div>
-
-
-            <div class="row p-2">
-                <div class="form-group col-md-12">
-                    {{ form.ignore_labels.label(class="form-control-label") }}
-
-                    {% if form.ignore_labels.errors %}
-                    {{ form.ignore_labels(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.ignore_labels.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.ignore_labels(class="form-control") }}
-                    {% endif %}
-                </div>
-
-            </div>
-
-            <div class="row p-3">
-                <div class="form-group col-md-4">
-                    <button type="submit" name="submit-metrics"
-                        class="form-control btn btn-secondary">Calculate Report Redaction Metrics Summary</button>
-                </div>
-                <div class="form-group col-md-4">
-                    <button type="submit" name="submit-viewer" class="form-control btn btn-secondary">Report
-                        Redaction Viewer (document-wise)</button>
-                </div>
-                <div class="form-group col-md-4">
-                    <button type="submit" name="submit-redaction-download"
-                        class="form-control btn btn-secondary">Download Redacted Reports</button>
-                </div>
-            </div>
-
-            <style>
-                .info-callout {
-                    border-left: 5px solid #17a2b8; /* Bootstrap info color */
-                    background-color: #e9f7fb; /* Lightened info background */
-                    padding: 15px;
-                    margin-bottom: 5px;
-                    margin-top: 20px;
-                    border-radius: 4px;
-                    color: #0c5460; /* Bootstrap info text color */
-                }
     
-                .warning-callout {
-                    border-left: 5px solid #ffc107; /* Bootstrap warning color */
-                    background-color: #fff3cd; /* Lightened warning background */
-                    padding: 15px;
-                    margin-bottom: 5px;
-                    margin-top: 20px;
-                    border-radius: 4px;
-                    color: #856404; /* Bootstrap warning text color */
-                }
-                
-                /* .callout-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    margin-bottom: 10px;
-                } */
-            </style>
+            <!-- Ignore Labels as Text Field -->
+            <div class="mb-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-tag fs-5"></i></span>
+                    {% if form.ignore_labels.errors %}
+                        {{ form.ignore_labels(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.ignore_labels.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.ignore_labels(class="form-control") }}
+                    {% endif %}
+                </div>
+                <label for="ignore_labels" class="form-label">Ignore Labels (comma-separated)</label>
+            </div>
+        </fieldset>
+    
+        <!-- Submit Buttons -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <button type="submit" name="submit-metrics" class="btn btn-primary w-100">
+                    <i class="bi bi-bar-chart-line me-2"></i> Calculate Report Redaction Metrics Summary
+                </button>
+            </div>
+            <div class="col-md-4 mb-3">
+                <button type="submit" name="submit-viewer" class="btn btn-primary w-100">
+                    <i class="bi bi-eye me-2"></i> Report Redaction Viewer (document-wise)
+                </button>
+            </div>
+            <div class="col-md-4 mb-3">
+                <button type="submit" name="submit-redaction-download" class="btn btn-primary w-100">
+                    <i class="bi bi-download me-2"></i> Download Redacted Reports
+                </button>
+            </div>
+        </div>
+
+            
     
             <div class="info-callout">
                 <h4 class="callout-title">Information</h4>
@@ -208,15 +220,9 @@
                 <br>
 
                 The <b>metrics</b> are calculated on a per-character basis for the whole text ignoring whitespaces and other special characters.
-
-
                 <br>
                 <br>
-
-
                 You can also directly download the redacted documents: <b>Download Redacted Documents</b>
-    
-
                 </p>
             </div>
 
@@ -226,6 +232,8 @@
 
     </form>
 </div>
+<hr class="bg-danger border-2 border-top border-dark" />
+
 <div class="content-section pt-3">
 
     <div class="container mt-5">

@@ -1,343 +1,372 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<style>
+    .info-callout {
+        border-left: 5px solid #17a2b8; /* Bootstrap info color */
+        background-color: #e9f7fb; /* Lightened info background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #0c5460; /* Bootstrap info text color */
+    }
+    
+    .info-callout .callout-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .col-md-1 {
+        display: flex; /* Make sure the column itself is a flex container */
+        align-items: center; /* Center content vertically within the column */
+        justify-content: flex-end; /* Align content to the right within the column */
+        padding: 0; /* Remove any default padding */
+    }
+
+    .remove-row {
+        width: 40px; /* Adjust size as needed */
+        height: 40px; /* Same as width for a round button */
+        padding: 0; /* Remove default padding */
+        display: flex; /* Flexbox to center content */
+        justify-content: center; /* Center icon horizontally */
+        align-items: center; /* Center icon vertically */
+        border-radius: 15%; /* Ensure the button is round */
+        border: none; /* Remove default border */
+    }
+
+    .remove-row i {
+        font-size: 24px; /* Adjust icon size as needed */
+    }
+    
+</style>
+
 <div class="content-section">
     <h1 class="display-4 text-center mb-3">LLM Information Extraction</h1>
 
     <form action="" method="post" enctype="multipart/form-data">
-
         {{ form.hidden_tag() }}
-
-        <fieldset class="form-control p-3">
-            <legend>Upload Preprocessed Documents (.zip)</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-
-                    {% if form.file.errors %}
-                    {{ form.file(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.file(class="form-control form-control") }}
-                    {% endif %}
-                </div>
-
-            </div>
-        </fieldset>
-
-
-        <fieldset class="form-control p-3">
-            <legend>LLM Settings</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-                    {{ form.prompt.label(class="form-control-label") }}
-
-                    {% if form.prompt.errors %}
-                    {{ form.prompt(class="form-control form-control is-invalid", rows="7") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.prompt.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.prompt(class="form-control form-control", rows="7") }}
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="row" style="display: none;">
-                <div class="form-group col-md-12">
-                    {{ form.variables.label(class="form-control-label") }}
-
-                    {% if form.variables.errors %}
-                    {{ form.variables(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.variables.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.variables(class="form-control form-control") }}
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="row mt-3">
-                <div class="form-group col-md-4">
-                    {{ form.temperature.label(class="form-control-label") }}
-
-                    {% if form.temperature.errors %}
-                    {{ form.temperature(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.temperature.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.temperature(class="form-control form-control", min=0, max=1) }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group col-md-4">
-                    {{ form.n_predict.label(class="form-control-label") }}
-
-                    {% if form.n_predict.errors %}
-                    {{ form.n_predict(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.n_predict.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.n_predict(class="form-control form-control") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group col-md-4">
-                    {{ form.model.label(class="form-control-label") }}
-
-                    {% if form.model.errors %}
-                    {{ form.model(class="form-control form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.model.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    {{ form.model(class="form-select") }}
-                    {% endif %}
-                </div>
-            </div>
-
-            <nav class="mt-5">
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                  <button class="nav-link active" id="nav-grammar-tab" data-bs-toggle="tab" data-bs-target="#nav-grammar" type="button" role="tab" aria-controls="nav-grammar" aria-selected="true">Grammar</button>
-                  <button class="nav-link" id="nav-grammarbuilder-tab" data-bs-toggle="tab" data-bs-target="#nav-grammarbuilder" type="button" role="tab" aria-controls="nav-grammarbuilder" aria-selected="false">Grammar Builder</button>
-                </div>
-            </nav>
-            <div class="tab-content" id="nav-tabContent">
-                <div class="tab-pane fade show active" id="nav-grammar" role="tabpanel" aria-labelledby="nav-grammar-tab" tabindex="0">
-                    <fieldset class="form-control p-3">
-                        <legend>Grammar</legend>
-                        <span>To ensure that the results are in the correct format.</span>
-                        <div class="row mt-2">
-                            <div class="form-group col-md-12">
-                                <!--{{ form.grammar.label(class="form-control-label") }}-->
-            
-                                {% if form.grammar.errors %}
-                                {{ form.grammar(class="form-control form-control is-invalid", rows="12") }}
-                                <div class="invalid-feedback">
-                                    {% for error in form.grammar.errors %}
-                                    <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                {{ form.grammar(class="form-control form-control", rows="12") }}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </fieldset>
-                    <button type="submit" name="submit-form" class="form-control form-control btn btn-secondary mt-3">Run LLM Processing</button>
-                </div>
-                <div class="tab-pane fade" id="nav-grammarbuilder" role="tabpanel" aria-labelledby="nav-grammarbuilder-tab" tabindex="0">
-                    <fieldset class="form-control p-3">
-                        <div class="row mb-3">
-                            <div class="col">
-                                <legend>Grammar Builder</legend>
-                            </div>
-                            <div class="col">
-                                <div class="container text-end">
-                                    <button id="save-configuration" class="btn btn-primary">Save Configuration</button>
-                                    <button id="load-configuration" class="btn btn-secondary">Load Configuration</button>
-                                    <button id="generate-grammar" class="btn btn-primary">Generate Full Grammar</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-            
-                        <input type="file" id="load-file" style="display:none;" />
-                        <a id="download-link" style="display:none;"></a>
-            
-                        <div id="grammar_entries" class="list-group">
-                            {% for grammar_entry in form.grammarbuilder %}
-                            <div class="list-group-item">
-                                <div class="entry row">
-                                    <div class="form-group col-md-3">
-                                        {{ grammar_entry.field_name.label(class="form-control-label") }} {{ grammar_entry.field_name(class="form-control") }}
-                                    </div>
-                                    <div class="form-group col-md-2">
-                                        {{ grammar_entry.field_type.label(class="form-control-label") }} {{ grammar_entry.field_type(class="form-select") }}
-                                    </div>
-                
-                                    <div class="conditional-field form-group col-md-2" data-field-type="string">
-                                        {{ grammar_entry.string_min_length.label(class="form-control-label") }} {{ grammar_entry.string_min_length(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-3" data-field-type="string">
-                                        {{ grammar_entry.string_length.label(class="form-control-label") }} {{ grammar_entry.string_length(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-2" data-field-type="number">
-                                        {{ grammar_entry.number_min_length.label(class="form-control-label") }} {{ grammar_entry.number_min_length(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-3" data-field-type="number">
-                                        {{ grammar_entry.number_length.label(class="form-control-label") }} {{ grammar_entry.number_length(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="fp-number-disabled">
-                                        {{ grammar_entry.fp_number_length.label(class="form-control-label") }} {{ grammar_entry.fp_number_length(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="options">
-                                        {{ grammar_entry.options.label(class="form-control-label") }} {{ grammar_entry.options(class="form-control") }}
-                                    </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="custom">
-                                        {{ grammar_entry.custom_rule.label(class="form-control-label") }} {{ grammar_entry.custom_rule(class="form-control") }}
-                                    </div>
-                                    <!--Layout placeholders-->
-                                    <!--
-                                    <div class="conditional-field form-group col-md-5" data-field-type="string">
-                                    </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="number">  
-                                    </div>-->
-                                    <div class="conditional-field form-group col-md-5" data-field-type="boolean">  
-                                    </div>
-                                    <div class="conditional-field form-group col-md-5" data-field-type="fp-number">  
-                                    </div>
-                                    <div class="form-group col-md-1">
-                                        <label class="form-control-label">​</label>
-                                        <button type="button" class="remove-row btn btn-danger btn form-control">X</button>
-                                    </div>
-                                </div>
-                            </div>
+    
+        <fieldset class="form-control p-4 mb-4">
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Upload Preprocessed Documents & LLM Settings</legend>
+    
+            <!-- File Upload Section -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-upload"></i></span>
+                        {% if form.file.errors %}
+                        {{ form.file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.file.errors %}
+                            <span>{{ error }}</span>
                             {% endfor %}
                         </div>
-            
-            
-                        <button type="button" id="add-row" class="btn btn-outline-success mt-3 mb-4">Add Rule</button>
-                        
-            
-                        <div class="row">
-                            <div class="form-group col-md-12">
-                                {{ form.extra_grammar_rules.label(class="form-control-label") }}
-            
-                                {% if form.extra_grammar_rules.errors %}
-                                {{ form.extra_grammar_rules(class="form-control form-control is-invalid", rows="3") }}
-                                <div class="invalid-feedback">
-                                    {% for error in form.extra_grammar_rules.errors %}
-                                    <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                {{ form.extra_grammar_rules(class="form-control form-control", rows="3") }}
-                                {% endif %}
-                            </div>
-                        </div>
-            
-                        
-                    </fieldset>
-
+                        {% else %}
+                        {{ form.file(class="form-control") }}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-
-        </fieldset>
-
-        <!-- <fieldset class="form-control p-3">
-            <legend>Grammar Builder</legend>
-
-            <div id="grammar_entries">
-                {% for grammar_entry in form.grammarbuilder %}
-                <div class="entry">
-                    {{ grammar_entry.field_name.label }} {{ grammar_entry.field_name }}
-                    {{ grammar_entry.field_type.label }} {{ grammar_entry.field_type }}
-                    <button type="button" class="remove-row btn btn-danger">X</button>
+    
+            <!-- LLM Settings Section -->
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        {% if form.prompt.errors %}
+                        {{ form.prompt(class="form-control is-invalid", placeholder="Enter LLM prompt here...", rows="7", style="height: 200px;") }}
+                        <label for="prompt">LLM Prompt</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.prompt.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.prompt(class="form-control", placeholder="Enter LLM prompt here...", rows="7", style="height: 200px;") }}
+                        <label for="prompt">LLM Prompt</label>
+                        {% endif %}
+                    </div>
                 </div>
+    
+                <!-- Hidden Variables Field -->
+                <div class="col-md-12" style="display: none;">
+                    <div class="form-floating">
+                        {% if form.variables.errors %}
+                        {{ form.variables(class="form-control is-invalid", placeholder="Variables") }}
+                        <label for="variables">Variables</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.variables.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.variables(class="form-control", placeholder="Variables") }}
+                        <label for="variables">Variables</label>
+                        {% endif %}
+                    </div>
+                </div>
+    
+                <!-- Temperature, N Predict, and Model Settings -->
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        {% if form.temperature.errors %}
+                        {{ form.temperature(class="form-control is-invalid", min=0, max=1, placeholder="Temperature") }}
+                        <label for="temperature">Temperature</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.temperature.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.temperature(class="form-control", min=0, max=1, placeholder="Temperature") }}
+                        <label for="temperature">Temperature</label>
+                        {% endif %}
+                    </div>
+                </div>
+    
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        {% if form.n_predict.errors %}
+                        {{ form.n_predict(class="form-control is-invalid", placeholder="Number of Predictions") }}
+                        <label for="n_predict">Number of Predictions</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.n_predict.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.n_predict(class="form-control", placeholder="Number of Predictions") }}
+                        <label for="n_predict">Number of Predictions</label>
+                        {% endif %}
+                    </div>
+                </div>
+    
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        {% if form.model.errors %}
+                        {{ form.model(class="form-select is-invalid", placeholder="Select Model") }}
+                        <label for="model">Select Model</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.model.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.model(class="form-select", placeholder="Select Model") }}
+                        <label for="model">Select Model</label>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Tabs for Grammar and Grammar Builder -->
+            <nav class="mt-5">
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-grammar-tab" data-bs-toggle="tab" data-bs-target="#nav-grammar" type="button" role="tab" aria-controls="nav-grammar" aria-selected="true">Grammar</button>
+                    <button class="nav-link" id="nav-grammarbuilder-tab" data-bs-toggle="tab" data-bs-target="#nav-grammarbuilder" type="button" role="tab" aria-controls="nav-grammarbuilder" aria-selected="false">Grammar Builder</button>
+                </div>
+            </nav>
+    
+            <!-- Tab Contents -->
+            <div class="tab-content" id="nav-tabContent">
+                <!-- Grammar Tab -->
+                <div class="tab-pane fade show active" id="nav-grammar" role="tabpanel" aria-labelledby="nav-grammar-tab">
+                    <div class="form-floating mt-3">
+                        {% if form.grammar.errors %}
+                        {{ form.grammar(class="form-control is-invalid", rows="12", placeholder="Grammar Content", style="height: 300px;") }}
+                        <label for="grammar">Grammar</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.grammar.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.grammar(class="form-control", rows="12", placeholder="Grammar Content", style="height: 300px;") }}
+                        <label for="grammar">Grammar</label>
+                        {% endif %}
+                    </div>
+                    <button type="submit" name="submit-form" class="btn btn-secondary mt-3 w-100">
+                        <i class="bi bi-cpu"></i> Run LLM Processing
+                    </button>
+                </div>
+    
+                <!-- Grammar Builder Tab -->
+<div class="tab-pane fade" id="nav-grammarbuilder" role="tabpanel" aria-labelledby="nav-grammarbuilder-tab">
+    <fieldset class="form-control p-3">
+        <div class="row mb-3">
+            <div class="col">
+                <legend class="h5">Grammar Builder</legend>
+            </div>
+            <div class="col text-end">
+                <button id="save-configuration" class="btn btn-primary me-2">
+                    <i class="bi bi-save"></i> Save Configuration
+                </button>
+                <button id="load-configuration" class="btn btn-secondary me-2">
+                    <i class="bi bi-upload"></i> Load Configuration
+                </button>
+                <button id="generate-grammar" class="btn btn-success">
+                    <i class="bi bi-file-earmark-code"></i> Generate Grammar
+                </button>
+            </div>
+        </div>
+
+        <input type="file" id="load-file" style="display:none;" />
+        <a id="download-link" style="display:none;"></a>
+
+        <!-- Grammar Entries -->
+        <div id="grammar_entries" class="list-group">
+            {% for grammar_entry in form.grammarbuilder %}
+            <div class="list-group-item">
+                <div class="entry row g-2">
+                    <!-- Field Name -->
+                    <div class="col-md-3 form-floating">
+                        {{ grammar_entry.field_name(class="form-control", placeholder="Field Name") }}
+                        <label for="field_name">Field Name</label>
+                    </div>
+
+                    <!-- Field Type -->
+                    <div class="col-md-2 form-floating">
+                        {{ grammar_entry.field_type(class="form-select", placeholder="Field Type") }}
+                        <label for="field_type">Field Type</label>
+                    </div>
+
+                    <!-- Conditional Field: String Min Length -->
+                    <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                        {{ grammar_entry.string_min_length(class="form-control", placeholder="Min Length") }}
+                        <label for="string_min_length">Min Length</label>
+                    </div>
+
+                    <!-- Conditional Field: String Length -->
+                    <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                        {{ grammar_entry.string_length(class="form-control", placeholder="Length") }}
+                        <label for="string_length">Max Length</label>
+                    </div>
+
+                    <!-- Conditional Field: Number Min Length -->
+                    <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                        {{ grammar_entry.number_min_length(class="form-control", placeholder="Min Value") }}
+                        <label for="number_min_length">Min Length</label>
+                    </div>
+
+                    <!-- Conditional Field: Number Length -->
+                    <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                        {{ grammar_entry.number_length(class="form-control", placeholder="Max Value") }}
+                        <label for="number_length">Max Length</label>
+                    </div>
+
+                    <!-- Conditional Field: Floating Point Number Length (Disabled) -->
+                    <div class="conditional-field col-md-2 form-floating" data-field-type="fp-number-disabled">
+                        {{ grammar_entry.fp_number_length(class="form-control", placeholder="Decimal Precision") }}
+                        <label for="fp_number_length">Decimal Precision</label>
+                    </div>
+
+                    <!-- Conditional Field: Options -->
+                    <div class="conditional-field col-md-6 form-floating" data-field-type="options">
+                        {{ grammar_entry.options(class="form-control", placeholder="Options") }}
+                        <label for="options">Options</label>
+                    </div>
+
+                    <!-- Conditional Field: Custom Rule -->
+                    <div class="conditional-field col-md-6 form-floating" data-field-type="custom">
+                        {{ grammar_entry.custom_rule(class="form-control", placeholder="Custom Rule") }}
+                        <label for="custom_rule">Custom Rule (RULENAME ::= &lt;YOURCUSTOMRULE&gt;)</label>
+                    </div>
+
+                    <!-- Layout Placeholders -->
+                    <div class="conditional-field col-md-2" data-field-type="string">
+                        <!-- Empty placeholder for layout consistency -->
+                    </div>
+                    <div class="conditional-field col-md-2" data-field-type="number">
+                        <!-- Empty placeholder for layout consistency -->
+                    </div>
+                    <div class="conditional-field col-md-6" data-field-type="boolean">
+                        <!-- Empty placeholder for layout consistency -->
+                    </div>
+                    <div class="conditional-field col-md-6" data-field-type="fp-number">
+                        <!-- Empty placeholder for layout consistency -->
+                    </div>
+
+                    <!-- Remove Row Button -->
+                    <div class="col-md-1 d-flex">
+                        <button type="button" class="remove-row btn btn-danger">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                    
+                    
+                    
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Add New Rule Button -->
+        <button type="button" id="add-row" class="btn btn-outline-success mt-3">
+            <i class="bi bi-plus-circle"></i> Add Rule
+        </button>
+
+        <!-- Extra Grammar Rules Field -->
+<div class="row mt-3">
+    <div class="form-group col-md-12">
+        <div class="form-floating">
+            {% if form.extra_grammar_rules.errors %}
+            {{ form.extra_grammar_rules(class="form-control is-invalid", rows="3", placeholder="Extra Grammar Rules") }}
+            <label for="extra_grammar_rules">Extra Grammar Rules</label>
+            <div class="invalid-feedback">
+                {% for error in form.extra_grammar_rules.errors %}
+                <span>{{ error }}</span>
                 {% endfor %}
             </div>
-
-            <button type="button" id="add-row" class="btn btn-outline-success">Add Rule</button>
-        </fieldset> -->
-
-
-
-        <style>
-            .info-callout {
-                border-left: 5px solid #17a2b8; /* Bootstrap info color */
-                background-color: #e9f7fb; /* Lightened info background */
-                padding: 15px;
-                margin-bottom: 5px;
-                margin-top: 20px;
-                border-radius: 4px;
-                color: #0c5460; /* Bootstrap info text color */
-            }
-            
-            .info-callout .callout-title {
-                font-size: 18px;
-                font-weight: 600;
-                margin-bottom: 10px;
-            }
-        </style>
-
-        <div class="info-callout">
-            <h3 class="callout-title">Information</h3>
-            <p><b>Model / n_predit:</b> Each model has a context size of e.g. 8192 tokens in case of Llama 3. 
-                One token can be a word, parts of a word or a special character. 
-                <br>
-                The parameter <i>n_predict</i> specifies how many tokens the model is allowed to generate. 
-                <br>
-                <br>
-                <b>The whole prompt</b> (including the text from the report) <b>AND the answer</b> which is generated <b>must fit into the model's context size</b>!
-                <br>
-                <br>
-                After submitting your LLM Processing job, this tool will check for each report, if the tokenized prompt (including the report) and the specified maximum length for the answer will fit into the context size!
-                However, if <i>n_predict</i> is too low it might happen that your answer is incomplete and cannot be processed later (e.g. the generation of the JSON output stops midway). 
-                Optimally for <i>n_predict</i> you estimate how many tokens are needed to generate a JSON output according to your grammar and add a bit security margin on top.
-                <br>
-                <br>
-                <b>Temperature:</b> This parameter specifies the randomness / creativity of the model. A value of 0.0 means no randomness, a value of 1.0 means very high randomness.
-                <br>
-                <br>
-                <b>Model:</b> The model to use. Bigger models (with more parameters, e.g. 70B parameters) usually perform better than smaller ones. Smaller ones are faster and require less memory.
-                <br>
-                <br>
-                <b>Prompt:</b> Explain to the model what it should do. The {report} placeholder will be replaced with the report, do not remove it! Formulate the prompt in a way that the model can just continue writing the prompt and this way generates your desired answer.
-                <br>
-                <br>
-                <b>Grammar:</b> To get a output which can be processed automatically it must be in a machine-readable format. In this case a JSON output is desired. 
-                While newer and bigger models tend to generate valid JSON if you instruct it what exactly to generate, this cannot always be guaranteed. The grammar restricts what the model is allowed to generate, for example it can only generate valid JSON. 
-                <br>
-                Please use the <b>Grammar Builder</b> to design the grammar. You can save and load grammars. At the end, press <b>Generate Full Grammar</b> to apply it.
-                <br>
-                You can still instruct the model in the prompt what it should generate and give more instructions per field. The grammar in the end ensures that the output is always in the correct format.
-                <br>
-            </p> 
+            {% else %}
+            {{ form.extra_grammar_rules(class="form-control", rows="3", placeholder="Extra Grammar Rules") }}
+            <label for="extra_grammar_rules">Extra Grammar Rules</label>
+            {% endif %}
         </div>
+    </div>
+</div>
 
-        
+    </fieldset>
+</div>
 
 
-
-
-        <div class="row">
-            <div class="form-group col-md-12">
-                <!--{% if form.submit.errors %}
-                {{ form.submit(class="form-control form-control is-invalid") }}
-                <div class="invalid-feedback">
-                    {% for error in form.submit.errors %}
-                    <span>{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% else %}
-                {{ form.submit(class="form-control form-control", id="submit-form") }}
-                {% endif %}-->
-                
             </div>
-        </div>
 
+            <div class="info-callout">
+                <h3 class="callout-title">Information</h3>
+                <p><b>Model / n_predit:</b> Each model has a context size of e.g. 8192 tokens in case of Llama 3. 
+                    One token can be a word, parts of a word or a special character. 
+                    <br>
+                    The parameter <i>n_predict</i> specifies how many tokens the model is allowed to generate. 
+                    <br>
+                    <br>
+                    <b>The whole prompt</b> (including the text from the report) <b>AND the answer</b> which is generated <b>must fit into the model's context size</b>!
+                    <br>
+                    <br>
+                    After submitting your LLM Processing job, this tool will check for each report, if the tokenized prompt (including the report) and the specified maximum length for the answer will fit into the context size!
+                    However, if <i>n_predict</i> is too low it might happen that your answer is incomplete and cannot be processed later (e.g. the generation of the JSON output stops midway). 
+                    Optimally for <i>n_predict</i> you estimate how many tokens are needed to generate a JSON output according to your grammar and add a bit security margin on top.
+                    <br>
+                    <br>
+                    <b>Temperature:</b> This parameter specifies the randomness / creativity of the model. A value of 0.0 means no randomness, a value of 1.0 means very high randomness.
+                    <br>
+                    <br>
+                    <b>Model:</b> The model to use. Bigger models (with more parameters, e.g. 70B parameters) usually perform better than smaller ones. Smaller ones are faster and require less memory.
+                    <br>
+                    <br>
+                    <b>Prompt:</b> Explain to the model what it should do. The {report} placeholder will be replaced with the report, do not remove it! Formulate the prompt in a way that the model can just continue writing the prompt and this way generates your desired answer.
+                    <br>
+                    <br>
+                    <b>Grammar:</b> To get a output which can be processed automatically it must be in a machine-readable format. In this case a JSON output is desired. 
+                    While newer and bigger models tend to generate valid JSON if you instruct it what exactly to generate, this cannot always be guaranteed. The grammar restricts what the model is allowed to generate, for example it can only generate valid JSON. 
+                    <br>
+                    Please use the <b>Grammar Builder</b> to design the grammar. You can save and load grammars. At the end, press <b>Generate Full Grammar</b> to apply it.
+                    <br>
+                    You can still instruct the model in the prompt what it should generate and give more instructions per field. The grammar in the end ensures that the output is always in the correct format.
+                    <br>
+                </p> 
+            </div>
+        </fieldset>
     </form>
-
-
 
 </div>
 
@@ -396,59 +425,67 @@ $(document).ready(function () {
 
         return `
         <div class="list-group-item">
-            <div class="entry row">
-                <div class="form-group col-md-3">
-                    <label class="form-control-label" for="grammarbuilder-${index}-field_name">{{ form.grammarbuilder[0].field_name.label }}</label>
-                    <input type="text" name="grammarbuilder-${index}-field_name" id="grammarbuilder-${index}-field_name" class="form-control" value="${field_name}">
+            <div class="entry row g-2">
+                
+                <div class="form-floating col-md-3">
+                    <input type="text" name="grammarbuilder-${index}-field_name" id="grammarbuilder-${index}-field_name" class="form-control" value="${field_name}" placeholder="Field Name">
+                    <label for="grammarbuilder-${index}-field_name">{{ form.grammarbuilder[0].field_name.label }}</label>
+
                 </div>
-                <div class="form-group col-md-2">
-                    <label class="form-control-label" for="grammarbuilder-${index}-field_type">{{ form.grammarbuilder[0].field_type.label }}</label>
+                <div class="form-floating col-md-2">
                     <select name="grammarbuilder-${index}-field_type" id="grammarbuilder-${index}-field_type" class="form-select">
                         {% for field_type in form.grammarbuilder[0].field_type %}
                         {{field_type}}
                         {% endfor %}
                     </select>
+                    <label for="grammarbuilder-${index}-field_type">{{ form.grammarbuilder[0].field_type.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                    <input type="number" name="grammarbuilder-${index}-string_min_length" id="grammarbuilder-${index}-string_min_length" class="form-control" value="${string_min_length}" placeholder="Min Length">
+                    <label for="grammarbuilder-${index}-string_min_length">{{ form.grammarbuilder[0].string_min_length.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                    <input type="number" name="grammarbuilder-${index}-string_length" id="grammarbuilder-${index}-string_length" class="form-control" value="${string_length}" placeholder="Max Length">
+                    <label for="grammarbuilder-${index}-string_length">{{ form.grammarbuilder[0].string_length.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                    <input type="number" name="grammarbuilder-${index}-number_min_length" id="grammarbuilder-${index}-number_min_length" class="form-control" value="${number_min_length}" placeholder="Min Length">
+                    <label for="grammarbuilder-${index}-number_min_length">{{ form.grammarbuilder[0].number_min_length.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                    <input type="number" name="grammarbuilder-${index}-number_length" id="grammarbuilder-${index}-number_length" class="form-control" value="${number_length}" placeholder="Max Length">
+                    <label for="grammarbuilder-${index}-number_length">{{ form.grammarbuilder[0].number_length.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="fp-number-disabled" style="display: ${field_type == 'fp-number' ? 'block' : 'none'};">
+                    <input type="number" name="grammarbuilder-${index}-fp_number_length" id="grammarbuilder-${index}-fp_number_length" class="form-control" value="${fp_number_length}" placeholder="Max Length">
+                    <label for="grammarbuilder-${index}-fp_number_length">{{ form.grammarbuilder[0].fp_number_length.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-6" data-field-type="options" style="display: ${field_type == 'options' ? 'block' : 'none'};">
+                    <input type="text" name="grammarbuilder-${index}-options" id="grammarbuilder-${index}-options" class="form-control" value="${options}" placeholder="Options">
+                    <label for="grammarbuilder-${index}-options">{{ form.grammarbuilder[0].options.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-6" data-field-type="custom" style="display: ${field_type == 'custom' ? 'block' : 'none'};">
+                    <input type="text" name="grammarbuilder-${index}-custom_rule" id="grammarbuilder-${index}-custom_rule" class="form-control" value="${custom_rule}" placeholder="Custom Rule">
+                    <label for="grammarbuilder-${index}-custom_rule">{{ form.grammarbuilder[0].custom_rule.label }}</label>
+
                 </div>
                 <div class="conditional-field form-group col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-string_min_length">{{ form.grammarbuilder[0].string_min_length.label }}</label>
-                    <input type="number" name="grammarbuilder-${index}-string_min_length" id="grammarbuilder-${index}-string_min_length" class="form-control" value="${string_min_length}">
-                </div>
-                <div class="conditional-field form-group col-md-3" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-string_length">{{ form.grammarbuilder[0].string_length.label }}</label>
-                    <input type="number" name="grammarbuilder-${index}-string_length" id="grammarbuilder-${index}-string_length" class="form-control" value="${string_length}">
                 </div>
                 <div class="conditional-field form-group col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-number_min_length">{{ form.grammarbuilder[0].number_min_length.label }}</label>
-                    <input type="number" name="grammarbuilder-${index}-number_min_length" id="grammarbuilder-${index}-number_min_length" class="form-control" value="${number_min_length}">
                 </div>
-                <div class="conditional-field form-group col-md-3" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-number_length">{{ form.grammarbuilder[0].number_length.label }}</label>
-                    <input type="number" name="grammarbuilder-${index}-number_length" id="grammarbuilder-${index}-number_length" class="form-control" value="${number_length}">
+                <div class="conditional-field form-group col-md-6" data-field-type="boolean" style="display: ${field_type == 'boolean' ? 'block' : 'none'};">
                 </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="fp-number-disabled" style="display: ${field_type == 'fp-number' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-fp_number_length">{{ form.grammarbuilder[0].fp_number_length.label }}</label>
-                    <input type="number" name="grammarbuilder-${index}-fp_number_length" id="grammarbuilder-${index}-fp_number_length" class="form-control" value="${fp_number_length}">
+                <div class="conditional-field form-group col-md-6" data-field-type="fp-number" style="display: ${field_type == 'fp-number' ? 'block' : 'none'};">
                 </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="options" style="display: ${field_type == 'options' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-options">{{ form.grammarbuilder[0].options.label }}</label>
-                    <input type="text" name="grammarbuilder-${index}-options" id="grammarbuilder-${index}-options" class="form-control" value="${options}">
-                </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="custom" style="display: ${field_type == 'custom' ? 'block' : 'none'};">
-                    <label class="form-control-label" for="grammarbuilder-${index}-custom_rule">{{ form.grammarbuilder[0].custom_rule.label }}</label>
-                    <input type="text" name="grammarbuilder-${index}-custom_rule" id="grammarbuilder-${index}-custom_rule" class="form-control" value="${custom_rule}">
-                </div>
-                <!--<div class="conditional-field form-group col-md-5" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
-                </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
-                </div>-->
-                <div class="conditional-field form-group col-md-5" data-field-type="boolean" style="display: ${field_type == 'boolean' ? 'block' : 'none'};">
-                </div>
-                <div class="conditional-field form-group col-md-5" data-field-type="fp-number" style="display: ${field_type == 'fp-number' ? 'block' : 'none'};">
-                </div>
-                <div class="form-group col-md-1 col-md-pull-5">
-                    <label class="form-control-label">​</label>
-                    <button type="button" class="remove-row btn btn-danger btn form-control">X</button>
-                </div>
+                <div class="col-md-1 d-flex">
+                        <button type="button" class="remove-row btn btn-danger">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
             </div>
         </div>`;
     }
@@ -471,7 +508,7 @@ $(document).ready(function () {
     });
 
     $(document).on('click', '.remove-row', function () {
-        $(this).closest('.entry').remove();
+        $(this).closest('.list-group-item').remove();
     });
 
     function downloadFile(content, filename, contentType) {
@@ -720,9 +757,6 @@ function generateNumberRuleOptional(length) {
 
     return numberRule;
 }
-
-
-
 
 
 </script>

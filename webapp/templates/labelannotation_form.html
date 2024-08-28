@@ -1,103 +1,107 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<style>
+    .info-callout {
+        border-left: 5px solid #17a2b8; /* Bootstrap info color */
+        background-color: #e9f7fb; /* Lightened info background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #0c5460; /* Bootstrap info text color */
+    }
+
+    .warning-callout {
+        border-left: 5px solid #ffc107; /* Bootstrap warning color */
+        background-color: #fff3cd; /* Lightened warning background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #856404; /* Bootstrap warning text color */
+    }
+    
+    /* .callout-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    } */
+</style>
+
 <div class="content-section">
     <h1 class="display-4 text-center mb-3">Label Annotation Metrics and Viewer</h1>
 
-    <form method="POST" enctype="multipart/form-data">
-
+    <form method="POST" enctype="multipart/form-data" class="container mt-4">
         {{ form.hidden_tag() }}
-
-        <fieldset class="form-control p-3">
-            <legend>LLM Output File (.zip)</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-
+    
+        <!-- Combined Fieldset -->
+        <fieldset class="border rounded p-4 mb-4">
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Upload Files</legend>
+    
+            <!-- LLM Output File Section -->
+            <div class="mb-4">
+                <h5 class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-zip fs-3 me-2"></i> <!-- Example icon, adjust as needed -->
+                    LLM Output File (.zip)
+                </h5>
+                <div>
                     {% if form.file.errors %}
-                    {{ form.file(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
+                        {{ form.file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                    {{ form.file(class="form-control") }}
+                        {{ form.file(class="form-control") }}
                     {% endif %}
                 </div>
-
             </div>
-        </fieldset>
-
-        <fieldset class="form-control p-3">
-            <legend>Annotation .csv / .xlsx file (columns: id,label1,label2,label3)</legend>
-            
-            <div class="row">
-                <div class="form-group col-md-12">
-        
+    
+            <!-- Annotation File Section -->
+            <div>
+                <h5 class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark-spreadsheet fs-3 me-2"></i> <!-- Example icon, adjust as needed -->
+                    Annotation .csv / .xlsx file (columns: id, label1, label2, label3)
+                </h5>
+                <div>
                     {% if form.annotation_file.errors %}
-                    {{ form.annotation_file(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.annotation_file.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
+                        {{ form.annotation_file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.annotation_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                    {{ form.annotation_file(class="form-control") }}
+                        {{ form.annotation_file(class="form-control") }}
                     {% endif %}
                 </div>
-
             </div>
         </fieldset>
-
+    
         <div class="row p-3">
             <div class="form-group col-md-12">
                 <button type="submit" name="submit-metrics"
-                    class="form-control btn btn-secondary">Label Annotation Metrics Summary</button>
+                    class="form-control form-control-lg btn btn-secondary">
+                    <i class="bi bi-check2-circle me-2"></i> Label Annotation Metrics Summary</button>
             </div>
         </div>
-
-        <style>
-            .info-callout {
-                border-left: 5px solid #17a2b8; /* Bootstrap info color */
-                background-color: #e9f7fb; /* Lightened info background */
-                padding: 15px;
-                margin-bottom: 5px;
-                margin-top: 20px;
-                border-radius: 4px;
-                color: #0c5460; /* Bootstrap info text color */
-            }
-
-            .warning-callout {
-                border-left: 5px solid #ffc107; /* Bootstrap warning color */
-                background-color: #fff3cd; /* Lightened warning background */
-                padding: 15px;
-                margin-bottom: 5px;
-                margin-top: 20px;
-                border-radius: 4px;
-                color: #856404; /* Bootstrap warning text color */
-            }
-            
-            /* .callout-title {
-                font-size: 18px;
-                font-weight: 600;
-                margin-bottom: 10px;
-            } */
-        </style>
-
-        <div class="info-callout">
-            <h4 class="callout-title">Information</h4>
-            <p>Your Annotation File should be in .csv or .xlsx format. It must contain an <b>id</b> column and one column for each label. The id column must contain the original filenames (before preprocessing) or the ids which were in the csv / excel file before preprocessing.
-                <br>
-                <br>
-                The names of the label columns must be exactly the same as the names specified in your grammar! 
-                <br>
-                <br>
-                If your labels in the grammar contained whitespaces, they are automatically replaces by underscores. Please make sure that your label column names do not contain whitespaces!
-            </p>
-        </div>
-
     </form>
+    
+    
+
+    <div class="info-callout">
+        <h4 class="callout-title">Information</h4>
+        <p>Your Annotation File should be in .csv or .xlsx format. It must contain an <b>id</b> column and one column for each label. The id column must contain the original filenames (before preprocessing) or the ids which were in the csv / excel file before preprocessing.
+            <br>
+            <br>
+            The names of the label columns must be exactly the same as the names specified in your grammar! 
+            <br>
+            <br>
+            If your labels in the grammar contained whitespaces, they are automatically replaces by underscores. Please make sure that your label column names do not contain whitespaces!
+        </p>
+    </div>
 
 </div>
 

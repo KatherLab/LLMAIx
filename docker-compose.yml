@@ -15,7 +15,7 @@ services:
       - CONFIG_FILE=${CONFIG_FILE:-/models/config.yml}
       - GPU=${GPU:-ALL}
       - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}
-      - DEBUG=${DEBUG:-true}
+      - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - NO_PARALLEL_PREPROCESSING=${NO_PARALLEL_PREPROCESSING:-false}
       - CONTEXT_SIZE=${CONTEXT_SIZE:- -1}

@@ -242,8 +242,6 @@ def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dp
     return full_text
 
 
-
-
 def images_to_pdf(images, output_path):
     images[0].save(output_path, save_all=True, append_images=images[1:], resolution=100.0)
 
@@ -299,9 +297,6 @@ def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model):
 
     return text
 
-
-    
-    
 
 def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_previous_ocr=False, det_model=None, rec_model=None):
     merged_data = []
@@ -548,7 +543,7 @@ def download():
         # split the text in chunks
         try:
             max_length = int(session['text_split'])
-        except:
+        except Exception as e:
             max_length = None
 
         # Add an 'id' column and generate unique IDs for every row
@@ -572,10 +567,6 @@ def download():
         # Apply the function to the DataFrame
         df['id'] = df.apply(generate_id, axis=1)
 
-
-        # df['id'] = df.apply(lambda x: x['filename'] + '$' + str(uuid.uuid4())[:8], axis=1)
-        # limiting the uuid is bad as it may cause colissions, but already the filename should colission-free - this is just to make sure!
-
         # add metadata column with json structure. Add the current date and time as preprocessing key in the json structure
         df['metadata'] = df.apply(lambda x: {'preprocessing': {
                                   'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}, axis=1)
@@ -584,7 +575,6 @@ def download():
         df.drop(columns=['filename'], inplace=True)
 
         # Function to add files to a zip file
-
         def add_files_to_zip(zipf, files, ids):
             for file, file_id in zip(files, ids):
                 zipf.write(file, f"{file_id}.{os.path.basename(file).split('.')[-1]}")
@@ -608,21 +598,6 @@ def download():
 
         files_to_zip = df['filepath'].tolist()
         ids = df['id'].tolist()
-
-        # Split rows containing more than max_length letters
-        # split_rows = []
-        # for index, row in df.iterrows():
-        #     if len(row['report']) > max_length:
-        #         num_splits = (len(row['report']) +
-        #                       max_length - 1) // max_length
-        #         for i in range(num_splits):
-        #             split_row = row.copy()
-        #             split_row['report'] = row['report'][i *
-        #                                                 max_length: (i + 1) * max_length]
-        #             split_row['id'] = f'{row["id"]}_{i}'
-        #             split_rows.append(split_row)
-        #     else:
-        #         split_rows.append(row)
 
         # Function to split text without breaking words
         def split_text(text, max_length):
@@ -734,8 +709,6 @@ def main():
             ocr_method=form.ocr_method.data,
             remove_previous_ocr=form.remove_previous_ocr.data,
         )
-
-        # update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
 
         flash('Upload Successful!', "success")
         return redirect(url_for('input_processing.main'))

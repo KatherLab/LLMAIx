@@ -1,128 +1,153 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<style>
+    .info-callout {
+        border-left: 5px solid #17a2b8; /* Bootstrap info color */
+        background-color: #e9f7fb; /* Lightened info background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #0c5460; /* Bootstrap info text color */
+    }
+
+    .warning-callout {
+        border-left: 5px solid #ffc107; /* Bootstrap warning color */
+        background-color: #fff3cd; /* Lightened warning background */
+        padding: 15px;
+        margin-bottom: 5px;
+        margin-top: 20px;
+        border-radius: 4px;
+        color: #856404; /* Bootstrap warning text color */
+    }
+    
+    /* .callout-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    } */
+</style>
+
 <div class="content-section">
     <h1 class="display-4 text-center mb-3">Document Preprocessing</h1>
 
-
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-
-        <fieldset class="form-control p-3 mb-3">
-            <legend>Select Documents (.pdf, .png, .jpg, .jpeg, .xlsx, .txt, .csv and .docx)</legend>
-
-            <div class="row">
-                <div class="form-group col-md-12">
-        
-                    {% if form.files.errors %}
-                    {{ form.files(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.files.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+    
+        <fieldset class="border rounded p-4 mb-4">
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Select Documents (.pdf, .png, .jpg, .jpeg, .xlsx, .txt, .csv, .docx)</legend>
+    
+            <div class="mb-3">
+                {% if form.files.errors %}
+                    <div class="input-group is-invalid">
+                        <span class="input-group-text">
+                            <i class="bi bi-file-earmark"></i>
+                        </span>
+                        {{ form.files(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.files.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
-                    {% else %}
-                    {{ form.files(class="form-control") }}
-                    {% endif %}
-                </div>
+                {% else %}
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-file-earmark"></i>
+                        </span>
+                        {{ form.files(class="form-control") }}
+                    </div>
+                {% endif %}
             </div>
-            <div class="row mt-3">
+    
+            <div class="row g-3">
                 {% if session['mode'] == 'anonymizer' %}
-                <div class="form-group col-md-2">
-                    
-                    {% if form.text_split.errors %}
-                    {{ form.text_split(class="form-control is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.text_split.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        {% if form.text_split.errors %}
+                        {{ form.text_split(class="form-control is-invalid") }}
+                        <label for="{{ form.text_split.id }}">Split Length</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.text_split.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.text_split(class="form-control") }}
+                        <label for="{{ form.text_split.id }}">Split Length</label>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.text_split(class="form-control") }}
-                    {% endif %}
-
-                    {{ form.text_split.label(class="form-control-label") }}
                 </div>
                 {% endif %}
-                <div class="form-group col-md-3">
-                    
-                    {% if form.ocr_method.errors %}
-                    {{ form.ocr_method(class="form-select is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.ocr_method.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+    
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        {% if form.ocr_method.errors %}
+                        {{ form.ocr_method(class="form-select is-invalid") }}
+                        <label for="{{ form.ocr_method.id }}">OCR Method</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.ocr_method.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.ocr_method(class="form-select") }}
+                        <label for="{{ form.ocr_method.id }}">OCR Method</label>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.ocr_method(class="form-select") }}
-                    {% endif %}
-
-                    {{ form.ocr_method.label(class="form-select-label") }}
                 </div>
-                <div class="form-group col-md-2">
-                    
-                    {% if form.force_ocr.errors %}
-                    {{ form.force_ocr(class="form-check is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.force_ocr.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+    
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-check">
+                        {% if form.force_ocr.errors %}
+                        {{ form.force_ocr(class="form-check-input is-invalid") }}
+                        <label class="form-check-label" for="{{ form.force_ocr.id }}">
+                            <i class="bi bi-exclamation-triangle"></i> Force OCR
+                        </label>
+                        <div class="invalid-feedback">
+                            {% for error in form.force_ocr.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.force_ocr(class="form-check-input") }}
+                        <label class="form-check-label" for="{{ form.force_ocr.id }}">
+                            <i class="bi bi-exclamation-triangle"></i> Force OCR
+                        </label>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.force_ocr(class="form-check") }}
-                    {% endif %}
-
-                    {{ form.force_ocr.label(class="form-check-label") }}
                 </div>
-                <div class="form-group col-md-3">
-                    
-                    {% if form.remove_previous_ocr.errors %}
-                    {{ form.remove_previous_ocr(class="form-check is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.remove_previous_ocr.errors %}
-                        <span>{{ error }}</span>
-                        {% endfor %}
+    
+                <div class="col-md-3 d-flex align-items-center">
+                    <div class="form-check">
+                        {% if form.remove_previous_ocr.errors %}
+                        {{ form.remove_previous_ocr(class="form-check-input is-invalid") }}
+                        <label class="form-check-label" for="{{ form.remove_previous_ocr.id }}">
+                            <i class="bi bi-trash"></i> Remove Previous OCR
+                        </label>
+                        <div class="invalid-feedback">
+                            {% for error in form.remove_previous_ocr.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.remove_previous_ocr(class="form-check-input") }}
+                        <label class="form-check-label" for="{{ form.remove_previous_ocr.id }}">
+                            <i class="bi bi-trash"></i> Remove Previous OCR
+                        </label>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    {{ form.remove_previous_ocr(class="form-check") }}
-                    {% endif %}
-
-                    {{ form.remove_previous_ocr.label(class="form-check-label") }}
                 </div>
-                <div class="form-group col-md-2">        
-                    <button type="submit" name="submit-form" class="form-control btn btn-secondary">Preprocess Files</button>
-
+    
+                <div class="col-md-2 d-flex align-items-center ms-auto">
+                    <button type="submit" name="submit-form" class="btn btn-secondary w-100 h-100">
+                        <i class="bi bi-gear"></i> Preprocess Files
+                    </button>
                 </div>
             </div>
-            <style>
-                .info-callout {
-                    border-left: 5px solid #17a2b8; /* Bootstrap info color */
-                    background-color: #e9f7fb; /* Lightened info background */
-                    padding: 15px;
-                    margin-bottom: 5px;
-                    margin-top: 20px;
-                    border-radius: 4px;
-                    color: #0c5460; /* Bootstrap info text color */
-                }
-
-                .warning-callout {
-                    border-left: 5px solid #ffc107; /* Bootstrap warning color */
-                    background-color: #fff3cd; /* Lightened warning background */
-                    padding: 15px;
-                    margin-bottom: 5px;
-                    margin-top: 20px;
-                    border-radius: 4px;
-                    color: #856404; /* Bootstrap warning text color */
-                }
-                
-                /* .callout-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    margin-bottom: 10px;
-                } */
-            </style>
     
-            <div class="info-callout">
+            <div class="info-callout mt-4">
                 <h4 class="callout-title">Information</h4>
                 <p>Preprocessing is done to transform your data in a standardized format. You can upload your files in many formats.
                     <br>
@@ -134,11 +159,11 @@
                     <br>
                     <br>
                     You can also remove previously generated OCR files by checking the <i>Remove Previous OCR</i> checkbox. But be careful: If the text in document is actual text and not an invisible text layer added by a previous OCR run, the whole text will be removed and your document will be empty (except images) afterwards!
-
+    
                     <br>
                     <br>
                     <b>Excel / CSV files:</b> When you upload Excel or CSV files, you need to have a header row with a <b>id</b> and <b>report</b> column! In case of excel files, only the first sheet will be processed.
-
+    
                     {% if session['mode'] == 'anonymizer' %}
                     <br>
                     <br>
@@ -147,8 +172,8 @@
                 </p>
             </div>
         </fieldset>
-        
     </form>
+    
 
     <h1 class="display-4 text-center mb-3">Document Preprocessing Progress</h1>
         <div class="container">
@@ -172,7 +197,7 @@
                         </div>
                         <div class="ms-3">
                             {% if progress_tuple[0] == progress_tuple[1] %}
-                            <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-outline-success">Download</a>
+                            <a id="download-{{ job_id }}" href="/download?job={{ job_id }}" class="btn btn-outline-success"><i class="bi bi-download"></i> Download</a>
                             {% elif progress_tuple[2] %}
                             <a id="download-{{ job_id }}" class="btn btn-outline-secondary" disabled>Processing...</a>
                             {% else %}

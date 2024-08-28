@@ -142,44 +142,6 @@ def main():
 
     return render_template("labelannotation_form.html", form=form)
 
-# def calculate_metrics_multiclass(annotation_label, llm_output_label, all_classes, label_name):
-#     # Initialize the confusion matrix
-#     confusion_matrix = [[0 for _ in all_classes] for _ in all_classes]
-#     class_to_index = {cls: idx for idx, cls in enumerate(all_classes)}
-    
-#     # Update the confusion matrix based on the labels
-#     if annotation_label in class_to_index and llm_output_label in class_to_index:
-#         i = class_to_index[annotation_label]
-#         j = class_to_index[llm_output_label]
-#         confusion_matrix[i][j] += 1
-
-#     # Calculate derived metrics from the confusion matrix
-#     tp = [confusion_matrix[i][i] for i in range(len(all_classes))]
-#     fp = [sum(confusion_matrix[i][j] for i in range(len(all_classes)) if i != j) for j in range(len(all_classes))]
-#     fn = [sum(confusion_matrix[i][j] for j in range(len(all_classes)) if i != j) for i in range(len(all_classes))]
-#     tn = [sum(sum(confusion_matrix[i][j] for j in range(len(all_classes)) if i != k and j != k) for i in range(len(all_classes))) for k in range(len(all_classes))]
-
-#     total = sum(tp) + sum(fp) + sum(fn) + sum(tn)
-#     overall_accuracy = sum(tp) / total if total > 0 else 0
-
-#     precision = [tp[i] / (tp[i] + fp[i]) if (tp[i] + fp[i]) > 0 else 0 for i in range(len(all_classes))]
-#     recall = [tp[i] / (tp[i] + fn[i]) if (tp[i] + fn[i]) > 0 else 0 for i in range(len(all_classes))]
-#     f1 = [2 * (precision[i] * recall[i]) / (precision[i] + recall[i]) if (precision[i] + recall[i]) > 0 else 0 for i in range(len(all_classes))]
-
-#     macro_precision = sum(precision) / len(all_classes)
-#     macro_recall = sum(recall) / len(all_classes)
-#     macro_f1 = sum(f1) / len(all_classes)
-
-#     metrics = {
-#         'confusion_matrix': confusion_matrix,
-#         'accuracy': overall_accuracy,
-#         'macro_precision': macro_precision,
-#         'macro_recall': macro_recall,
-#         'macro_f1': macro_f1
-#     }
-
-#     return metrics
-
 
 def calculate_metrics_multiclass(annotation_label, llm_output_label, all_classes, label_name):
     # Convert labels to a list
@@ -411,7 +373,6 @@ def calculate_final_metrics_stringmatch(match, no_match):
     return metrics
 
 
-
 def accumulate_metrics(data_list):
     accumulated_metrics = {
         'overall': {'accuracy': 0},
@@ -489,36 +450,6 @@ def accumulate_metrics(data_list):
             
             # Update accumulated metrics with final calculated metrics
             accumulated_metrics['label_wise'][label].update(final_metrics)
-
-
-
-
-
-    # for data in data_list:
-    #     # Accumulate overall metrics
-    #     for metric, value in data['metrics']['overall'].items():
-    #         accumulated_metrics['overall'][metric] += value
-
-    #     # Accumulate label-wise metrics
-    #     for label, label_metrics in data['metrics']['label_wise'].items():
-    #         if label not in accumulated_metrics['label_wise']:
-    #             accumulated_metrics['label_wise'][label] = {'tp': 0, 'tn': 0, 'fp': 0, 'fn': 0, 'f1': 0, 'accuracy': 0, 'precision': 0, 'recall': 0, 'specificity': 0, 'false_positive_rate': 0, 'false_negative_rate': 0, 'match': 0, 'no_match': 0, 'confusion_matrix_list': []}
-
-    #         for metric, value in label_metrics.items():
-    #             if metric != 'confusion_matrix' and metric != 'confusion_matrix_list':
-    #                 try:
-    #                     accumulated_metrics['label_wise'][label][metric] += value
-    #                 except Exception as e:
-    #                     breakpoint()
-    #                     print(e)
-    #             elif metric == 'confusion_matrix_list':
-    #                 accumulated_metrics['label_wise'][label][metric] = sum_confusion_matrices([accumulated_metrics['label_wise'][label][metric], value])
-
-    # # Calculate averages for overall metrics
-    # num_entries = len(data_list)
-    # for metric in accumulated_metrics['overall']:
-    #     if metric not in ['tp', 'tn', 'fp', 'fn']:
-    #         accumulated_metrics['overall'][metric] /= float(num_entries)
 
     # Calculate averages for label-wise metrics
     for label, label_metrics in accumulated_metrics['label_wise'].items():
@@ -774,8 +705,6 @@ def check_labels(df, df_annotation, label_type_mapping):
                 flash(f"Label {label}: Annotation has empty values.", "warning")
 
 
-
-
 @labelannotation.route("/labelannotationmetrics", methods=["GET"])
 def labelannotationmetrics():
 
@@ -909,37 +838,12 @@ def generate_export_df(result_dict: list):
                 data[score].append(None)  # Append None if score doesn't exist
 
             macro_scores[score] = accumulated_metrics['label_wise'][label][metric]
-            # if metric in [
-            #     "true_positives",
-            #     "true_negatives",
-            #     "false_positives",
-            #     "false_negatives",
-            # ]:
-            #     micro_scores[score] = accumulated_metrics['label_wise'][label][metric]
-            # else:
-            #     micro_scores[score] = accumulated_metrics['label_wise'][label][
-            #         f"micro_{metric}"
-            #     ]
-
-    # for key in accumulated_metrics:
-    #     if key.startswith('macro_'):
-    #         macro_scores[key[len('macro_'):]] = float(accumulated_metrics[key])
-    #     elif key.startswith('micro_'):
-    #         micro_scores[key[len('micro_'):]] = float(accumulated_metrics[key])
-    #     elif key.startswith('total_'):
-    #         macro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
-    #         micro_scores[key[len('total_'):]] = int(accumulated_metrics[key])
 
     # Append macro and micro scores to the DataFrame
     data["id"].append("macro_scores")
     for score in scores_to_include:
         data[score].append(macro_scores.get(score, None))
 
-    # data["id"].append("micro_scores")
-    # for score in scores_to_include:
-    #     data[score].append(micro_scores.get(score, None))
-
-    # Create a DataFrame using the extracted values
     df = pd.DataFrame(data)
 
     return df
@@ -1028,7 +932,6 @@ def labelannotationdownload():
         download_name=f"metrics_{job_id}.zip",
         mimetype="application/zip",
     )
-
 
 
 @labelannotation.route("/labelannotationviewer", methods=["GET", "POST"])
