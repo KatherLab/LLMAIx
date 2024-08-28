@@ -474,6 +474,8 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         # Extract the content of the first field
         content = info["summary"]["content"]
 
+        print("RAW CONTENT: ", content)
+
         # Parse the content string into a dictionary
         try:
             if content.endswith("<|eot_id|>"):
