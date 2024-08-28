@@ -505,7 +505,11 @@ def extract_first_non_empty_string(llm_output_values):
     for value in llm_output_values:
         if value != "":
             # Convert string representation of list to actual list
-            list_value = ast.literal_eval(value)
+            try:
+                list_value = ast.literal_eval(value)
+            except Exception:
+                print("Error processing value: " + value)
+                raise("Error processing value, there was probably an error during llm processing. Please check you llm output. The malformed value list: " + value)
             # Find the first non-empty string
             first_non_empty = next((item for item in list_value if item != ""), "")
             result.append(first_non_empty)

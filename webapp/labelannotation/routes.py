@@ -575,7 +575,11 @@ def extract_first_non_empty_string(llm_output_values):
     for value in llm_output_values:
         if value != "":
             # Convert string representation of list to actual list
-            list_value = ast.literal_eval(value)
+            try:
+                list_value = ast.literal_eval(value)
+            except Exception:
+                print("Error processing value: " + value)
+                raise("Error processing value, there was probably an error during llm processing. Please check you llm output. The malformed value list: " + value)
             # Find the first non-empty string
             first_non_empty = next((item for item in list_value if item != ""), "")
             result.append(first_non_empty)
@@ -647,7 +651,11 @@ def labelannotationselector():
         llm_output_values = list(df[label["label_name"]])
         # Always choose first label TODO might not be what you want
         # llm_output_values = [ast.literal_eval(value)[0] for value in llm_output_values if value != ""]
-        llm_output_values = extract_first_non_empty_string(llm_output_values)
+        try:
+            llm_output_values = extract_first_non_empty_string(llm_output_values)
+        except Exception as e:
+            flash(f"Error processing label {label['label_name']}: {e}", "danger")
+            return redirect(url_for("labelannotation.main"))
 
         if label["label_name"] not in list(df_annotation.keys()):
             flash(f"Label {label['label_name']} not in the annotation file.", "danger")
@@ -786,7 +794,11 @@ def labelannotationmetrics():
 
         session["current_labelannotation_job"] = True
 
-        check_labels(df, df_annotation, label_type_mapping)
+        try: 
+            check_labels(df, df_annotation, label_type_mapping)
+        except Exception as e:
+            flash(f"Something went wrong processing the llm output: {e}", "danger")
+            return redirect(url_for("labelannotation.main"))
 
     return render_template(
         "labelannotation_metrics.html", report_summary_dict=report_summary_dict, label_type_mapping=label_type_mapping
@@ -992,7 +1004,11 @@ def labelannotationviewer():
                     return redirect(url_for("labelannotation.main"))
                 break
     
-    check_labels(df, df_annotation, label_type_mapping)
+    try:
+        check_labels(df, df_annotation, label_type_mapping)
+    except Exception as e:
+        flash(f"Error processing llm output: {e}", "danger")
+        return redirect(url_for("labelannotation.main"))
 
     return render_template(
         "labelannotation_viewer.html",
