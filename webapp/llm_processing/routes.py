@@ -320,7 +320,7 @@ def extract_from_report(
 
                 if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
                     print(
-                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
+                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens.", flush=True
                     )
                     warning_job(
                         job_id=job_id,
@@ -456,7 +456,12 @@ def extract_from_report(
 
     model_active = False
 
-    return postprocess_grammar(results, df, llm_metadata, debug), zip_file_path
+    result_df, errors = postprocess_grammar(results, df, llm_metadata, debug)
+
+    if errors:
+        warning_job(job_id=job_id, message="Postprocessing Errors: " + str(errors))
+
+    return (result_df, errors), zip_file_path
 
 
 def postprocess_grammar(result, df, llm_metadata, debug=False):
@@ -473,9 +478,6 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
 
         # Extract the content of the first field
         content = info["summary"]["content"]
-
-
-        print("RAW LLM OUTPUT: ", info["summary"]["content"])
 
         # Parse the content string into a dictionary
         try:
@@ -506,8 +508,9 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                 
                     info_dict_raw = ast.literal_eval(content)
                 except Exception:
-                    print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})")
-                    info_dict_raw()
+                    print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})", flush=True)
+                    print("RAW LLM OUTPUT: ", info["summary"]["content"], flush=True)
+                    info_dict_raw = {}
                     error_count += 1
 
             info_dict = {}
@@ -520,11 +523,11 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             # print(f"Successfully parsed LLM output. ({content=})")
         except Exception as e:
             print(
-                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. (Output: {content=})"
+                f"Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. (Output: {content=})", flush=True
             )
-            print("Error:", e)
-            print("TRACEBACK:", traceback.format_exc())
-            print(f"Will ignore the error for report {i} and continue.")
+            print("Error:", e, flush=True)
+            print("TRACEBACK:", traceback.format_exc(), flush=True)
+            print(f"Will ignore the error for report {i} and continue.", flush=True)
             # if debug:
             #     breakpoint()
             info_dict = {}
@@ -571,10 +574,6 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         return id  # Return the original ID if no underscore followed by a number is found after the dollar sign
 
     df["base_id"] = df["id"].apply(extract_base_id)
-    # test_id = 'ocr_arztbericht-bild.pdf$eea5469f-f6a4-4b08-92f3-2340c61b0745'
-    # breakpoint()
-
-    # df['base_id'] = df['id'].apply(lambda x: '_'.join(x.split('_')[:-1]) if '_' in x else x)
 
     # Group by base_id and aggregate reports and other columns into lists
     aggregated_df = (
@@ -866,6 +865,9 @@ def llm_download():
         except Exception as e:
             flash(str(e), "danger")
             return redirect(url_for("llm_processing.llm_results"))
+        
+        if error_count > 0:
+            print("LLM output contains {} errors.".format(error_count), flush=True)
 
         if not zip_file_path or not os.path.exists(zip_file_path):
             print("Download only the csv.")

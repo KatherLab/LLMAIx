@@ -173,8 +173,8 @@ def calculate_metrics_multiclass(annotation_label, llm_output_label, all_classes
 
 def calculate_metrics_boolean(annotation_label, llm_output_label, label_name):
     # Convert labels to boolean
-    annotation_label = annotation_label.lower() in ["true", "1"]
-    llm_output_label = llm_output_label.lower() in ["true", "1"]
+    annotation_label = annotation_label.lower() in ["true", "1", "yes", "y", "ja"]
+    llm_output_label = llm_output_label.lower() in ["true", "1", "yes", "y", "ja"]
 
     # Convert to lists for sklearn compatibility
     y_true = [annotation_label]

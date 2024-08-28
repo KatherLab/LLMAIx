@@ -164,8 +164,8 @@
                                     {% if label_type_mapping[label]['label_type'] == 'boolean' %}
 
                                 
-                                {% set llm_output_bool = report_dict['llm_output_labels'][label] in [1, '1', True, 'True', 'true'] %}
-                                {% set annotation_bool = report_dict['annotation_labels'][label] in [1, '1', True, 'True', 'true'] %}
+                                {% set llm_output_bool = report_dict['llm_output_labels'][label]|lower in [1, '1', True, 'True', 'true', 'yes', 'y', 'ja'] %}
+                                {% set annotation_bool = report_dict['annotation_labels'][label]|lower in [1, '1', True, 'True', 'true', 'yes', 'y', 'ja'] %}
                                 {% if llm_output_bool == annotation_bool %}
                                     <td class="bg-success-subtle">{{ report_dict['llm_output_labels'][label] }}</td>
                                     <td class="bg-success-subtle">{{ report_dict['annotation_labels'][label] }}</td>
