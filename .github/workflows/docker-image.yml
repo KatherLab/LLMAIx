@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: katherlab/llmanonymizer
+  IMAGE_NAME: katherlab/llmaix
 
 jobs:
   docker:
