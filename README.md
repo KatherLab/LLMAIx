@@ -7,7 +7,7 @@
 > 
 > **Use for research purposes only!**
 
-![Information Extraction](static/image_information_extraction.png)
+![Information Extraction](static/ie_front_image.png)
 
 Web-based tool to extract structured information from medical reports, anonymize documents.
 
