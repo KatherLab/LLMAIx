@@ -127,7 +127,7 @@ View one of the tutorials:
 ## Additional Notes
 
 > [!NOTE] 
-> An active internet connection is currently required. This is because some javascript and CSS libraries are taken directly from CDNs. To change that please download them and replace the respective occurrences in the html files.
+> An active internet connection is currently required. This is because some javascript and CSS libraries are loaded directly from CDNs. To change that please download them and replace the respective occurrences in the html files.
 
 
 ## Contributions
