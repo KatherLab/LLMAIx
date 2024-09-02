@@ -87,11 +87,11 @@
               <form id="modeForm" action="/set_mode" method="GET" class="d-flex">
                 <select id="modeSelect" class="form-select" aria-label="Default select example" name="mode">
                   {% if session['mode'] == 'anonymizer' %}
-                  <option selected>LLM Anonymizer</option>
-                  <option value="informationextraction">LLM Information Extraction</option>
+                  <option selected>Anonymization</option>
+                  <option value="informationextraction">Information Extraction</option>
                   {% elif session['mode'] == 'informationextraction' %}
-                  <option selected>LLM Information Extraction</option>
-                  <option value="anonymizer">LLM Anonymizer</option>
+                  <option selected>Information Extraction</option>
+                  <option value="anonymizer">Anonymization</option>
                   {% else %}
                   <option selected disabled></option>
                   {% endif %}

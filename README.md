@@ -3,44 +3,52 @@
 # LLM-AIx - Information Extraction & Anonymization
 
 > [!Important]
-> This tool is in active development and is still undergoing major changes. 
+> This tool is a prototype which is in active development and is still undergoing major changes. Please always check the results!
 > 
 > **Use for research purposes only!**
 
-![alt text](static/image.png)
+![Information Extraction](static/image_information_extraction.png)
 
-Web-based tool to extract (personal) information from medical reports and redact and evaluate anonymization as well as extracted information.
+Web-based tool to extract structured information from medical reports, anonymize documents.
 
 **Features**:
 
-- Supports various input formats: pdf, png, jpg, jpeg, txt and docx (only if Word is installed on your system)
-- Performs OCR if necessary (tesseract and surya-ocr)
-- Extracts information from medical reports in JSON format (ensured by a grammar)
+- Supports various input formats: pdf, png, jpg, jpeg, txt, csv, xlsx and docx (only if Word is installed on your system)
+- Performs OCR if necessary (_tesseract_ and _surya-ocr_)
+- Extracts (personal) information from medical reports in JSON format (enforced by a grammar)
+
+**Information Extraction**:
+
+- Structured information extraction and comparison against a ground truth. 
+- Detailed metrics on label- and document-level.
+
+![Label Annotation Report](static/image_labelannotation_report.png)
+
+**New: Annotation Helper**:
+
+- Speed up your annotation process by using the LLM output as a starting point and only curate the LLM output.
+
+![Annotation Helper](static/image_annotationhelper.png)
 
 **Anonymizer**:
 
 - Matches the extracted personal information in the reports using a fuzzy matching algorithm based on the Levenshtein distance (configurable)
 - Compare documents and calculate metrics using annotated pdf files as a ground truth ([Inception](https://inception-project.github.io/))
 
-**Information Extraction**:
-
-- Information Extraction using LLMs and Metric Calculation based on a ground truth
-
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](static/image_redaction_view.png)
-
-**New: Annotation Helper**:
-
-- Speed up your annotation process by using the LLM output as a starting point and only make manual corrections.
 
 
 ## Examples
 
-Examples of doctoral reports in various formats can be found in the `examples` directory.
+Examples of doctoral reports in various formats as well as grammar examples and annotations can be found in the `examples` directory.
 
 
-## Model Files and Model Config
+## LLM Models and Model Config
 
-Create a directory somewhere on your system where you download the .gguf model files to. Create a config.yml file in the same directory according to the config.yml file in this repository.
+LLM-AIx supports all models which are supported by llama-cpp at the time. Please download models in the **gguf** format.
+
+In addition, create a config.yml file inside of the model directoy and configure your downloaded models according to the following example.
+
 
 Example config.yml file:
 ```yaml
@@ -58,34 +66,34 @@ models:
     n_gpu_layers: 33 # How many layers to offload to the GPU, fastest if all are offloaded
 ```
 
-## How to run (Docker)
+## Run with Docker
 
 1. Download/Clone this repository: [https://github.com/KatherLab/LLM-AIx](https://github.com/KatherLab/LLM-AIx)
-2. Cd to the repo: `cd LLM-AIx`
-3. Edit docker-compose.yml with the correct model path. Inside of this model path should be the .gguf files as well as the adapted `config.yml` file.
+2. Go to the repository: `cd LLM-AIx`
+3. Edit `docker-compose.yml` with the correct model path. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
 4. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
 
 Now access in your browser via `http://localhost:19999`
 
-Alternatively to the first step, just create a `docker-compose.yml` and `config.yml` file. Edit the files according to this repository, no need to download everything!
+Alternatively to the first step, create a `docker-compose.yml` and `config.yml` file. Edit the files according to this repository, no need to download the whole repository!
 
 ### Build Docker Image
 
-Run `docker-compose build` inside of the repository.
+Run `docker compose build` inside of the repository.
 
 
-## Preparation
+## Manual Setup
 
 1. Download and extract or build [llama-cpp](https://github.com/ggerganov/llama.cpp) for your operating system.
 2. Download desired models (must be compatible with llama-cpp, in gguf format)
 3. Update the config.yml file with the downloaded models accordingly.
 4. If you intend to use OCR: Install [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#)
-5. Create a python venv or a conda environment (tested with *Python 3.11.5*) with requirements.txt:
+5. Create a python venv or a conda environment (tested with *Python 3.12.1*) with requirements.txt:
   - `python -m venv venv`
   - `source venv/bin/activate`
   - `pip install -r requirements.txt`
 
-## Launch LLM Anonymizer
+## Launch LLM-AIx
 
 Run:
 `python app.py`
@@ -109,78 +117,19 @@ Run:
 
 ## Usage
 
-### Preprocessing
+View one of the tutorials:
 
-- Click on **Preprocessing**
+[Information Extraction Tutorial](static/information_extraction.md)
 
-First, all input files are preprocessed to  a csv file which contains all text from all reports. Currently pdf, docx, odf, txt, png and jpg files can be used as input. If necessary, text recognition (OCR) is applied. 
-
-The output is a zip file containing the csv file and the pdf files with a text layer.
-
-### LLM Information Extraction
-
-> Extract personal information from the medical reports.
-
-- Click on **LLM Information Extraction**
-
-Use the zip file from the preprocessing step as an input, choose a model and adjust the prompt, grammar (use the grammar builder), n_predict and temperature accordingly. When you click `Run Pipeline` you will be redirected to the **LLM results** tab. Wait for the results to be available for download. You don't have to reload the page! In the meantime you can also start more information extraction jobs.
-
-The output extends the input zip file with a csv file with columns `report` with the original report, `report_masked` which contains the anonymized report and more columns with the personal information extracted according to the grammar as well as Ids and metadata.
-
-### Prepare Annotations
-
-> To be able to evaluate the performance of the LLM Anonymizer tool, ground truth is needed.
-
-1. Download [Inception](https://inception-project.github.io/)
-2. Start a basic annotation project, upload the pdf files and annotate the parts of the reports you want to anonymize. Refer to the [Inception User Guide](https://inception-project.github.io/releases/32.2/docs/user-guide.html)
-3. Export the annotated reports in the UIMA CAS JSON format (UIMA CAS JSON 0.4.0)
-4. Make shure the filename of the exported json files matches the filename of the pdf files (except the extension like .json and .pdf)
-5. Create a zip file of the exported json files (zip the json files directly, not a directory where they are located!)
-
-
-### Report Redaction Metrics
-
-> Calculate metrics for the anonymized reports by comparing to annotated reports (by [Inception](https://inception-project.github.io/))
-
-- Click on **Report Redaction**
-
-1. Use the output zip file from the LLM Information Extraction step as an input.
-2. Also upload the prepared annotation zip file.
-3. Enable and configure fuzzy matching if you want to use the fuzzy matching algorithm.
-4. Choose between **Report Redaction Metrics** and **Report Redaction Viewer**
-5. **Report Redaction Metrics** will run a job which calculates overall metrics for all the documents as well as a download link for the redacted documents.
-6. **Report Redaction Viewer** will let you view the documents one-by-one with document-wise metrics and they are redacted on the fly.
+[Anonymizer Tutorial](static/anonymization.md)
 
 
 ## Additional Notes
 
+> [!NOTE] 
 > An active internet connection is currently required. This is because some javascript and CSS libraries are taken directly from CDNs. To change that please download them and replace the respective occurrences in the html files.
 
 
-## Example Grammar
+## Contributions
 
-> [!Tip]
-> **Use the new Grammar Builder**
-> 
-> ![Grammar Builder Tool](static/image_grammarbuilder.png)
-
-> Adjust the grammar according to the [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md). This causes the llm output to be in a json structure with the desired datapoints. Note: Playing around with this can help, not every model works well with a too restrictive grammar.
-
-
-Example grammar:
-```
-root ::= allrecords
-
-allrecords ::= (
-  "{"
-ws "\"patientname\":" ws "\"" char{2,60} "\"" ","
-ws "\"patientsex\":" ws "\"" ( "m" | "w" | "d" ) "\"" ","
-
-  ws "}"
-  ws
-)
-
-ws ::= ([ \t\n])?
-
-char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
-```
+Pull requests are welcome!
