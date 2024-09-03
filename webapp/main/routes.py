@@ -22,7 +22,7 @@ def set_mode_route():
     else:
         flash(f"Cannot change mode: The application was launched with --mode {current_app.config['MODE']} option.", "danger")
 
-    if session['mode'] == 'anonymizer' and "labelannotation" in request.referrer:
+    if session['mode'] == 'anonymizer' and "labelannotation" in request.referrer or "annotationhelper" in request.referrer:
         flash("Switched to Anonymizer", "info")
         return redirect(url_for("report_redaction.main"))
     

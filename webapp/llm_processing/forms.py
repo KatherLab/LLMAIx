@@ -11,7 +11,9 @@ default_prompt = r"""From the following medical report, extract the following in
     patientsex: The sex of the patient. Use "m" for male, "w" for female, and "d" for diverse.
 
 This is the medical report:
-{report}"""
+{report}
+
+The JSON:"""
 
 
 default_grammar = r"""root ::= allrecords

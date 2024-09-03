@@ -251,8 +251,8 @@
             <div class="card-header">
                 <h3>Experiment Metadata</h3>
             </div>
-            <div class="card-body">
-                <table class="table table-bordered table-hover">
+            <div class="card-body p-0">
+                <table class="table table-bordered table-hover mb-0">
                     <tbody>
                         <tr>
                             <th>Preprocessing Date</th>
@@ -270,10 +270,11 @@
                             <th>Prompt</th>
                             <td style="overflow:hidden">{{ metadata['llm_processing']['prompt']}}</td>
                         </tr>
+                        <!--
                         <tr>
                             <th>Symptoms</th>
                             <td>{{ metadata['llm_processing']['symptoms']}}</td>
-                        </tr>
+                        </tr>-->
                         <tr>
                             <th>Temperature</th>
                             <td>{{ metadata['llm_processing']['temperature']}}</td>

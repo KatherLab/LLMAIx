@@ -127,8 +127,8 @@
                 <div class="col-md-4">
                     <div class="form-floating">
                         {% if form.n_predict.errors %}
-                        {{ form.n_predict(class="form-control is-invalid", placeholder="Number of Predictions") }}
-                        <label for="n_predict">Number of Predictions</label>
+                        {{ form.n_predict(class="form-control is-invalid", placeholder="Max. Number of Tokens to Predict") }}
+                        <label for="n_predict">Max. Number of Tokens to Predict</label>
                         <div class="invalid-feedback">
                             {% for error in form.n_predict.errors %}
                             <span>{{ error }}</span>

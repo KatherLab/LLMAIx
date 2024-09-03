@@ -180,7 +180,7 @@
     
         <!-- Submit Buttons -->
         <div class="row mb-4">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 mb-3">
                 <button type="submit" name="submit-metrics" class="btn btn-primary w-100">
                     <i class="bi bi-bar-chart-line me-2"></i> Report Redaction Metrics
                 </button>
@@ -191,7 +191,7 @@
                     <i class="bi bi-eye me-2"></i> Report Redaction Viewer (document-wise)
                 </button>
             </div>-->
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 mb-3">
                 <button type="submit" name="submit-redaction-download" class="btn btn-primary w-100">
                     <i class="bi bi-download me-2"></i> Download Redacted Reports
                 </button>
@@ -263,11 +263,11 @@
                 </div>
                 <div class="progress" style="height: 25px;">
                     {% if progress_tuple[2] %}
-                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}">
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-success" role="progressbar" style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0" aria-valuemax="{{ progress_tuple[1] }}">
                         {{ progress_tuple[0] }} / {{ progress_tuple[1] }}
                     </div>
                     {% else %}
-                    <div class="progress-bar bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
                         {{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED
                     </div>
                     {% endif %}
@@ -348,8 +348,13 @@
         var downloadLink = document.getElementById('download-' + job_id);
         downloadLink.href = '/reportredactionmetrics/' + job_id;
         downloadLink.classList.remove('disabled');
-        downloadLink.innerText = 'View Metrics';
+        downloadLink.innerText = '<i class="bi bi-bar-chart-line"></i> View Metrics';
         downloadLink.removeAttribute('disabled');
+
+        var progressbar = document.getElementById('progress-' + job_id);
+        progressbar.className = 'progress-bar bg-success';
+        progressbar.innerText = 'Completed';
+        progressbar.style.width = '100%';
     });
 
     socket.on('progress_failed', function (data) {
