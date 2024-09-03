@@ -174,7 +174,7 @@ if __name__ == "__main__":
     check_model_config(app.config["MODEL_PATH"], app.config["CONFIG_FILE"],)
 
     if not os.path.isfile(app.config["SERVER_PATH"]):
-        print("WARNING: Llama.cpp server executable not found. Did you specify --server_path correctly?")
+        print("WARNING: Llama.cpp server executable not found in '"  + app.config["SERVER_PATH"] + "'. Did you specify --server_path correctly?")
 
     print("Start Webserver on http://" + args.host + ":" + str(args.port))
     if args.host == "0.0.0.0":
