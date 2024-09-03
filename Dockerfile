@@ -1,3 +1,4 @@
+# Use ARG for the compute level in the builder stage
 ARG CUDA_VERSION="12.6.0"
 ARG OS="ubuntu24.04"
 ARG COMPUTE_LEVEL="86"
@@ -5,10 +6,7 @@ ARG COMPUTE_LEVEL="86"
 ARG CUDA_BUILDER_IMAGE="${CUDA_VERSION}-devel-${OS}"
 ARG CUDA_RUNTIME_IMAGE="${CUDA_VERSION}-runtime-${OS}"
 
-# Builder Stage: Compiling and building
 FROM nvidia/cuda:${CUDA_BUILDER_IMAGE} AS builder
-
-ENV COMPUTE_LEVEL=${COMPUTE_LEVEL}
 
 # Install build dependencies
 RUN apt update && \
@@ -22,11 +20,13 @@ RUN apt update && \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone and build the project
 WORKDIR /build
+
+# Use ARG directly in the make command
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
-    CUDA_DOCKER_ARCH=compute_${COMPUTE_LEVEL} make GGML_CUDA=1 -j 8
+    CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" make GGML_CUDA=1 -j 8
+
 
 # Runtime Stage: Setting up the runtime environment
 FROM nvidia/cuda:${CUDA_RUNTIME_IMAGE} AS runtime
