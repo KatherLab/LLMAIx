@@ -1,6 +1,12 @@
-# Use the official Python image from the Docker Hub
-# FROM python:3.12-slim
-FROM nvidia/cuda:12.6.0-cudnn-devel-ubuntu24.04 as builder
+ARG CUDA_VERSION="12.6.0"
+ARG OS="ubuntu24.04"
+ARG COMPUTE_LEVEL="86"
+
+ARG CUDA_BUILDER_IMAGE="${CUDA_VERSION}-devel-${OS}"
+ARG CUDA_RUNTIME_IMAGE="${CUDA_VERSION}-runtime-${OS}"
+
+
+FROM nvidia/cuda:${CUDA_BUILDER_IMAGE} AS builder
 
 # Install system dependencies
 RUN apt update && \
@@ -19,10 +25,10 @@ WORKDIR /build
 # Clone and build llama.cpp - adjust the compute level to your GPU
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
-    CUDA_DOCKER_ARCH=compute_86 make GGML_CUDA=1 -j 8
+    CUDA_DOCKER_ARCH=compute_${COMPUTE_LEVEL} make GGML_CUDA=1 -j 8
 
 
-FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04 as runtime
+FROM nvidia/cuda:${CUDA_RUNTIME_IMAGE} AS runtime
 
 RUN apt update && \
     apt install -y --no-install-recommends \
@@ -44,7 +50,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install the required Python packages
-RUN pip install --no-cache-dir --break-system-packages-r requirements.txt
+RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .

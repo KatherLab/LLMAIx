@@ -81,6 +81,13 @@ Alternatively to the first step, create a `docker-compose.yml` and `config.yml` 
 
 Run `docker compose build` inside of the repository.
 
+> [!Tip]
+> You can specify the compute level of your CUDA-capable GPU in the docker-compose file. 
+>
+> Use `86` for compute level 8.6.
+>
+> Look up here for your GPU: [GPU Compute Capabilites](https://developer.nvidia.com/cuda-gpus)
+
 
 ## Manual Setup
 
