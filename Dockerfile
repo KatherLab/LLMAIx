@@ -10,6 +10,7 @@ ARG CUDA_RUNTIME_IMAGE="${CUDA_VERSION}-runtime-${OS}"
 FROM nvidia/cuda:${CUDA_BUILDER_IMAGE} AS builder
 
 # Set the compute level as an environment variable to be used later
+ARG COMPUTE_LEVEL
 ENV COMPUTE_LEVEL=${COMPUTE_LEVEL}
 
 # Install build dependencies
