@@ -1,6 +1,6 @@
 # Use the official Python image from the Docker Hub
 # FROM python:3.12-slim
-FROM nvidia/cuda:12.5.1-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.6.0-cudnn-devel-ubuntu24.04
 
 # Install system dependencies
 RUN apt update && \

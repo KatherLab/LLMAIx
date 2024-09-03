@@ -292,7 +292,7 @@ def sum_confusion_matrices(confusion_matrices):
     if not confusion_matrices[0]:
         return confusion_matrices[1]
 
-    print("Sum: ", confusion_matrices)
+    # print("Sum: ", confusion_matrices)
     # Convert the first confusion matrix to a NumPy array
     summed_matrix = np.array(confusion_matrices[0])
     

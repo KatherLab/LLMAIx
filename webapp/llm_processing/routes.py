@@ -519,9 +519,11 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
                     print("REPLACE NULL")
                 
                     info_dict_raw = ast.literal_eval(content)
-                except Exception:
+                except Exception as e:
                     print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})", flush=True)
-                    print("RAW LLM OUTPUT: ", info["summary"]["content"], flush=True)
+                    print("RAW LLM OUTPUT: '" + info["summary"]["content"] + "'", flush=True)
+                    print("Error:", e, flush=True)
+                    print("TRACEBACK:", traceback.format_exc(), flush=True)
                     info_dict_raw = {}
                     error_count += 1
 
