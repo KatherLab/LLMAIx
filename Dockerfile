@@ -68,4 +68,4 @@ COPY . .
 EXPOSE 5000
 
 # Command to run the application
-CMD ["python", "app.py", "--server_path", "/build/llama.cpp/llama-server", "--model_path", "/models"]
+CMD ["python", "app.py", "--server_path", "/build/llama-server", "--model_path", "/models"]
