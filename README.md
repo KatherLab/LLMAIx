@@ -140,3 +140,7 @@ View one of the tutorials:
 ## Contributions
 
 Pull requests are welcome!
+
+## Citation
+
+This repository is part of the paper [LLM-AIx: An open source pipeline for Information Extraction from unstructured medical text based on privacy pre-serving Large Language Models](https://doi.org/10.1101/2024.09.02.24312917)
