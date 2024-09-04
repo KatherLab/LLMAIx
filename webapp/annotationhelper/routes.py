@@ -112,7 +112,7 @@ class AnnotationHelperJob:
         return False
     
     def update_record_labels_by_id(self, record_id, label, value):
-        print("Updating record", record_id, "label", label, "value", value)
+        # print("Updating record", record_id, "label", label, "value", value)
         for record in self.record_list:
             if record['record_id'] == record_id:
                 for record_label in record['labels']:
@@ -132,14 +132,14 @@ class AnnotationHelperJob:
         # return a csv file with the id and report columns from the llm_output_df and the self.labels as other columns having the value_annotator
         # you need to match the ids with the record_ids
 
-        annotated_df = self.llm_output_df[['id', 'report']]
+        annotated_df = self.llm_output_df[['id', 'report']].copy()
 
         true_equivalents = ["True", "true", "Ja", "ja", "Yes", "yes", "correct", "wahr", "1", "TRUE", True]
         false_equivalents = ["False", "false", "Nein", "nein", "No", "no", "falsch", "0", "FALSE", False]
 
         # add columns for each label
         for label in self.labels:
-            annotated_df[label] = ""
+            annotated_df.loc[:,label] = ""
 
         for record in self.record_list:
 
@@ -174,7 +174,7 @@ def annotationhelperdownload():
 
     job_id = request.args.get('job_id')
 
-    print("Downloading job", job_id)
+    # print("Downloading job", job_id)
 
     if job_id not in annotation_jobs:
         flash("Job not found!", "danger")
@@ -309,13 +309,13 @@ def annotationhelperviewer():
         flash("Record not found!", "danger")
         return redirect(url_for("annotationhelper.annotationhelperoverview", job_id=job_id))
     
-    print("Init form for record", record_id)
+    # print("Init form for record", record_id)
     # breakpoint()
 
     form = ReAnnotationForm()
 
     # print("Form errors", form.errors)
-    print("Request method", request.method)
+    # print("Request method", request.method)
 
     if request.method == 'POST':
         # set all choices in case of multiclass
@@ -334,20 +334,20 @@ def annotationhelperviewer():
                 form.labels[i].annotator_categories.choices = choices
 
     if form.validate_on_submit():
-        print("submit form")
+        # print("submit form")
 
         # record = annotation_jobs[job_id].get_record_by_id(record_id)
 
         for i, label in enumerate(form.labels):
-            print("Label", i, label.data['label_name'])
+            # print("Label", i, label.data['label_name'])
             if label.data['label_type'] == 'multiclass':
-                print("Update label", i, label.data['annotator_categories'])
+                # print("Update label", i, label.data['annotator_categories'])
                 annotation_jobs[job_id].update_record_labels_by_id(record_id, label.data['label_name'], label.data['annotator_categories'])
             elif label.data['label_type'] == 'boolean':
-                print("Update label", i, label.data['annotator_boolean'])
+                # print("Update label", i, label.data['annotator_boolean'])
                 annotation_jobs[job_id].update_record_labels_by_id(record_id, label.data['label_name'], label.data['annotator_boolean'])
             elif label.data['label_type'] == 'stringmatch':
-                print("Update label", i, label.data['annotator_string'])
+                # print("Update label", i, label.data['annotator_string'])
                 annotation_jobs[job_id].update_record_labels_by_id(record_id, label.data['label_name'], label.data['annotator_string'])
         
         annotation_jobs[job_id].update_record_status_by_id(record_id, "completed")
@@ -382,7 +382,7 @@ def annotationhelperviewer():
     record = annotation_jobs[job_id].get_record_by_id(record_id)
 
     if not request.method == 'POST':
-        print("Init form")
+        # print("Init form")
         for i, label in enumerate(record["labels"]):
             form.labels.append_entry()
             label_type = job_info['label_type_mapping'][label["label"]]["label_type"]

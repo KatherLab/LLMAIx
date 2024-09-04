@@ -236,7 +236,7 @@ def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dp
 
             full_text += text
     pdf_document.save(output_path)
-    print("Text added to PDF, saved to: ", output_path)
+    # print("Text added to PDF, saved to: ", output_path)
     pdf_document.close()
 
     return full_text
@@ -328,7 +328,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                 
 
             contains_text = False
-            print("Opening PDF: ", file_path)
+            # print("Opening PDF: ", file_path)
             with fitz.open(file_path) as pdf_document:
                 contains_text = False
                 for page_num in range(len(pdf_document)):
@@ -338,9 +338,10 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                         break
 
 
-            print("Contains text: ", contains_text)
+            # print("Contains text: ", contains_text)
 
             if not contains_text or force_ocr:
+                print("Extracting text from PDF using OCR: ")
                 if contains_text and force_ocr and remove_previous_ocr:
                     remove_selectable_text_from_pdf(file_path)
                 if ocr_method == 'tesseract':
@@ -634,7 +635,7 @@ def download():
         # Create a new DataFrame with the split rows
         df_split = pd.DataFrame(split_rows)
 
-        print("Files to zip:", files_to_zip)
+        # print("Files to zip:", files_to_zip)
 
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zipf:

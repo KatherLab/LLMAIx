@@ -799,7 +799,7 @@ def report_redaction_viewer(report_id):
     try:
         # Extract all column values for the current report ID, except column 'id', 'report', 'metadata' and 'report_redacted', put them in a dict with the column name as the key
 
-        print("Viewer: IGNORE ", session.get("ignore_labels", []))
+        # print("Viewer: IGNORE ", session.get("ignore_labels", []))
         personal_info_dict = {}
         for column_name in df.columns:
             if (
@@ -825,7 +825,7 @@ def report_redaction_viewer(report_id):
         if key not in session.get("ignore_labels", [])
     }
 
-    print("personal_info_dict", personal_info_dict)
+    # print("personal_info_dict", personal_info_dict)
 
     # Find the previous and next report IDs if they exist
     previous_id = df.at[current_index - 1, "id"] if current_index > 0 else None
@@ -969,7 +969,7 @@ def load_annotated_pdf(report_id, pdf_file, annotation_zip_file):
         print("File not found: ", pdf_file)
         raise FileNotFoundError(f"File {pdf_file} not found.")
 
-    print("Apply Annotations to PDF")
+    # print("Apply Annotations to PDF")
     (
         annotation_pdf_filepath,
         dollartext_annotated,

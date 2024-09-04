@@ -49,7 +49,9 @@ class GrammarValidator:
         enable_grammar = form.enable_grammar.data
         grammar = field.data
         if enable_grammar:
-            print("Check grammar")
+            # print("Checking grammar placeholder")
+            # TODO: Add grammar validation
+            pass
         if enable_grammar and not grammar:
             raise ValidationError(
                 'Grammar field is required when "Enable Grammar" is checked.')

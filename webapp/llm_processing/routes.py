@@ -203,7 +203,7 @@ def extract_from_report(
 
     global new_model
     global server_connection, current_model, model_active
-    print("Current model:", current_model, "New model:", new_model)
+    print("Current model:", current_model, "Load new model:", new_model)
     if current_model != model_name:
         server_connection and server_connection.kill()
 
@@ -494,10 +494,10 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         # Parse the content string into a dictionary
         try:
             if content.endswith("<|eot_id|>"):
-                print("Remove eot_id")
+                # print("Remove eot_id")
                 content = content[: -len("<|eot_id|>")]
             if content.endswith("</s>"):
-                print("Remove </s>")
+                # print("Remove </s>")
                 content = content[: -len("</s>")]
             # search for last } in content and remove anything after that
             content = content[: content.rfind("}") + 1]
@@ -516,7 +516,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             except Exception:
                 try:
                     content = content.replace(" null,", '' ,' "null",')
-                    print("REPLACE NULL")
+                    # print("REPLACE NULL")
                 
                     info_dict_raw = ast.literal_eval(content)
                 except Exception as e:
@@ -695,7 +695,7 @@ def main():
 
         if file.filename.endswith(".csv"):
             try:
-                print(file)
+                # print(file)
                 df = pd.read_csv(file)
             except pd.errors.ParserError as e:
                 # print the error message in console
@@ -712,7 +712,7 @@ def main():
         elif file.filename.endswith(".xlsx"):
             try:
                 df = pd.read_excel(file)
-                print(df.head())
+                # print(df.head())
                 # ValueError: Excel file format cannot be determined, you must specify an engine manually.
             except ValueError as e:
                 print(e)
@@ -734,7 +734,7 @@ def main():
             zip_file_path = os.path.join(temp_dir, file.filename)
             with open(zip_file_path, "wb") as f:
                 f.write(zip_buffer.getvalue())
-                print("Zip file saved:", zip_file_path)
+                # print("Zip file saved:", zip_file_path)
 
             # Verify the integrity of the saved file (optional)
             if os.path.exists(zip_file_path):
@@ -745,7 +745,7 @@ def main():
                 try:
                     with zipfile.ZipFile(zip_file_path, "r") as test_zip:
                         test_zip.testzip()
-                    print("File is a valid ZIP file")
+                    # print("File is a valid ZIP file")
                 except zipfile.BadZipFile:
                     print("File is not a valid ZIP file")
 
@@ -792,7 +792,7 @@ def main():
             )
             return render_template("llm_processing.html", form=form)
 
-        print("Run job!")
+        # print("Run job!")
         global llm_jobs
 
         model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
@@ -848,7 +848,7 @@ def main():
             kv_cache_type=model_config['kv_cache_quants'],
         )
 
-        print("Started job successfully!")
+        print(f"Started job {job_id} successfully!")
 
         return redirect(url_for("llm_processing.llm_results"))
 
@@ -884,7 +884,7 @@ def llm_download():
             print("LLM output contains {} errors.".format(error_count), flush=True)
 
         if not zip_file_path or not os.path.exists(zip_file_path):
-            print("Download only the csv.")
+            # print("Download only the csv.")
             result_io = BytesIO()
             # breakpoint()
 

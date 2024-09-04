@@ -23,7 +23,7 @@ class ReAnnotationForm(FlaskForm):
 
     def validate(self, extra_validators=None):
 
-        print("validate")
+        # print("validate")
         # Perform default validation
         # if not super().validate():
         #     return False

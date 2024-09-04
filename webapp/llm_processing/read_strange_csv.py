@@ -11,7 +11,7 @@ def read_and_save_csv(input_file, output_file_path):
     """
     # Initialize a list to hold the data
     data = []
-    print(type(input_file))
+    # print(type(input_file))
     # Get the path of the input file
 
     # Read the file line by line directly from the FileStorage object
@@ -23,8 +23,8 @@ def read_and_save_csv(input_file, output_file_path):
     # The column name is 'report'
     # delete the first row
     df = pd.DataFrame(data[1:], columns=['report'])
-    print(df.head())
+    # print(df.head())
 
     # Save the DataFrame to a new CSV file
     df.to_csv(output_file_path, index=False, encoding='utf-8')
-    print(f'File saved successfully to {output_file_path}')
+    # print(f'File saved successfully to {output_file_path}')

@@ -419,7 +419,7 @@ def accumulate_metrics(data_list):
                 accumulated_metrics['label_wise'][label]['match'] += label_metrics['match']
                 accumulated_metrics['label_wise'][label]['no_match'] += label_metrics['no_match']
             elif label in label_type_mapping and label_type_mapping[label]['label_type'] == 'multiclass':
-                print("Sum confusion matrices: ", accumulated_metrics['label_wise'][label]['confusion_matrix_list'], label_metrics['confusion_matrix_list'])
+                # print("Sum confusion matrices: ", accumulated_metrics['label_wise'][label]['confusion_matrix_list'], label_metrics['confusion_matrix_list'])
                 accumulated_metrics['label_wise'][label]['confusion_matrix_list'] = sum_confusion_matrices([accumulated_metrics['label_wise'][label]['confusion_matrix_list'], label_metrics['confusion_matrix_list']])
 
         
@@ -478,7 +478,7 @@ def accumulate_metrics(data_list):
     for label, label_metrics in accumulated_metrics['label_wise'].items():
         for metric, value in label_metrics.items():
             if metric in accumulated_metrics['overall'].keys():
-                print("Adding", label, metric, value)
+                # print("Adding", label, metric, value)
                 accumulated_metrics['overall'][metric] += value
 
     for metric, value in accumulated_metrics['overall'].items():
@@ -756,7 +756,7 @@ def labelannotationmetrics():
     # Find IDs with no matching report
     df["no_matching_report"] = ~df["matching_report"]
 
-    print(df[df["no_matching_report"]][["id", "report_id_short"]])
+    # print(df[df["no_matching_report"]][["id", "report_id_short"]])
 
     if len(df[df["no_matching_report"]][["id", "report_id_short"]]) > 0:
         flash(
@@ -1032,7 +1032,7 @@ def labelannotationcacheprovider(file_id):
 
     file_path = file_cache[file_id]  # Get the file path from the cache
 
-    print("Send: ", file_path)
+    # print("Send: ", file_path)
 
     # Send the file if it exists, otherwise return 404
     try:

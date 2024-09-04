@@ -100,7 +100,7 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
 
         # Add the fuzzy matches
         if fuzzy_matches:
-            print("Add fuzzy matches: ", fuzzy_matches)
+            # print("Add fuzzy matches: ", fuzzy_matches)
             for text, score in fuzzy_matches:
                 text_instances = page.search_for(text)
 
@@ -141,7 +141,7 @@ def is_empty_string_nan_or_none(variable) -> bool:
         return True
     
     # If variable is not a recognized type, we assume it's invalid and return True.
-    print(f"WARNING: Removed {variable} from list.")
+    # print(f"WARNING: Removed {variable} from list.")
     return True
 
 def replace_text_with_placeholder(text, personal_info_list, replacement_char='*'):
@@ -266,7 +266,7 @@ def find_fuzzy_matches_old(text: str, personal_info_list: list[str], threshold: 
                 best_score = best_matches[0][1]
                 for match, score in best_matches:
                     if score == best_score and score >= threshold:
-                        print(f"match: {match}, score: {score}")
+                        # print(f"match: {match}, score: {score}")
                         fuzzy_matches.append((match, score))
 
     return list(set(fuzzy_matches))  # remove duplicates
