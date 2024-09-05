@@ -55,6 +55,11 @@ This is the medical report:
 The JSON:
 ```
 
+> [!TIP]
+> It might be helpful to incorporate the prompt / instruction template into the prompt for instruction-tuned models. 
+>
+> The prompt will be used in the `/completion` endpoint without applying a prompt- or chat template!
+
 ---
 
 The **grammar** ensures that the model can only generate valid JSON with only the correct keys. Internally it restricts what token the model is allowed to predict next.
