@@ -95,7 +95,8 @@ To make writing a grammar easy, you can use the **Grammar Builder**, which allow
 
 You can save and load the Grammar Builder configuration. Press **Generate Grammar** to generate the grammar.
 
-> [!TIP] You can also manually write your own grammar. See [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md).
+> [!NOTE]
+> You can also manually write your own grammar. See [LLama-CPP GBNF Guide](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md).
 
 ---
 
