@@ -21,7 +21,6 @@ services:
       - LLAMACPP_PORT=${LLAMACPP_PORT:-2929}
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
-      - NO_PARALLEL_PREPROCESSING=${NO_PARALLEL_PREPROCESSING:-false}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
       - NO_PASSWORD=${NO_PASSWORD:-true}
     deploy:
