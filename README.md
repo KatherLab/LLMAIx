@@ -68,8 +68,8 @@ models:
 
 ## Run with Docker
 
-1. Download/Clone this repository: [https://github.com/KatherLab/LLM-AIx](https://github.com/KatherLab/LLM-AIx)
-2. Go to the repository: `cd LLM-AIx`
+1. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
+2. Go to the repository directory: `cd LLMAIx`
 3. Edit `docker-compose.yml` with the correct model path. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
 4. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
 
