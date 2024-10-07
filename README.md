@@ -68,10 +68,11 @@ models:
 
 ## Run with Docker
 
-1. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
-2. Go to the repository directory: `cd LLMAIx`
-3. Edit `docker-compose.yml` with the correct model path. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
-4. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
+1. Download desired models (must be compatible with llama-cpp, in gguf format) into a new models directory
+2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
+3. Go to the repository directory: `cd LLMAIx`
+4. Edit `docker-compose.yml` with the correct path to the models directory. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
+5. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
 
 Now access in your browser via `http://localhost:19999`
 
