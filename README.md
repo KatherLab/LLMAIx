@@ -68,7 +68,7 @@ models:
 
 ## Run with Docker
 
-1. Download desired models (must be compatible with llama-cpp, in gguf format) into a new models directory
+1. Download the desired models (must be compatible with llama-cpp, in gguf format, e.g. from HuggingFace) into a new models directory!
 2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
 3. Go to the repository directory: `cd LLMAIx`
 4. Edit `docker-compose.yml` with the correct path to the models directory. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
