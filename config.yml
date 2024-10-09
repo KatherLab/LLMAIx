@@ -7,7 +7,7 @@ models:
     kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
     flash_attention: true # does not work for some models
     mlock: true
-    server_slots: 2
+    server_slots: 1
     seed: 42
     n_gpu_layers: 33
     
