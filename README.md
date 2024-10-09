@@ -61,7 +61,7 @@ models:
     kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
     flash_attention: true # does not work for some models
     mlock: true
-    server_slots: 2 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
+    server_slots: 1 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
     seed: 42 # Random initialization
     n_gpu_layers: 33 # How many layers to offload to the GPU, fastest if all are offloaded
 ```
