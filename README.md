@@ -63,7 +63,7 @@ models:
     mlock: true
     server_slots: 1 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
     seed: 42 # Random initialization
-    n_gpu_layers: 33 # How many layers to offload to the GPU, fastest if all are offloaded
+    n_gpu_layers: 200 # How many layers to offload to the GPU. You should always try to offload all! e.g. 33 for Llama 3.1 8B or 82 for Llama 3.1 70B. Can be set to e.g. 200 to make sure all layers are offloaded for (almost) all models.
 ```
 
 ## Run with Docker
