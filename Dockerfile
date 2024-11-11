@@ -1,5 +1,5 @@
 # Use ARG for the compute level in the builder stage
-ARG CUDA_VERSION="12.6.0"
+ARG CUDA_VERSION="12.6.2"
 ARG OS="ubuntu24.04"
 ARG COMPUTE_LEVEL="86"
 
