@@ -5,4 +5,5 @@ logs*
 __pycache__
 
 test_*.py
+test_*
 output.pdf

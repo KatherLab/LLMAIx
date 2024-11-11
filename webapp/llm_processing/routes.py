@@ -227,7 +227,9 @@ def extract_from_report(
                 "-b",
                 "2048",
                 "-ub",
-                "2048",
+                "512",
+                "-t",
+                "16",
             ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
             (["-ctk", kv_cache_type, "-ctv", kv_cache_type] if kv_cache_type != "" else []) + 
             (["-sm", "none", "-mg", str(gpu)] if gpu not in ["all", "ALL", "mps", ""] else [])+
