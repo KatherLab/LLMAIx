@@ -55,10 +55,7 @@ WORKDIR /build
 COPY --from=builder /build/llama.cpp .
 
 # Remove unnecessary files
-RUN rm llama-* !("llama-server")
-RUN rm ggml
-RUN rm -r examples
-RUN rm -r models
+RUN find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
 # Set the working directory for the application
 WORKDIR /app
