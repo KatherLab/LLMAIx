@@ -34,6 +34,7 @@ RUN git clone https://github.com/ggerganov/llama.cpp && \
     echo "Using compute level: compute_${COMPUTE_LEVEL}" && \
     CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" make GGML_CUDA=1 -j 8
 
+RUN find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
 # Runtime Stage: Setting up the runtime environment
 FROM nvidia/cuda:${CUDA_RUNTIME_IMAGE} AS runtime
@@ -53,9 +54,6 @@ WORKDIR /build
 
 # Copy the built artifacts from the builder stage
 COPY --from=builder /build/llama.cpp .
-
-# Remove unnecessary files
-RUN find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
 # Set the working directory for the application
 WORKDIR /app
