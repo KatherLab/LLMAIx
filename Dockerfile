@@ -54,6 +54,12 @@ WORKDIR /build
 # Copy the built artifacts from the builder stage
 COPY --from=builder /build/llama.cpp .
 
+# Remove unnecessary files
+RUN rm llama-* !("llama-server")
+RUN rm ggml
+RUN rm -r examples
+RUN rm -r models
+
 # Set the working directory for the application
 WORKDIR /app
 
