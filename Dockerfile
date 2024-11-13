@@ -32,9 +32,8 @@ RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
     # Echo the value to debug the variable substitution
     echo "Using compute level: compute_${COMPUTE_LEVEL}" && \
-    CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" make GGML_CUDA=1 -j 8
-
-RUN find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
+    CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" make GGML_CUDA=1 -j 8 && \
+    find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
 # Runtime Stage: Setting up the runtime environment
 FROM nvidia/cuda:${CUDA_RUNTIME_IMAGE} AS runtime
