@@ -769,8 +769,12 @@ def labelannotationmetrics():
         return redirect(request.url)
 
 
-    # Check if the extracted report names from df1 are present in df2
+    # check if id column is present in df_annotation
+    if "id" not in df_annotation.columns:
+        flash("'id' column is not missing in the annotation file! (Or maybe has some leading/trailing spaces?)", "danger")
+        return redirect(request.url)
 
+    # Check if the extracted report names from df1 are present in df2
     try:
         df["report_id_short"] = df["report_id_short"].astype(str)
         df_annotation["id"] = df_annotation["id"].astype(str)
