@@ -145,6 +145,8 @@ def main():
 
 def calculate_metrics_multiclass(annotation_label, llm_output_label, all_classes, label_name):
     # Convert labels to a list
+    if annotation_label not in all_classes or not annotation_label:
+        raise Exception("Annotation value not in possible classes or annotation value is empty: " + annotation_label + " for label: " + label_name)
     annotation_labels = [annotation_label]
     llm_output_labels = [llm_output_label]
     
@@ -547,7 +549,7 @@ def generate_report_dict(row, df_annotation, label_type_mapping: dict) -> dict:
             raise Exception("No value in annotation for key: " + k + " for report: " + row.id)
         report_dict["annotation_labels"][k] = str(v[0])
 
-    # the same for llm output labels TODO this might not every time be right
+    # the same for llm output labels TODO this might not always be correct
     for k, v in report_dict["llm_output_labels"].items():
         value_list = ast.literal_eval(v)
         # choose the first none-empty value or "" if all values are empty
@@ -590,11 +592,18 @@ def extract_first_non_empty_string(llm_output_values):
 def labelannotationselector():
 
     form = LabelSelectorForm()
-
     if os.path.splitext(annotation_file)[-1] == ".csv":
-        df_annotation = pd.read_csv(annotation_file, dtype=str)
+        try:
+            df_annotation = pd.read_csv(annotation_file, dtype=str)
+        except Exception as e:
+            flash(f"Error reading annotation file: {e}", "danger")
+            return redirect(url_for("labelannotation.main"))
     elif os.path.splitext(annotation_file)[-1] == ".xlsx":
-        df_annotation = pd.read_excel(annotation_file, dtype=str)
+        try:
+            df_annotation = pd.read_excel(annotation_file, dtype=str)
+        except Exception as e:
+            flash(f"Error reading annotation file: {e}", "danger")
+            return redirect(url_for("labelannotation.main"))
     elif annotation_file == "":
         flash("No annotation file uploaded!", "danger")
         return redirect(url_for("labelannotation.main"))
@@ -720,9 +729,17 @@ def labelannotationmetrics():
         return redirect(url_for("labelannotation.labelannotationselector"))
     # if annotation file is csv file:
     if os.path.splitext(annotation_file)[-1] == ".csv":
-        df_annotation = pd.read_csv(annotation_file, dtype=str)
+        try:
+            df_annotation = pd.read_csv(annotation_file, dtype=str)
+        except Exception as e:
+            flash(f"Error reading annotation file: {e}", "danger")
+            return redirect(request.url)
     elif os.path.splitext(annotation_file)[-1] == ".xlsx":
-        df_annotation = pd.read_excel(annotation_file, dtype=str)
+        try: 
+            df_annotation = pd.read_excel(annotation_file, dtype=str)
+        except Exception as e:
+            flash(f"Error reading annotation file: {e}", "danger")
+            return redirect(request.url)
     else:
         flash("Invalid annotation file format!", "danger")
         return redirect(request.url)
@@ -733,39 +750,48 @@ def labelannotationmetrics():
         )
         return redirect(request.url)
 
-    df = find_llm_output_csv(pdf_file_zip)
+    try:
+        df = find_llm_output_csv(pdf_file_zip)
+    except Exception as e:
+        flash(f"Error reading llm output file: {e}", "danger")
+        return redirect(request.url)
     if df is None or len(df) == 0:
         flash("No CSV file found in the uploaded file!", "danger")
         return redirect(request.url)
 
     # Extract report names from the 'id' column in df1
-    df["report_id_short"] = (
-        df["id"].str.split(".pdf", expand=True)[0].str.split("$", expand=True)[0]
-    )
+    try:
+        df["report_id_short"] = (
+            df["id"].str.split(".pdf", expand=True)[0].str.split("$", expand=True)[0]
+        )
+    except Exception as e:
+        flash(f"Error extracting report names from the 'id' column in the llm output file: {e}", "danger")
+        return redirect(request.url)
+
 
     # Check if the extracted report names from df1 are present in df2
 
-    df["report_id_short"] = df["report_id_short"].astype(str)
-    df_annotation["id"] = df_annotation["id"].astype(str)
+    try:
+        df["report_id_short"] = df["report_id_short"].astype(str)
+        df_annotation["id"] = df_annotation["id"].astype(str)
+        
+        merged_df = pd.merge(df, df_annotation, left_on="report_id_short", right_on="id", how="left", indicator=True)
+        df["matching_report"] = merged_df["_merge"] == "both"
 
-    # df["matching_report"] = df["report_id_short"].isin(df_annotation["id"])
-    
-    merged_df = pd.merge(df, df_annotation, left_on="report_id_short", right_on="id", how="left", indicator=True)
-    df["matching_report"] = merged_df["_merge"] == "both"
+        # Find IDs with no matching report
+        df["no_matching_report"] = ~df["matching_report"]
 
-    # Find IDs with no matching report
-    df["no_matching_report"] = ~df["matching_report"]
+        # print(df[df["no_matching_report"]][["id", "report_id_short"]])
 
-    # print(df[df["no_matching_report"]][["id", "report_id_short"]])
-
-    if len(df[df["no_matching_report"]][["id", "report_id_short"]]) > 0:
-        flash(
-            f"Reports not found in the annotation file: {df[df['no_matching_report']][['id', 'report_id_short']]}",
-            "danger",
-        )
+        if len(df[df["no_matching_report"]][["id", "report_id_short"]]) > 0:
+            flash(
+                f"Reports not found in the annotation file: {df[df['no_matching_report']][['id', 'report_id_short']]}",
+                "danger",
+            )
+            return redirect(url_for("labelannotation.main"))
+    except Exception as e:
+        flash(f"Error checking for matching reports in the llm output and annotation: {e}", "danger")
         return redirect(url_for("labelannotation.main"))
-
-    # metrics = calculate_metrics(df, df_annotation)
 
     global report_summary_dict
     if report_summary_dict == {}:
@@ -786,11 +812,13 @@ def labelannotationmetrics():
         try:
             report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
         except Exception as e:
-            flash(f"Something went wrong: {e}", "danger")
-            report_summary_dict['report_list'] = generate_report_list(df, df_annotation, label_type_mapping)
+            flash(f"Something went wrong processing the llm output and annotations: {e}", "danger")
             return redirect(url_for("labelannotation.main"))
 
-        report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
+        try:
+            report_summary_dict["accumulated_metrics"] = accumulate_metrics(report_summary_dict['report_list'])
+        except Exception as e:
+            flash(f"Error calculating metrics: {e}", "danger")
 
         session["current_labelannotation_job"] = True
 
