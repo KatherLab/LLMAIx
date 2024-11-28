@@ -22,7 +22,6 @@ services:
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
-      - NO_PASSWORD=${NO_PASSWORD:-true}
     deploy:
       resources:
         reservations:

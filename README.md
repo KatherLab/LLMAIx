@@ -121,7 +121,7 @@ Run:
 |--disable_parallel|Disable parallel llama.cpp processing. Default: False|False|
 |--no_parallel_preprocessing|Disable parallel preprocessing. Default: False|False|
 |--verbose_llama|Enable verbose logging of llama.cpp. Default: False|False|
-|--no_password|Disable password protection. Default: False|False|
+|--password|If a password is added, it will be used for password protection. Default username: llmaix||
 
 ## Usage
 

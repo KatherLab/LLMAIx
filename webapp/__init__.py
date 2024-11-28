@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 socketio = SocketIO()
 
-def create_app(auth_required:bool = False):
+def create_app(auth_required:bool = False, password:str = ""):
     app = Flask(__name__)
 
     app.secret_key = 'jf894puwt8ahg9piofdmhv78943oewmhrtfsud98pmhor3e8r9pi'
@@ -15,8 +15,7 @@ def create_app(auth_required:bool = False):
 
     # Dictionary to store users and their hashed passwords (in a real application, use a database)
     users = {
-        #"katherlab": generate_password_hash("kinetic-thesaurus-repurpose"),
-        "katherlab": "scrypt:32768:8:1$GERvnWuqIlJqAiFS$e57df57d7d6b31c05ddc9771d71a8685fcb25ebe8fd6d8253ae5b14052a764f78a5a92b007d5dc90507535383c634f7fed58fe8389759b3c7d3cbfcccf6b3e93"
+        "llmaix": generate_password_hash(password)
     }
 
     @auth.verify_password

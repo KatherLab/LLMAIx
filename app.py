@@ -35,7 +35,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument("--disable_parallel", action="store_true", default=os.getenv('DISABLE_PARALLEL', 'false') == 'true', help="Disable parallel llama-cpp processing. If not set, the number of parallel server slot is determined by the model config file.")
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
     parser.add_argument("--verbose_llama", action="store_true", default=os.getenv('VERBOSE_LLAMA', 'false') == 'true', help="Verbose llama cpp")
-    parser.add_argument("--no_password", action="store_true", default=os.getenv('NO_PASSWORD', 'false') == 'true', help="Disable password protection")
+    parser.add_argument("--password", type=str, default=os.getenv('PASSWORD', ""), help="Password for password protection")
     return parser
 
 
@@ -143,8 +143,7 @@ if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
 
-
-    app = create_app(auth_required=True if args.host != "localhost" and not args.no_password else False)
+    app = create_app(auth_required=True if args.password else False, password=args.password)
 
     app.config["MODEL_PATH"] = args.model_path
     app.config["SERVER_PATH"] = args.server_path
