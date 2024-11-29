@@ -486,6 +486,7 @@ class CancellableJob:
         try:
             self.start_server()
             if self._canceled:
+                update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
                 socketio.emit(
                     "llm_progress_canceled", 
                     {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
@@ -496,6 +497,7 @@ class CancellableJob:
                 asyncio.run(self.process_all_reports())
             except asyncio.CancelledError:
                 print("Processing cancelled")
+                update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
                 socketio.emit(
                     "llm_progress_canceled", 
                     {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
