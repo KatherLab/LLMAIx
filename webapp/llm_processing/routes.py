@@ -1,6 +1,5 @@
 from datetime import datetime
 import tempfile
-import threading
 import traceback
 import zipfile
 from . import llm_processing
@@ -22,6 +21,7 @@ import pandas as pd
 from pathlib import Path
 import subprocess
 import time
+import ast
 from dataclasses import dataclass, field
 from typing import Iterable, Optional, Tuple, Dict, Any
 import os
@@ -65,10 +65,6 @@ def format_time(seconds):
         return f"{seconds / 3600:.1f}h"
     else:
         return f"{seconds / 86400:.1f}d"
-
-
-# def push_llm_metrics(metrics):
-#     socketio.emit("llm_metrics", {"metrics": metrics})
 
 
 def update_progress(job_id, progress: tuple[int, int, bool, bool]):
@@ -196,6 +192,7 @@ class CancellableJob:
     gpu: str = "ALL"
     flash_attention: bool = False
     buffer_slots: int = 2
+    mode: str = "informationextraction"
     _canceled: bool = field(default=False, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
@@ -552,7 +549,7 @@ def submit_llm_job(
     future = executor.submit(job.process)
     llm_jobs[job_id] = (future, job)
 
-def postprocess_grammar(result, df, llm_metadata, debug=False):
+def postprocess_grammar(result, df, llm_metadata, debug=False, mode="informationextraction"):
     print("POSTPROCESSING GRAMMAR")
 
     extracted_data = []
@@ -578,14 +575,11 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
             # search for last } in content and remove anything after that
             content = content[: content.rfind("}") + 1]
             # replace space null comma with space "null" comma
-            
-            import ast
 
             # replace all backslash in the content string with nothing
             content = content.replace("\n","")
             content = content.replace("\r","")
             content = content.replace("\\", "")
-
 
             try:
                 info_dict_raw = ast.literal_eval(content)
@@ -628,7 +622,6 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
         # get metadata from df by looking for row where id == id and get the column metadata
 
         metadata = df[df["id"] == id]["metadata"].iloc[0]
-        import ast
 
         metadata = ast.literal_eval(metadata)
         metadata["llm_processing"] = llm_metadata
@@ -666,29 +659,34 @@ def postprocess_grammar(result, df, llm_metadata, debug=False):
     df["base_id"] = df["id"].apply(extract_base_id)
 
     # Group by base_id and aggregate reports and other columns into lists
-    aggregated_df = (
-        df.groupby("base_id")
-        .agg(lambda x: x.tolist() if x.name != "report" else " ".join(x))
-        .reset_index()
-    )
+    if mode == "anonymizer":
+        aggregated_df = (
+            df.groupby("base_id")
+            .agg(lambda x: x.tolist() if x.name != "report" else " ".join(x))
+            .reset_index()
+        )
+    
 
-    aggregated_df["personal_info_list"] = aggregated_df.apply(
-        lambda row: [
-            item
-            for list in row.drop(["id", "base_id", "report", "metadata"])
-            for item in list
-        ],
-        axis=1,
-    )
+        aggregated_df["personal_info_list"] = aggregated_df.apply(
+            lambda row: [
+                item
+                for list in row.drop(["id", "base_id", "report", "metadata"])
+                for item in list
+            ],
+            axis=1,
+        )
 
-    aggregated_df["masked_report"] = aggregated_df["report"].apply(
-        lambda x: replace_personal_info(x, aggregated_df["personal_info_list"][0], [])
-    )
+        aggregated_df["masked_report"] = aggregated_df["report"].apply(
+            lambda x: replace_personal_info(x, aggregated_df["personal_info_list"][0], [])
+        )
+    else:
+        aggregated_df = df
 
     aggregated_df.drop(columns=["id"], inplace=True)
     aggregated_df.rename(columns={"base_id": "id"}, inplace=True)
 
-    aggregated_df["metadata"] = aggregated_df["metadata"].apply(lambda x: x[0])
+    if mode == "anonymizer":
+        aggregated_df["metadata"] = aggregated_df["metadata"].apply(lambda x: x[0])
 
     return aggregated_df, error_count
 
@@ -899,6 +897,7 @@ def main():
             flash_attention=model_config['flash_attention'],
             mlock=model_config['mlock'],
             kv_cache_type=model_config['kv_cache_quants'],
+            mode=current_app.config['MODE']
         )
 
         print(f"Started job {job_id} successfully!")
@@ -949,7 +948,7 @@ def llm_download():
         return redirect(url_for("llm_processing.llm_results"))
 
     future, job = llm_jobs[job_id]
-    
+
     if future.done():
         try:
             (result_df, error_count), zip_file_path = future.result()

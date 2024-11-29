@@ -549,15 +549,16 @@ def generate_report_dict(row, df_annotation, label_type_mapping: dict) -> dict:
             raise Exception("No value in annotation for key: " + k + " for report: " + row.id)
         report_dict["annotation_labels"][k] = str(v[0])
 
-    # the same for llm output labels TODO this might not always be correct
+    # the same for llm output labels TODO this might not always be correct; just do it for the old output files, the new ones should be correct
     for k, v in report_dict["llm_output_labels"].items():
-        value_list = ast.literal_eval(v)
-        # choose the first none-empty value or "" if all values are empty
-        report_dict["llm_output_labels"][k] = value_list[0]
-        for value in value_list:
-            if value != "":
-                report_dict["llm_output_labels"][k] = str(value)
-                break
+        if str(v).startswith("["):
+            value_list = ast.literal_eval(v)
+            # choose the first none-empty value or "" if all values are empty
+            report_dict["llm_output_labels"][k] = value_list[0]
+            for value in value_list:
+                if value != "":
+                    report_dict["llm_output_labels"][k] = str(value)
+                    break
             
     report_dict['metrics'] = calculate_metrics(report_dict['annotation_labels'], report_dict['llm_output_labels'], label_type_mapping)
 
@@ -661,7 +662,8 @@ def labelannotationselector():
         # Always choose first label TODO might not be what you want
         # llm_output_values = [ast.literal_eval(value)[0] for value in llm_output_values if value != ""]
         try:
-            llm_output_values = extract_first_non_empty_string(llm_output_values)
+            if any(str(value).startswith('[') for value in llm_output_values):
+                llm_output_values = extract_first_non_empty_string(llm_output_values)
         except Exception as e:
             flash(f"Error processing label {label['label_name']}: {e}", "danger")
             return redirect(url_for("labelannotation.main"))
@@ -690,7 +692,8 @@ def check_labels(df, df_annotation, label_type_mapping):
     for label in label_type_mapping:
         if label_type_mapping[label]['label_type'] == 'multiclass':
             llm_output_values = list(df[label])
-            llm_output_values = extract_first_non_empty_string(llm_output_values)
+            if any(str(value).startswith('[') for value in llm_output_values):
+                llm_output_values = extract_first_non_empty_string(llm_output_values)
             annotation_values = list(df_annotation[label])
             if set(llm_output_values) != set(annotation_values):
                 flash(f"Label {label} is not multiclass. Annotation and LLM output have different classes.", "warning")
@@ -699,7 +702,8 @@ def check_labels(df, df_annotation, label_type_mapping):
 
         elif label_type_mapping[label]['label_type'] == 'boolean':
             llm_output_values = list(df[label])
-            llm_output_values = extract_first_non_empty_string(llm_output_values)
+            if any(str(value).startswith('[') for value in llm_output_values):
+                llm_output_values = extract_first_non_empty_string(llm_output_values)
             annotation_values = list(df_annotation[label])
             if len(set(llm_output_values)) > 2 or len(set(annotation_values)) > 2:
                 flash(f"Label {label} is not boolean. Annotation or LLM output has too many values.", "warning")
@@ -714,7 +718,8 @@ def check_labels(df, df_annotation, label_type_mapping):
 
         elif label_type_mapping[label]['label_type'] == 'stringmatch':
             llm_output_values = list(df[label])
-            llm_output_values = extract_first_non_empty_string(llm_output_values)
+            if any(str(value).startswith('[') for value in llm_output_values):
+                llm_output_values = extract_first_non_empty_string(llm_output_values)
             annotation_values = list(df_annotation[label])
             if "" in llm_output_values:
                 flash(f"Label {label}: LLM output has empty values.", "warning")

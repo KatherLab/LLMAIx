@@ -665,7 +665,10 @@ def main():
         current_datetime = datetime.now()
         prefix = current_datetime.strftime("%Y%m%d%H%M")
 
-        job_id = f"{form.text_split.data}-{prefix}-" + secrets.token_urlsafe(8)
+        if current_app.config['MODE'] == 'anonymizer':
+            job_id = f"{form.text_split.data}-{prefix}-" + secrets.token_urlsafe(8)
+        else:
+            job_id = f"{prefix}-" + secrets.token_urlsafe(8)
 
         temp_dir = tempfile.mkdtemp()
 
