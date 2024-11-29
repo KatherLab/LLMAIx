@@ -1,5 +1,6 @@
 from datetime import datetime
 import tempfile
+import threading
 import traceback
 import zipfile
 from . import llm_processing
@@ -21,7 +22,8 @@ import pandas as pd
 from pathlib import Path
 import subprocess
 import time
-from typing import Any, Iterable, Optional
+from dataclasses import dataclass, field
+from typing import Iterable, Optional, Tuple, Dict, Any
 import os
 from .read_strange_csv import read_and_save_csv
 import secrets
@@ -69,7 +71,7 @@ def format_time(seconds):
 #     socketio.emit("llm_metrics", {"metrics": metrics})
 
 
-def update_progress(job_id, progress: tuple[int, int, bool]):
+def update_progress(job_id, progress: tuple[int, int, bool, bool]):
     global llm_progress
 
     # Initialize llm_progress dictionary if not already initialized
@@ -117,6 +119,7 @@ def update_progress(job_id, progress: tuple[int, int, bool]):
             "progress": progress[0],
             "total": progress[1],
             "remaining_time": estimated_remaining_time,
+            "canceled": progress[3],
         },
     )
 
@@ -168,312 +171,384 @@ def get_metrics():
         # print(f"Error fetching or parsing metrics: {e}")
         return jsonify({"error": "Probably llama-cpp is not running."})
 
+@dataclass
+class CancellableJob:
+    df: pd.DataFrame
+    model_name: str
+    prompt: str
+    symptoms: Iterable[str]
+    temperature: float
+    grammar: str
+    model_path: str
+    server_path: str
+    ctx_size: int
+    n_gpu_layers: int
+    n_predict: int
+    job_id: int
+    zip_file_path: str
+    llamacpp_port: int
+    debug: bool = False
+    model_name_name: str = ""
+    parallel_slots: int = 1
+    verbose_llama: bool = False
+    kv_cache_type: str = "q8_0"
+    mlock: bool = True
+    gpu: str = "ALL"
+    flash_attention: bool = False
+    buffer_slots: int = 2
+    _canceled: bool = field(default=False, init=False)
+    results: Dict = field(default_factory=dict, init=False)
+    skipped: int = field(default=0, init=False)
 
-def extract_from_report(
-    df: pd.DataFrame,
-    model_name: str,
-    prompt: str,
-    symptoms: Iterable[str],
-    temperature: float,
-    grammar: str,
-    model_path: str,
-    server_path: str,
-    ctx_size: int,
-    n_gpu_layers: int,
-    n_predict: int,
-    job_id: int,
-    zip_file_path: str,
-    llamacpp_port: int,
-    debug: bool = False,
-    model_name_name: str = "",
-    no_parallel: bool = False,
-    parallel_slots: int = 1,
-    verbose_llama: bool = False,
-    kv_cache_type: str = "q8_0",
-    mlock: bool = True,
-    gpu: str = "ALL",
-    flash_attention: bool = False,
-) -> dict[Any]:
-    print("Extracting from report")
-    # Start server with correct model if not already running
-    model_dir = Path(model_path)
 
-    model_path = model_dir / model_name
-    assert model_path.absolute().parent == model_dir
+    def cancel(self) -> None:
+        print("CANCELING JOB")
+        self._canceled = True
 
-    global new_model
-    global server_connection, current_model, model_active
-    print("Current model:", current_model, "Load new model:", new_model)
-    if current_model != model_name:
-        server_connection and server_connection.kill()
+    def is_canceled(self) -> bool:
+        return self._canceled
 
-        print("Starting new server for model", model_name)
-
-        new_model = True
-        server_connection = subprocess.Popen(
-            [
-                server_path,
-                "--model",
-                str(model_path),
-                "--ctx-size",
-                str(ctx_size),
-                "--n-gpu-layers",
-                str(n_gpu_layers),
-                "--port",
-                str(llamacpp_port),
-                "--metrics",
-                "-np",
-                str(parallel_slots),
-                "-b",
-                "2048",
-                "-ub",
-                "512",
-                "-t",
-                "8",
-            ] + (["--verbose"] if verbose_llama else []) + (["--mlock"] if mlock else []) +
-            (["-ctk", kv_cache_type, "-ctv", kv_cache_type] if kv_cache_type != "" else []) + 
-            (["-sm", "none", "-mg", str(gpu)] if gpu not in ["all", "ALL", "mps", ""] else [])+
-            (["-fa"] if flash_attention else []),
-        )
-        current_model = model_name
-        model_active = True
-        time.sleep(5)
-
-        try:
-            os.environ.pop("HTTP_PROXY", None)
-            os.environ.pop("HTTPS_PROXY", None)
-        except KeyError:
-            print("No proxy set")
-            pass
-
-        while True:
-            try:
-                response = requests.get(f"http://localhost:{llamacpp_port}/health")
-                if response.status_code == 200 and response.json()["status"] == "ok":
-                    break
-                time.sleep(2)
-            except requests.exceptions.ConnectionError:
-                warning_job(
-                    job_id=job_id,
-                    message="Server connection error, will keep retrying ...",
-                )
-                print("Server connection error, will keep retrying ...")
-                time.sleep(5)
-
-    else:
-        model_active = True
-
-    print("Server running")
-
-    new_model = False
-    socketio.emit("load_complete")
-
-    results = {}
-    skipped = 0
-
-    async def fetch_tokenized_result(session, prompt_formatted):
+    async def fetch_tokenized_result(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
         async with session.post(
-            f"http://localhost:{llamacpp_port}/tokenize", 
+            f"http://localhost:{self.llamacpp_port}/tokenize", 
             json={"content": prompt_formatted}
         ) as response:
             return await response.json()
 
-    async def fetch_completion_result(session, prompt_formatted):
+    async def fetch_completion_result(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
+        if self._canceled:
+            raise asyncio.CancelledError()
+            
         json_data = {
             "prompt": prompt_formatted,
-            "n_predict": n_predict,
-            "temperature": temperature,
+            "n_predict": self.n_predict,
+            "temperature": self.temperature,
             "cache_prompt": True
         }
 
-        if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:
-            json_data["grammar"] = grammar
+        if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
+            json_data["grammar"] = self.grammar
 
+        async def watch_cancellation():
+            while True:
+                if self._canceled:
+                    print("Watching cancellation received cancel signal")
+                    raise asyncio.CancelledError()
+                await asyncio.sleep(0.1)
+        
+        try:
+            cancel_task = asyncio.create_task(watch_cancellation())
+            
+            async with session.post(
+                f"http://localhost:{self.llamacpp_port}/completion", 
+                json=json_data,
+                timeout=aiohttp.ClientTimeout(total=20 * 60)
+            ) as response:
+                # Create a task for the response
+                response_task = asyncio.create_task(response.json())
+                
+                try:
+                    # Wait for either the response or cancellation
+                    done, pending = await asyncio.wait(
+                        [response_task, cancel_task],
+                        return_when=asyncio.FIRST_COMPLETED
+                    )
+                    print("Done")
+                    
+                    # If we were cancelled, ensure it propagates
+                    if cancel_task in done and self._canceled:
+                        response.close()
+                        raise asyncio.CancelledError()
+                    
+                    return await response_task
+                finally:
+                    # Clean up tasks and connection
+                    cancel_task.cancel()
+                    if not response_task.done():
+                        response_task.cancel()
+                        response.close()
+        
+        except asyncio.CancelledError:
+            if 'response' in locals():
+                response.close()
+            raise
 
-        async with session.post(
-            f"http://localhost:{llamacpp_port}/completion", 
-            json=json_data,
-            timeout=20 * 60
-        ) as response:
-            return await response.json()
+    async def process_report(self, session: aiohttp.ClientSession, report: str, id: Any, index: int, 
+                       progress_bar: tqdm) -> None:
+        if self._canceled:
+            raise asyncio.CancelledError()  # Changed from return to raise
 
-    async def process_report(session, report, id, index, progress_bar, skipped):
-        # global skipped
         try:
             if is_empty_string_nan_or_none(report):
                 print("SKIPPING EMPTY REPORT!")
-                skipped += 1
+                self.skipped += 1
                 update_progress(
-                    job_id=job_id, progress=(progress_bar.n + 1 - skipped, len(df) - skipped, True)
+                    job_id=self.job_id, 
+                    progress=(progress_bar.n + 1 - self.skipped, len(self.df) - self.skipped, True, False)
                 )
                 progress_bar.update(1)
                 return
             
-            print("llm processing report: ", index)
+            print("llm processing report new: ", index)
 
-            for symptom in symptoms:
-                prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+            for symptom in self.symptoms:
+                if self._canceled:
+                    raise asyncio.CancelledError()  # Changed from return to raise
+
+                prompt_formatted = self.prompt.format(symptom=symptom, report="".join(report))
                 
-                tokenized_result = await fetch_tokenized_result(session, prompt_formatted)
-                num_prompt_tokens = len(tokenized_result["tokens"])
+                if self._canceled:
+                    raise asyncio.CancelledError()
+                summary = await self.fetch_completion_result(session, prompt_formatted)
 
-                if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
+                num_prompt_tokens = summary["tokens_predicted"]
+
+
+                if num_prompt_tokens >= (self.ctx_size / self.parallel_slots) - self.n_predict:
                     print(
-                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens.", flush=True
+                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. "
+                        f"CONTEXT SIZE PER SLOT: {self.ctx_size / self.parallel_slots} Tokens. "
+                        f"N-PREDICT: {self.n_predict} Tokens.", flush=True
                     )
                     warning_job(
-                        job_id=job_id,
-                        message=f"Report: {id}. Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
+                        job_id=self.job_id,
+                        message=f"Report: {id}. Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. "
+                                f"Context size per Slot: {self.ctx_size / self.parallel_slots} Tokens. "
+                                f"N-Predict: {self.n_predict} Tokens.",
                     )
 
-                summary = await fetch_completion_result(session, prompt_formatted)
+                # summary = await self.fetch_completion_result(session, prompt_formatted)
 
-                if id not in results:
-                    results[id] = {}
+                if id not in self.results:
+                    self.results[id] = {}
 
-                results[id]["report"] = report
-                results[id]["symptom"] = symptom
-                results[id]["summary"] = summary
+                self.results[id]["report"] = report
+                self.results[id]["symptom"] = symptom
+                self.results[id]["summary"] = summary
 
                 if summary["stopped_limit"]:
                     warning_job(
-                            job_id=job_id,
-                            message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens (limit reached), the results might be incomplete! Please increase n_predict!",
-                        )
+                        job_id=self.job_id,
+                        message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens "
+                                f"(limit reached), the results might be incomplete! Please increase n_predict!",
+                    )
 
             progress_bar.update(1)
             update_progress(
-                job_id=job_id, progress=(progress_bar.n - skipped, len(df) - skipped, True)
+                job_id=self.job_id, 
+                progress=(progress_bar.n - self.skipped, len(self.df) - self.skipped, True, False)
             )
+            
+        except asyncio.CancelledError:
+            update_progress(
+                job_id=self.job_id, 
+                progress=(progress_bar.n - self.skipped, len(self.df) - self.skipped, False, True)
+            )
+            raise
         except Exception as e:
             print("REPORT ERROR - ", id)
             print(e)
 
-    # always submit a few more jobs, so the server can run without interruption
-    MAX_CONCURRENT_REQUESTS = parallel_slots + 5
 
-    # Semaphore to limit the number of concurrent requests
-    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    
+    async def process_all_reports(self) -> None:
+        if self._canceled:
+            return
 
-    async def process_report_limited(session, report, id, i, progress_bar, skipped):
-        async with semaphore:  # Limit the number of concurrent requests
-            return await process_report(session, report, id, i, progress_bar, skipped)
+        MAX_CONCURRENT_REQUESTS = self.parallel_slots + self.buffer_slots
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
-    async def main():
-        async with aiohttp.ClientSession() as session:
+        async def process_report_limited(session, report, id, i, progress_bar):
+            if self._canceled:
+                raise asyncio.CancelledError()
+            async with semaphore:
+                await self.process_report(session, report, id, i, progress_bar)
+
+        async def main():
+            tasks = []
             try:
-                with tqdm(total=len(df), desc="Processing Reports") as progress_bar:
-                    tasks = []
-                    for i, (report, id) in enumerate(zip(df.report, df.id)):
-                        print("parsing report: ", i)
-                        tasks.append(process_report_limited(session, report, id, i, progress_bar, skipped))
-                    await asyncio.gather(*tasks)
-            except Exception as e:
-                print("PARALLEL ERROR:")
-                print(e)
+                async with aiohttp.ClientSession() as session:
+                    with tqdm(total=len(self.df), desc="Processing Reports") as progress_bar:
+                        for i, (report, id) in enumerate(zip(self.df.report, self.df.id)):
+                            if self._canceled:
+                                raise asyncio.CancelledError()
+                            task = asyncio.create_task(
+                                process_report_limited(session, report, id, i, progress_bar)
+                            )
+                            tasks.append(task)
+                        
+                        # Modified to handle cancellation properly
+                        try:
+                            await asyncio.gather(*tasks)
+                        except asyncio.CancelledError:
+                            print("Cancelling all tasks...")
+                            for task in tasks:
+                                if not task.done():
+                                    task.cancel()
+                            # Wait for tasks to finish cancelling
+                            await asyncio.gather(*tasks, return_exceptions=True)
+                            raise
+                            
+            except asyncio.CancelledError:
+                print("Main task cancelled")
+                raise
+            finally:
+                # Ensure all tasks are cancelled
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
 
-    update_progress(
-        job_id=job_id, progress=(0, len(df), True)
-    )
+        try:
+            update_progress(job_id=self.job_id, progress=(0, len(self.df), True, False))
+            await main()
+        except asyncio.CancelledError:
+            update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
+            print("Process cancelled")
+            raise
 
-    if not no_parallel:
-        print("RUN PARALLELLY")
-        asyncio.run(main())
-    else:
-        print("RUN SEQUENTIALLY")
-        for i, (report, id) in enumerate(zip(df.report, df.id)):
-            print("parsing report: ", i)
-            if is_empty_string_nan_or_none(report):
-                print("SKIPPING EMPTY REPORT!")
-                skipped += 1
-                update_progress(
-                    job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
-                )
-                continue
-            for symptom in symptoms:
-                prompt_formatted = prompt.format(symptom=symptom, report="".join(report))
+    def start_server(self) -> None:
+        global new_model, server_connection, current_model, model_active
 
-                tokenized_result = requests.post(
-                    url=f"http://localhost:{llamacpp_port}/tokenize",
-                    json={"content": prompt_formatted},
-                )
+        model_dir = Path(self.model_path)
+        model_path = model_dir / self.model_name
+        assert model_path.absolute().parent == model_dir
 
-                num_prompt_tokens = len(tokenized_result.json()["tokens"])
+        print("Current model:", current_model, "Load new model:", new_model)
+        
+        if current_model != self.model_name:
+            if server_connection:
+                server_connection.kill()
 
-                if num_prompt_tokens >= (ctx_size / parallel_slots) - n_predict:
-                    print(
-                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. CONTEXT SIZE PER SLOT: {ctx_size / parallel_slots} Tokens. N-PREDICT: {n_predict} Tokens."
-                    )
+            print("Starting new server for model", self.model_name)
+
+            new_model = True
+            server_connection = subprocess.Popen(
+                [
+                    self.server_path,
+                    "--model",
+                    str(model_path),
+                    "--ctx-size",
+                    str(self.ctx_size),
+                    "--n-gpu-layers",
+                    str(self.n_gpu_layers),
+                    "--port",
+                    str(self.llamacpp_port),
+                    "--metrics",
+                    "-np",
+                    str(self.parallel_slots),
+                    "-b",
+                    "2048",
+                    "-ub",
+                    "512",
+                    "-t",
+                    "8",
+                ] + 
+                (["--verbose"] if self.verbose_llama else []) +
+                (["--mlock"] if self.mlock else []) +
+                (["-ctk", self.kv_cache_type, "-ctv", self.kv_cache_type] if self.kv_cache_type != "" else []) +
+                (["-sm", "none", "-mg", str(self.gpu)] if self.gpu not in ["all", "ALL", "mps", ""] else []) +
+                (["-fa"] if self.flash_attention else []),
+            )
+            
+            current_model = self.model_name
+            model_active = True
+            time.sleep(5)
+
+            try:
+                os.environ.pop("HTTP_PROXY", None)
+                os.environ.pop("HTTPS_PROXY", None)
+            except KeyError:
+                print("No proxy set")
+
+            while not self._canceled:
+                try:
+                    response = requests.get(f"http://localhost:{self.llamacpp_port}/health")
+                    if response.status_code == 200 and response.json()["status"] == "ok":
+                        break
+                    time.sleep(2)
+                except requests.exceptions.ConnectionError:
                     warning_job(
-                        job_id=job_id,
-                        message=f"Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. Context size per Slot: {ctx_size / parallel_slots} Tokens. N-Predict: {n_predict} Tokens.",
+                        job_id=self.job_id,
+                        message="Server connection error, will keep retrying ...",
                     )
+                    print("Server connection error, will keep retrying ...")
+                    time.sleep(5)
 
-                json_data = {
-                    "prompt": prompt_formatted,
-                    "n_predict": n_predict,
-                    "temperature": temperature,
-                    "cache_prompt": True,
-                }
+        else:
+            model_active = True
 
-                if grammar and grammar not in [" ", None, "\n", "\r", "\r\n"]:
-                    json_data["grammar"] = grammar
+        print("Server running")
+        new_model = False
+        socketio.emit("load_complete")
 
-                result = requests.post(
-                    url=f"http://localhost:{llamacpp_port}/completion",
-                    json=json_data,
-                    timeout=20 * 60,
+    def process(self) -> Tuple[Tuple[pd.DataFrame, int], str]:
+        try:
+            self.start_server()
+            if self._canceled:
+                socketio.emit(
+                    "llm_progress_canceled", 
+                    {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
                 )
+                return (pd.DataFrame(), 0), self.zip_file_path
 
-                # url = f"http://localhost:{llamacpp_port}/metrics"
-                # metrics_text = fetch_metrics(url)
-                # metrics_dict = parse_metrics(metrics_text)
+            try:
+                asyncio.run(self.process_all_reports())
+            except asyncio.CancelledError:
+                print("Processing cancelled")
+                socketio.emit(
+                    "llm_progress_canceled", 
+                    {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
+                )
+                return (pd.DataFrame(), 0), self.zip_file_path
 
-                # push_llm_metrics(metrics_dict)
+            if self._canceled:
+                return (pd.DataFrame(), 0), self.zip_file_path
 
-                summary = result.json()
-                if id not in results:
-                    results[id] = {}
 
-                results[id]["report"] = report
-                results[id]["symptom"] = symptom
-                results[id]["summary"] = summary
-
-                if summary["stopped_limit"]:
-                    warning_job(
-                        job_id=job_id,
-                        message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens (limit reached), the results might be incomplete! Please increase n_predict!",
-                    )
-
-            print(f"Report {i} completed.")
-            update_progress(
-                job_id=job_id, progress=(i + 1 - skipped, len(df) - skipped, True)
+            socketio.emit(
+                "llm_progress_complete", 
+                {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
             )
 
-    socketio.emit(
-        "llm_progress_complete", {"job_id": job_id, "total_steps": len(df) - skipped}
-    )
+            llm_metadata = {
+                "model_name": self.model_name_name if self.model_name_name else self.model_name,
+                "prompt": self.prompt,
+                "symptoms": self.symptoms,
+                "temperature": self.temperature,
+                "n_predict": self.n_predict,
+                "ctx_size": self.ctx_size,
+                "grammar": self.grammar,
+                "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
 
-    llm_metadata = {
-        "model_name": model_name_name if model_name_name else model_name,
-        "prompt": prompt,
-        "symptoms": symptoms,
-        "temperature": temperature,
-        "n_predict": n_predict,
-        "ctx_size": ctx_size,
-        "grammar": grammar,
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
+            global model_active
+            model_active = False
 
-    model_active = False
+            result_df, errors = postprocess_grammar(self.results, self.df, llm_metadata, self.debug)
 
-    result_df, errors = postprocess_grammar(results, df, llm_metadata, debug)
+            if errors:
+                warning_job(
+                    job_id=self.job_id, 
+                    message=f"Postprocessing: {errors} reports failed! The LLM did probably not generate valid JSON."
+                )
 
-    if errors:
-        warning_job(job_id=job_id, message=f"Postprocessing: {errors} reports failed! The LLM did probably not generate valid JSON.")
+            return (result_df, errors), self.zip_file_path
 
-    return (result_df, errors), zip_file_path
+        except Exception as e:
+            print(f"Error in process: {e}")
+            return (pd.DataFrame(), 0), self.zip_file_path
 
+
+def submit_llm_job(
+    llm_jobs: Dict[int, Tuple[futures.Future, CancellableJob]],  # Modified type hint
+    executor: futures.ThreadPoolExecutor,
+    job_id: int,
+    **kwargs
+) -> None:
+    job = CancellableJob(job_id=job_id, **kwargs)
+    future = executor.submit(job.process)
+    llm_jobs[job_id] = (future, job)
 
 def postprocess_grammar(result, df, llm_metadata, debug=False):
     print("POSTPROCESSING GRAMMAR")
@@ -658,7 +733,6 @@ def get_model_config(model_dir, config_file, model_file_path):
             if model_dict["file_name"] == model_file_path:
                 return model_dict
 
-
 @llm_processing.route("/llm", methods=["GET", "POST"])
 def main():
 
@@ -671,7 +745,7 @@ def main():
             config_file_path = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
 
         with open(config_file_path, 'r') as file:
-            config_data = yaml.safe_load(file)
+            _ = yaml.safe_load(file)
     except Exception as e:
         flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
         return redirect(request.referrer)
@@ -796,32 +870,12 @@ def main():
 
         model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
 
-        # extract_from_report(
-        #     df=df,
-        #     model_name=form.model.data,
-        #     prompt=form.prompt.data,
-        #     symptoms=variables,
-        #     temperature=float(form.temperature.data),
-        #     grammar=form.grammar.data.replace("\r\n", "\n"),
-        #     model_path=current_app.config['MODEL_PATH'],
-        #     server_path=current_app.config['SERVER_PATH'],
-        #     n_predict=form.n_predict.data,
-        #     ctx_size=current_app.config['CTX_SIZE'],
-        #     n_gpu_layers=current_app.config['N_GPU_LAYERS'],
-        #     job_id=job_id,
-        #     zip_file_path=zip_file_path or None,
-        #     llamacpp_port=current_app.config["LLAMACPP_PORT"],
-        #     debug=current_app.config["DEBUG"],
-        #     model_name_name=model_name,
-        #     no_parallel=current_app.config['NO_PARALLEL'],
-        #     parallel_slots=current_app.config['PARALLEL_SLOTS'],
-        #     verbose_llama=current_app.config['VERBOSE_LLAMA'],
-        # )
+        update_progress(job_id=job_id, progress=(0, len(df), True, False))
 
-        update_progress(job_id=job_id, progress=(0, len(df), True))
-
-        llm_jobs[job_id] = executor.submit(
-            extract_from_report,
+        submit_llm_job(
+            llm_jobs=llm_jobs,
+            executor=executor,
+            job_id=job_id,
             df=df,
             model_name=form.model.data,
             prompt=form.prompt.data,
@@ -830,15 +884,13 @@ def main():
             grammar=form.grammar.data.replace("\r\n", "\n"),
             model_path=current_app.config["MODEL_PATH"],
             server_path=current_app.config["SERVER_PATH"],
-            n_predict = form.n_predict.data,
+            n_predict=form.n_predict.data,
             ctx_size=model_config['kv_cache_size'],
             n_gpu_layers=model_config['n_gpu_layers'],
-            job_id=job_id,
             zip_file_path=zip_file_path or None,
             llamacpp_port=current_app.config["LLAMACPP_PORT"],
             debug=current_app.config["DEBUG"],
             model_name_name=model_name,
-            no_parallel=current_app.config['NO_PARALLEL'],
             parallel_slots=model_config['server_slots'],
             verbose_llama=current_app.config['VERBOSE_LLAMA'],
             gpu=current_app.config['GPU'],
@@ -852,6 +904,30 @@ def main():
         return redirect(url_for("llm_processing.llm_results"))
 
     return render_template("llm_processing.html", form=form)
+
+
+@llm_processing.route("/cancel_job")
+def cancel_job():
+    job_id = request.args.get("job")
+    if job_id in llm_jobs:
+        future, job = llm_jobs[job_id]  # Unpack both the Future and Job
+        if not future.done():
+            job.cancel()  # Call cancel on the actual job object
+            future.cancel()
+            socketio.emit(
+                    "llm_progress_canceled", 
+                    {"job_id": job_id, "total_steps": 0}
+                )
+            print(f"Cancelled job {job_id}")
+            flash(f"Cancelled job {job_id}", "success")
+        else:
+            print(f"Job {job_id} already finished")
+            flash(f"Job {job_id} already finished", "warning")
+        del llm_jobs[job_id]
+    else:
+        print(f"Job {job_id} not found")
+        flash(f"Job {job_id} not found!", "danger")
+    return redirect(url_for("llm_processing.llm_results"))
 
 
 @llm_processing.route("/llm_results", methods=["GET"])

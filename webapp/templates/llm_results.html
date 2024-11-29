@@ -87,7 +87,12 @@
             <div class="flex-grow-1 me-2">
                 <div class="progress" role="progressbar" aria-valuenow="{{ progress_tuple[0] }}" aria-valuemin="0"
                     aria-valuemax="{{ progress_tuple[1] }}" style="height: 30px;">
-                    {% if progress_tuple[2] %}
+                    {% if progress_tuple[3] %}
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-warning"
+                        style="width: 0%;">
+                        <span class="progress-label" id="progress-label-{{ job_id }}">Canceled</span>
+                    </div>
+                    {% elif progress_tuple[2] %}
                     <div id="progress-{{ job_id }}" class="progress-bar bg-success"
                         style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">
                         <!--<span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>-->
@@ -103,10 +108,16 @@
                 </div>
             </div>
             <div class="ms-3">
-                {% if progress_tuple[0] == progress_tuple[1] %}
+                {% if progress_tuple[3] %}
+                <!--Job has been canceled-->
+                <a id="download-{{ job_id }}" class="btn btn-outline-warning disabled" disabled>Canceled</a>
+                {% elif progress_tuple[0] == progress_tuple[1] %}
                 <a id="download-{{ job_id }}" href="/llm_download?job={{ job_id }}" class="btn btn-outline-success"><i class="bi bi-download"></i> Download</a>
                 {% elif progress_tuple[2] %}
                 <a id="download-{{ job_id }}" class="btn btn-outline-secondary disabled" disabled>Processing...</a>
+                <a id="cancel-{{ job_id }}" href="{{ url_for('llm_processing.cancel_job', job=job_id) }}" class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle"></i>
+                </a>
                 {% else %}
                 <a id="download-{{ job_id }}" class="btn btn-outline-danger disabled" disabled>Failed</a>
                 {% endif %}
@@ -221,6 +232,37 @@
         downloadLink.className = 'btn btn-danger disabled';
         downloadLink.innerHTML = 'Failed';
 
+    });
+
+    socket.on('llm_progress_canceled', function (data) {
+        // alert('Job ' + data.job_id + ' was canceled');
+
+        var job_id = data.job_id;
+        var progressBar = document.getElementById('progress-' + job_id);
+
+        // Make progress bar yellow and state canceled
+        progressBar.className = 'progress-bar bg-warning';
+        progressBar.innerText = 'Canceled';
+        progressBar.style.width = '100%';
+
+        // set progress_label to empty string
+        var progress_label = document.getElementById('progress-label-' + job_id);
+        if (progress_label) {
+            progress_label.innerText = '';
+        }
+
+        // hide cancel button
+        var cancel_button = document.getElementById('cancel-' + job_id);
+        if (cancel_button) {
+            cancel_button.classList.add('hidden');
+        }
+
+        // make download button disabled, write "Canceled" and change color to warning
+        var downloadLink = document.getElementById('download-' + job_id);
+        downloadLink.classList.add('disabled');
+        downloadLink.setAttribute('disabled', 'disabled');
+        downloadLink.className = 'btn btn-warning disabled';
+        downloadLink.innerHTML = 'Canceled';
     });
 
     socket.on('load_failed', function () {
