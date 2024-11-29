@@ -948,11 +948,11 @@ def llm_download():
         flash("LLM Job not found!", "danger")
         return redirect(url_for("llm_processing.llm_results"))
 
-    job = llm_jobs[job_id]
-
-    if job.done():
+    future, job = llm_jobs[job_id]
+    
+    if future.done():
         try:
-            (result_df, error_count), zip_file_path = job.result()
+            (result_df, error_count), zip_file_path = future.result()
         except Exception as e:
             flash(str(e), "danger")
             return redirect(url_for("llm_processing.llm_results"))
