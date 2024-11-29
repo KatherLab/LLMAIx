@@ -212,6 +212,12 @@
         downloadLink.classList.add('btn-outline-success');
         downloadLink.innerHTML = '<i class="bi bi-download"></i> Download';
         downloadLink.removeAttribute('disabled');
+
+        // hide cancel button
+        var cancel_button = document.getElementById('cancel-' + job_id);
+        if (cancel_button) {
+            cancel_button.classList.add('hidden');
+        }
     });
 
     socket.on('llm_progress_failed', function (data) {
@@ -231,6 +237,12 @@
         downloadLink.setAttribute('disabled', 'disabled');
         downloadLink.className = 'btn btn-danger disabled';
         downloadLink.innerHTML = 'Failed';
+
+        // hide cancel button
+        var cancel_button = document.getElementById('cancel-' + job_id);
+        if (cancel_button) {
+            cancel_button.classList.add('hidden');
+        }
 
     });
 
