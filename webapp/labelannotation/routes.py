@@ -696,9 +696,9 @@ def check_labels(df, df_annotation, label_type_mapping):
                 llm_output_values = extract_first_non_empty_string(llm_output_values)
             annotation_values = list(df_annotation[label])
             if set(llm_output_values) != set(annotation_values):
-                flash(f"Label {label} is not multiclass. Annotation and LLM output have different classes.", "warning")
+                flash(f"Label {label} might not be multiclass. Annotation and LLM output have different classes.", "warning")
             if set(annotation_values) != set(label_type_mapping[label]['label_classes']):
-                flash(f"Label {label} is not multiclass. Annotation and selected classes differ.", "warning")
+                flash(f"Label {label} might not be multiclass. Annotation and selected classes differ.", "warning")
 
         elif label_type_mapping[label]['label_type'] == 'boolean':
             llm_output_values = list(df[label])
@@ -706,15 +706,15 @@ def check_labels(df, df_annotation, label_type_mapping):
                 llm_output_values = extract_first_non_empty_string(llm_output_values)
             annotation_values = list(df_annotation[label])
             if len(set(llm_output_values)) > 2 or len(set(annotation_values)) > 2:
-                flash(f"Label {label} is not boolean. Annotation or LLM output has too many values.", "warning")
+                flash(f"Label {label} might not be boolean. Annotation or LLM output has too many values.", "warning")
 
             invalid_llm_output_values = {value for value in set(llm_output_values) if value not in [True, False, 'True', 'False', 'true', 'false', 1, 0, '1', '0', 'yes', 'no']}
             if len(invalid_llm_output_values) > 0:
-                flash(f"Label {label} is not boolean. LLM output has invalid values: {invalid_llm_output_values}", "warning")
+                flash(f"Label {label} might not be boolean. LLM output has invalid values: {invalid_llm_output_values}", "warning")
 
             invalid_annotation_values = {value for value in set(annotation_values) if value not in [True, False, 'True', 'False', 'true', 'false', 1, 0, '1', '0', 'yes', 'no']}
             if len(invalid_annotation_values) > 0:
-                flash(f"Label {label} is not boolean. Annotation has invalid values: {invalid_annotation_values}", "warning")
+                flash(f"Label {label} might not be boolean. Annotation has invalid values: {invalid_annotation_values}", "warning")
 
         elif label_type_mapping[label]['label_type'] == 'stringmatch':
             llm_output_values = list(df[label])
