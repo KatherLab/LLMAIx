@@ -37,6 +37,14 @@ Web-based tool to extract structured information from medical reports, anonymize
 
 ![Redaction View of the Tool. Side-by-side documents, left side original, right side redacted view](static/image_redaction_view.png)
 
+## Usage
+
+View one of the tutorials:
+
+[Information Extraction Tutorial](static/information_extraction.md)
+
+[Anonymizer Tutorial](static/anonymization.md)
+
 
 ## Examples
 
@@ -67,6 +75,10 @@ models:
 ```
 
 ## Run with Docker
+
+> [!IMPORTANT]
+> The docker images currently only support NVIDIA GPUs with compute level 8.6 or higher (Ampere generation). You can manually build the docker image for other architectures or use the manual setup. Llama.cpp which is used as a backend for LLM-AIx supports a huge variety of hardware (including NVIDIA, AMD, Apple, Intel GPUs and also CPUs).
+
 
 1. Download the desired models (must be compatible with llama-cpp, in gguf format, e.g. from HuggingFace) into a new models directory!
 2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
@@ -122,14 +134,6 @@ Run:
 |--no_parallel_preprocessing|Disable parallel preprocessing. Default: False|False|
 |--verbose_llama|Enable verbose logging of llama.cpp. Default: False|False|
 |--password|If a password is added, it will be used for password protection. Default username: llmaix||
-
-## Usage
-
-View one of the tutorials:
-
-[Information Extraction Tutorial](static/information_extraction.md)
-
-[Anonymizer Tutorial](static/anonymization.md)
 
 
 ## Additional Notes
