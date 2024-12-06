@@ -23,13 +23,14 @@ RUN apt-get update && \
 
 WORKDIR /build
 
-# Clone llama.cpp
+# Clone llama.cpp and build with shared libraries
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
     cmake -B build \
         -DGGML_NATIVE=OFF \
         -DGGML_CUDA=ON \
         -DLLAMA_CURL=ON \
+        -DBUILD_SHARED_LIBS=ON \
         -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
         -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
     cmake --build build --config Release --target llama-server -j$(nproc) && \
@@ -51,10 +52,13 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy all necessary files to root
-COPY --from=build /build/llama.cpp/build/ggml/src/libggml.so /libggml.so
-COPY --from=build /build/llama.cpp/build/src/libllama.so /libllama.so
-COPY --from=build /build/llama.cpp/build/bin/llama-server /llama-server
+# Copy server binary and specific libraries
+COPY --from=build /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
+COPY --from=build /build/llama.cpp/build/lib/libllama.so /usr/local/lib/
+COPY --from=build /build/llama.cpp/build/lib/libggml.so /usr/local/lib/
+
+# Configure library path and update cache
+RUN ldconfig /usr/local/lib
 
 # Set up Python environment
 WORKDIR /app
@@ -66,10 +70,12 @@ COPY . .
 
 # Configure server host
 ENV LLAMA_ARG_HOST=0.0.0.0
+# Add library path to environment
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 # Add health check
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 
 EXPOSE 5000
 
-CMD ["python", "app.py", "--server_path", "/llama-server", "--model_path", "/models"]
+CMD ["python", "app.py", "--server_path", "/usr/local/bin/llama-server", "--model_path", "/models"]
