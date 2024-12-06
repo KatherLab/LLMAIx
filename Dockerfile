@@ -1,72 +1,75 @@
-# Use ARG for the compute level in the builder stage
-ARG CUDA_VERSION="12.6.2"
-ARG OS="ubuntu24.04"
-ARG COMPUTE_LEVEL="86"
+ARG CUDA_VERSION="12.6.3"
+ARG UBUNTU_VERSION="24.04"
+ARG BASE_CUDA_DEV_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+ARG BASE_CUDA_RUN_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
-ARG CUDA_BUILDER_IMAGE="${CUDA_VERSION}-devel-${OS}"
-ARG CUDA_RUNTIME_IMAGE="${CUDA_VERSION}-runtime-${OS}"
+# Builder Stage
+FROM ${BASE_CUDA_DEV_CONTAINER} AS build
 
-# Builder Stage: Compiling and building
-FROM nvidia/cuda:${CUDA_BUILDER_IMAGE} AS builder
+# CUDA architecture to build for
+ARG CUDA_COMPUTE_LEVEL="86"
 
-# Set the compute level as an environment variable to be used later
-ARG COMPUTE_LEVEL
-ENV COMPUTE_LEVEL=${COMPUTE_LEVEL}
-
-# Install build dependencies
-RUN apt update && \
-    apt install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
+    git \
     cmake \
+    libcurl4-openssl-dev \
     libpoppler-cpp-dev \
     pkg-config \
-    git \
     poppler-utils \
-    && apt clean \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /build
-
-# Clone and build the project
-RUN git clone https://github.com/ggerganov/llama.cpp && \
-    cd llama.cpp && \
-    # Echo the value to debug the variable substitution
-    echo "Using compute level: compute_${COMPUTE_LEVEL}" && \
-    CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" cmake -B build -DGGML_CUDA=ON && \
-    CUDA_DOCKER_ARCH="compute_${COMPUTE_LEVEL}" cmake --build build --config Release -j 8 -t llama-server && \
-    find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
-
-# Runtime Stage: Setting up the runtime environment
-FROM nvidia/cuda:${CUDA_RUNTIME_IMAGE} AS runtime
-
-# Install runtime dependencies
-RUN apt update && \
-    apt install -y --no-install-recommends \
-    python3-pip \
-    python-is-python3 \
-    ocrmypdf \
-    tesseract-ocr-deu \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
-WORKDIR /build
-
-# Copy the built artifacts from the builder stage
-COPY --from=builder /build/llama.cpp .
-
-# Set the working directory for the application
 WORKDIR /app
 
-# Copy the requirements and install Python dependencies
+# Clone llama.cpp
+RUN git clone https://github.com/ggerganov/llama.cpp .
+
+# Configure and build with cmake
+RUN cmake -B build \
+    -DGGML_NATIVE=OFF \
+    -DGGML_CUDA=ON \
+    -DLLAMA_CURL=ON \
+    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
+    -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
+    cmake --build build --config Release --target llama-server -j$(nproc) && \
+    mkdir -p /app/lib && \
+    find build -name "*.so" -exec cp {} /app/lib \;
+
+# Runtime Stage
+FROM ${BASE_CUDA_RUN_CONTAINER} AS runtime
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3-pip \
+    python-is-python3 \
+    libcurl4-openssl-dev \
+    libgomp1 \
+    curl \
+    ocrmypdf \
+    tesseract-ocr-deu \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy libraries and server binary
+COPY --from=build /app/lib/ /
+COPY --from=build /app/build/bin/llama-server /llama-server
+
+# Set up Python environment
+WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
-# Copy the rest of the application code
+# Copy the rest of the application
 COPY . .
 
-# Expose the application port
+# Configure server host
+ENV LLAMA_ARG_HOST=0.0.0.0
+
+# Add health check
+HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
+
 EXPOSE 5000
 
-# Command to run the application
-CMD ["python", "app.py", "--server_path", "/build/llama-server", "--model_path", "/models"]
+CMD ["python", "app.py", "--server_path", "/llama-server", "--model_path", "/models"]
