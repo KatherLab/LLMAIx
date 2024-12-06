@@ -4,7 +4,7 @@ services:
       context: .
       args:
         COMPUTE_LEVEL: "86" # Your CUDA GPU compute level (here: 8.6)
-        CUDA_VERSION: "12.6.0"
+        CUDA_VERSION: "12.6.3"
     image: ghcr.io/katherlab/llmaix:latest
     ports:
       - "19999:${PORT:-5000}"
