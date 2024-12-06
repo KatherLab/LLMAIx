@@ -21,21 +21,20 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /build
 
 # Clone llama.cpp
-RUN git clone https://github.com/ggerganov/llama.cpp .
-
-# Configure and build with cmake
-RUN cmake -B build \
-    -DGGML_NATIVE=OFF \
-    -DGGML_CUDA=ON \
-    -DLLAMA_CURL=ON \
-    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
-    -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
+RUN git clone https://github.com/ggerganov/llama.cpp && \
+    cd llama.cpp && \
+    cmake -B build \
+        -DGGML_NATIVE=OFF \
+        -DGGML_CUDA=ON \
+        -DLLAMA_CURL=ON \
+        -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
+        -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
     cmake --build build --config Release --target llama-server -j$(nproc) && \
-    mkdir -p /app/lib && \
-    find build -name "*.so" -exec cp {} /app/lib \;
+    # Keep only the server binary and necessary files
+    find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
 # Runtime Stage
 FROM ${BASE_CUDA_RUN_CONTAINER} AS runtime
@@ -52,9 +51,13 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy libraries and server binary
-COPY --from=build /app/lib/ /
-COPY --from=build /app/build/bin/llama-server /llama-server
+# Set up the build directory structure
+WORKDIR /build
+COPY --from=build /build/llama.cpp .
+
+# Copy the specific shared libraries
+COPY --from=build /build/llama.cpp/build/ggml/src/libggml.so /libggml.so
+COPY --from=build /build/llama.cpp/build/src/libllama.so /libllama.so
 
 # Set up Python environment
 WORKDIR /app
@@ -72,4 +75,4 @@ HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 
 EXPOSE 5000
 
-CMD ["python", "app.py", "--server_path", "/llama-server", "--model_path", "/models"]
+CMD ["python", "app.py", "--server_path", "/build/llama-server", "--model_path", "/models"]
