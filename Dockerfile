@@ -34,6 +34,9 @@ RUN git clone https://github.com/ggerganov/llama.cpp && \
         -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
         -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
     cmake --build build --config Release --target llama-server -j$(nproc) && \
+    # Find and copy all .so files to a common directory for easier copying
+    mkdir -p build/all_libs && \
+    find build -name "*.so*" -exec cp {} build/all_libs/ \; && \
     # Keep only the server binary and necessary files
     find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
@@ -52,11 +55,9 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy server binary and specific libraries
+# Copy server binary and all shared libraries
 COPY --from=build /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
-COPY --from=build /build/llama.cpp/build/src/libllama.so /usr/local/lib/
-COPY --from=build /build/llama.cpp/build/ggml/src/libggml.so /usr/local/lib/
-COPY --from=build /build/llama.cpp/build/ggml/src/libggml-base.so /usr/local/lib/
+COPY --from=build /build/llama.cpp/build/all_libs/* /usr/local/lib/
 
 # Configure library path and update cache
 RUN ldconfig /usr/local/lib
