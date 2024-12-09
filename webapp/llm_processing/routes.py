@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import tempfile
 import traceback
 import zipfile
@@ -193,6 +194,8 @@ class CancellableJob:
     flash_attention: bool = False
     buffer_slots: int = 2
     mode: str = "informationextraction"
+    chat_endpoint: bool = False
+    system_prompt: str = ""
     _canceled: bool = field(default=False, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
@@ -211,6 +214,78 @@ class CancellableJob:
             json={"content": prompt_formatted}
         ) as response:
             return await response.json()
+        
+    async def fetch_chat_result(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
+        if self._canceled:
+            raise asyncio.CancelledError()
+
+        url = f"http://localhost:{self.llamacpp_port}/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer no-key"
+        }
+        data = {
+            # "response_format": TODO implement this instead of the grammar to make the pipeline compatible with OpenAI API
+            "model": "llmaix",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": self.system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": prompt_formatted
+                }
+            ]
+        }
+
+        if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
+            data["grammar"] = self.grammar
+
+        async def watch_cancellation():
+            while True:
+                if self._canceled:
+                    print("Watching cancellation received cancel signal")
+                    raise asyncio.CancelledError()
+                await asyncio.sleep(0.1)
+
+        try:
+            cancel_task = asyncio.create_task(watch_cancellation())
+            
+            async with session.post(
+                headers=headers,
+                url=url,
+                json=data,
+                timeout=aiohttp.ClientTimeout(total=20 * 60)
+            ) as response:
+                # Create a task for the response
+                response_task = asyncio.create_task(response.json())
+                
+                try:
+                    # Wait for either the response or cancellation
+                    done, pending = await asyncio.wait(
+                        [response_task, cancel_task],
+                        return_when=asyncio.FIRST_COMPLETED
+                    )
+                    print("Done")
+                    
+                    # If we were cancelled, ensure it propagates
+                    if cancel_task in done and self._canceled:
+                        response.close()
+                        raise asyncio.CancelledError()
+                    
+                    return await response_task
+                finally:
+                    # Clean up tasks and connection
+                    cancel_task.cancel()
+                    if not response_task.done():
+                        response_task.cancel()
+                        response.close()
+        
+        except asyncio.CancelledError:
+            if 'response' in locals():
+                response.close()
+            raise
 
     async def fetch_completion_result(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
         if self._canceled:
@@ -286,8 +361,6 @@ class CancellableJob:
                 progress_bar.update(1)
                 return
             
-            print("llm processing report new: ", index)
-
             for symptom in self.symptoms:
                 if self._canceled:
                     raise asyncio.CancelledError()  # Changed from return to raise
@@ -296,39 +369,55 @@ class CancellableJob:
                 
                 if self._canceled:
                     raise asyncio.CancelledError()
-                summary = await self.fetch_completion_result(session, prompt_formatted)
-
-                num_prompt_tokens = summary["tokens_predicted"]
-
-
-                if num_prompt_tokens >= (self.ctx_size / self.parallel_slots) - self.n_predict:
-                    print(
-                        f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. "
-                        f"CONTEXT SIZE PER SLOT: {self.ctx_size / self.parallel_slots} Tokens. "
-                        f"N-PREDICT: {self.n_predict} Tokens.", flush=True
-                    )
-                    warning_job(
-                        job_id=self.job_id,
-                        message=f"Report: {id}. Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. "
-                                f"Context size per Slot: {self.ctx_size / self.parallel_slots} Tokens. "
-                                f"N-Predict: {self.n_predict} Tokens.",
-                    )
-
-                # summary = await self.fetch_completion_result(session, prompt_formatted)
-
+                
                 if id not in self.results:
                     self.results[id] = {}
 
                 self.results[id]["report"] = report
                 self.results[id]["symptom"] = symptom
-                self.results[id]["summary"] = summary
+                
 
-                if summary['stop_type'] == "limit":
-                    warning_job(
-                        job_id=self.job_id,
-                        message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens "
-                                f"(limit reached), the results might be incomplete! Please increase n_predict!",
-                    )
+                if self.chat_endpoint:  
+                    summary = await self.fetch_chat_result(session, prompt_formatted)
+
+                    # self.results[id]["summary"] = summary
+                    self.results[id]['content'] = summary['choices'][-1]['message']['content']
+
+                    if summary['choices'][-1]['finish_reason'] == "length":
+                        warning_job(
+                            job_id=self.job_id,
+                            message=f"Report {id}: Generation stopped after {summary['usage']['completion_tokens']} tokens "
+                                    f"(limit reached), the results might be incomplete! Please increase n_predict!",
+                        )
+
+                else:
+                    summary = await self.fetch_completion_result(session, prompt_formatted)
+
+                    # self.results[id]["summary"] = summary
+                    self.results[id]["content"] = summary['content']
+
+                    if summary['stop_type'] == "limit":
+                        warning_job(
+                            job_id=self.job_id,
+                            message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens "
+                                    f"(limit reached), the results might be incomplete! Please increase n_predict!",
+                        )
+
+                # if num_prompt_tokens >= (self.ctx_size / self.parallel_slots) - self.n_predict:
+                #     print(
+                #         f"PROMPT MIGHT BE TOO LONG. PROMPT: {num_prompt_tokens} Tokens. "
+                #         f"CONTEXT SIZE PER SLOT: {self.ctx_size / self.parallel_slots} Tokens. "
+                #         f"N-PREDICT: {self.n_predict} Tokens.", flush=True
+                #     )
+                #     warning_job(
+                #         job_id=self.job_id,
+                #         message=f"Report: {id}. Prompt might be too long. Prompt: {num_prompt_tokens} Tokens. "
+                #                 f"Context size per Slot: {self.ctx_size / self.parallel_slots} Tokens. "
+                #                 f"N-Predict: {self.n_predict} Tokens.",
+                #     )
+
+                # summary = await self.fetch_completion_result(session, prompt_formatted)
+
 
             progress_bar.update(1)
             update_progress(
@@ -512,6 +601,8 @@ class CancellableJob:
 
             llm_metadata = {
                 "model_name": self.model_name_name if self.model_name_name else self.model_name,
+                "system_prompt": self.system_prompt if self.chat_endpoint else "",
+                "mode": "chat" if self.chat_endpoint else "completion",
                 "prompt": self.prompt,
                 "symptoms": self.symptoms,
                 "temperature": self.temperature,
@@ -550,7 +641,7 @@ def submit_llm_job(
     llm_jobs[job_id] = (future, job)
 
 def postprocess_grammar(result, df, llm_metadata, debug=False, mode="informationextraction"):
-    print("POSTPROCESSING GRAMMAR")
+    print("POSTPROCESSING")
 
     extracted_data = []
 
@@ -558,11 +649,11 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
 
     # Iterate over each report and its associated data
     for i, (id, info) in enumerate(result.items()):
-        print(f"Processing report {i} of {len(result)}")
+        print(f"Processing report {i+1} of {len(result)}")
         # Get the first key in the dictionary (here assumed to be the relevant field)
 
         # Extract the content of the first field
-        content = info["summary"]["content"]
+        content = info["content"]
 
         # Parse the content string into a dictionary
         try:
@@ -591,7 +682,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
                     info_dict_raw = ast.literal_eval(content)
                 except Exception as e:
                     print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})", flush=True)
-                    print("RAW LLM OUTPUT: '" + info["summary"]["content"] + "'", flush=True)
+                    print("RAW LLM OUTPUT: '" + info["content"] + "'", flush=True)
                     print("Error:", e, flush=True)
                     print("TRACEBACK:", traceback.format_exc(), flush=True)
                     info_dict_raw = {}
@@ -687,6 +778,8 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
 
     if mode == "anonymizer":
         aggregated_df["metadata"] = aggregated_df["metadata"].apply(lambda x: x[0])
+
+    print("POSTPROCESSING DONE")
 
     return aggregated_df, error_count
 
@@ -897,7 +990,9 @@ def main():
             flash_attention=model_config['flash_attention'],
             mlock=model_config['mlock'],
             kv_cache_type=model_config['kv_cache_quants'],
-            mode=current_app.config['MODE']
+            mode=current_app.config['MODE'],
+            chat_endpoint=form.chat_endpoint.data,
+            system_prompt=form.system_prompt.data,
         )
 
         print(f"Started job {job_id} successfully!")

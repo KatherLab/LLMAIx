@@ -71,6 +71,49 @@
     
             <!-- LLM Settings Section -->
             <div class="row g-3">
+
+                <!-- Boolean field if system prompt field should be shown and used -->
+
+                <div class="col-md-12">
+                    <div class="form-check form-switch">
+                      {% if form.chat_endpoint.errors %}
+                        {{ form.chat_endpoint(class="form-check-input is-invalid") }}
+                        <label class="form-check-label ms-2" for="chat_endpoint">Enable Chat mode</label>
+                        <div class="invalid-feedback">
+                          {% for error in form.chat_endpoint.errors %}
+                            <span>{{ error }}</span>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        {{ form.chat_endpoint(class="form-check-input") }}
+                        <label class="form-check-label ms-2" for="chat_endpoint">Enable Chat Mode</label>
+                      {% endif %}
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-12 mt-3" id="system_prompt_container" style="display: none;">
+                    <div class="form-floating">
+                        {% if form.system_prompt.errors %}
+                            {{ form.system_prompt(class="form-control is-invalid", placeholder="Enter system prompt here...", rows="4", style="height: 100px;") }}
+                            <label for="prompt">System Prompt</label>
+                            <div class="invalid-feedback">
+                            {% for error in form.system_prompt.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.system_prompt(class="form-control", placeholder="Enter system prompt here...", rows="7", style="height: 200px;") }}
+                            <label for="prompt">System Prompt</label>
+                        {% endif %}
+                    </div>
+                </div>
+                  
+                <script>
+                    document.querySelector('#chat_endpoint').addEventListener('change', function() {
+                        document.querySelector('#system_prompt_container').style.display = this.checked ? 'block' : 'none';
+                    });
+                </script>
+
                 <div class="col-md-12">
                     <div class="form-floating">
                         {% if form.prompt.errors %}

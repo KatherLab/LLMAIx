@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField, SubmitField, TextAreaField, FileField, FloatField, validators, SelectField, FormField, FieldList, IntegerField
+from wtforms import BooleanField, StringField, SubmitField, TextAreaField, FileField, FloatField, validators, SelectField, FormField, FieldList, IntegerField
 from wtforms.validators import ValidationError
 import wtforms
 import os
+
+default_system_prompt = r"""You are a helpful assistant that helps extract information from medical reports."""
 
 default_prompt = r"""From the following medical report, extract the following information and return it in JSON format:
 
@@ -100,6 +102,9 @@ class LLMPipelineForm(FlaskForm):
 
     extra_grammar_rules = TextAreaField("Extra Grammar Rules:", validators=[], default="")
 
+    chat_endpoint = BooleanField("Chat Endpoint:", default=False)
+
+    system_prompt = TextAreaField("System Prompt:", validators=[], default=default_system_prompt)
     prompt = TextAreaField("Prompt:", validators=[], default=default_prompt)
     variables = StringField(
         "Variables (separated by commas):", validators=[], default="Patienteninfos")
