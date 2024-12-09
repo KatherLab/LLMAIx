@@ -323,7 +323,7 @@ class CancellableJob:
                 self.results[id]["symptom"] = symptom
                 self.results[id]["summary"] = summary
 
-                if summary["stopped_limit"]:
+                if summary['stop_type'] == "limit":
                     warning_job(
                         job_id=self.job_id,
                         message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens "
