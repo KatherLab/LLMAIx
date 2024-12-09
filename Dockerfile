@@ -55,7 +55,7 @@ RUN apt-get update && \
 # Copy server binary and specific libraries
 COPY --from=build /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
 COPY --from=build /build/llama.cpp/build/src/libllama.so /usr/local/lib/
-# COPY --from=build /build/llama.cpp/build/ggml/src/libggml.so /usr/local/lib/
+COPY --from=build /build/llama.cpp/build/ggml/src/libggml.so /usr/local/lib/
 
 # Configure library path and update cache
 RUN ldconfig /usr/local/lib
