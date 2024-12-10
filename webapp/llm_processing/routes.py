@@ -944,6 +944,14 @@ def main():
         prefix = current_datetime.strftime("%Y%m%d%H%M")
 
         job_id = (
+            form.job_name.data
+            + "-"
+            + model_name.replace(" ", "").replace("_", "-")
+            + "_"
+            + prefix
+            + "_"
+            + secrets.token_urlsafe(8)
+        ) if form.job_name.data else (
             model_name.replace(" ", "").replace("_", "-")
             + "_"
             + prefix

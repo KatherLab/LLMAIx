@@ -50,6 +50,24 @@
         <fieldset class="form-control p-4 mb-4">
             <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Upload Preprocessed Documents & LLM Settings</legend>
     
+            <!-- Job Name -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-12">
+                    <!--<label for="job_name" class="form-label">Job Name</label>-->
+                    <div class="input-group">
+                        {{ form.job_name(class="form-control", id="job_name", placeholder="Enter job name") }}
+                        {% if form.job_name.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.job_name.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+
             <!-- File Upload Section -->
             <div class="row g-3 mb-3">
                 <div class="col-md-12">

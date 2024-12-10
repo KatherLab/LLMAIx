@@ -91,6 +91,8 @@ class LLMPipelineForm(FlaskForm):
         else:
             raise ValueError("Model path is required")
 
+    job_name = StringField("Job Name:")
+
     file = FileField("File", validators=[
         FileRequired(),
         FileAllowed(['zip'], # for now remove csv and xlsx as they are not (longer and yet) supported
