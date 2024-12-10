@@ -196,6 +196,7 @@ class CancellableJob:
     mode: str = "informationextraction"
     chat_endpoint: bool = False
     system_prompt: str = ""
+    job_name: str = ""
     _canceled: bool = field(default=False, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
@@ -600,6 +601,8 @@ class CancellableJob:
             )
 
             llm_metadata = {
+                "job_id": self.job_id,
+                "job_name": self.job_name,
                 "model_name": self.model_name_name if self.model_name_name else self.model_name,
                 "system_prompt": self.system_prompt if self.chat_endpoint else "",
                 "mode": "chat" if self.chat_endpoint else "completion",
@@ -1001,6 +1004,7 @@ def main():
             mode=current_app.config['MODE'],
             chat_endpoint=form.chat_endpoint.data,
             system_prompt=form.system_prompt.data,
+            job_name=form.job_name.data
         )
 
         print(f"Started job {job_id} successfully!")

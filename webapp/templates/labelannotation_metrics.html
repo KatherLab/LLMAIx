@@ -8,15 +8,23 @@
 
     <h2>Label Annotation Summary</h2>
 
+    </h3>
+
     <div class="card mt-3 mb-3 shadow-sm">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
+                {% if 'job_name' in report_summary_dict['metadata']['llm_processing'] %}
+                <h3>Metrics for {{ report_summary_dict['metadata']['llm_processing']['job_name'] }}</h3>
+                {% else %}
                 <h3>Metrics</h3>
+                {% endif %}
 
                 <div>
                     <span class="badge rounded-pill text-bg-primary">Total Reports: {{ report_summary_dict['report_list']|count }}</span>
                     <span class="badge rounded-pill text-bg-info">{{ report_summary_dict['metadata']['llm_processing']['model_name']}}</span>
+                    {% if 'mode' in report_summary_dict['metadata']['llm_processing'] %}
                     <span class="badge rounded-pill text-bg-success">{{ report_summary_dict['metadata']['llm_processing']['mode']}}</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
