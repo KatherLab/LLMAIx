@@ -350,10 +350,10 @@ class CancellableJob:
 
     async def process_report(self, session: aiohttp.ClientSession, report: str, id: Any, index: int, 
                        progress_bar: tqdm) -> None:
-        if self._canceled:
-            raise asyncio.CancelledError()  # Changed from return to raise
 
         try:
+            if self._canceled:
+                raise asyncio.CancelledError()  # Changed from return to raise
             if is_empty_string_nan_or_none(report):
                 print("SKIPPING EMPTY REPORT!")
                 self.skipped += 1
@@ -429,6 +429,7 @@ class CancellableJob:
             )
             
         except asyncio.CancelledError:
+            print("Processing cancelled #3")
             update_progress(
                 job_id=self.job_id, 
                 progress=(progress_bar.n - self.skipped, len(self.df) - self.skipped, False, True)
@@ -492,6 +493,7 @@ class CancellableJob:
             update_progress(job_id=self.job_id, progress=(0, len(self.df), True, False))
             await main()
         except asyncio.CancelledError:
+            print("Processing cancelled #4")
             update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
             print("Process cancelled")
             raise
@@ -575,7 +577,8 @@ class CancellableJob:
         try:
             self.start_server()
             if self._canceled:
-                update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
+                print("Processing cancelled #1")
+                update_progress(job_id=self.job_id, progress=(0, len(self.df), False, True))
                 socketio.emit(
                     "llm_progress_canceled", 
                     {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
@@ -585,8 +588,8 @@ class CancellableJob:
             try:
                 asyncio.run(self.process_all_reports())
             except asyncio.CancelledError:
-                print("Processing cancelled")
-                update_progress(job_id=self.job_id, progress=(0, len(self.df), True, True))
+                print("Processing cancelled #2")
+                update_progress(job_id=self.job_id, progress=(0, len(self.df), False, True))
                 socketio.emit(
                     "llm_progress_canceled", 
                     {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
@@ -1024,6 +1027,7 @@ def cancel_job():
         if not future.done():
             job.cancel()  # Call cancel on the actual job object
             future.cancel()
+            update_progress(job_id=job_id, progress=(llm_progress[job_id][0], llm_progress[job_id][1], False, True))
             socketio.emit(
                     "llm_progress_canceled", 
                     {"job_id": job_id, "total_steps": 0}
