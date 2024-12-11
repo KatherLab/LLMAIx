@@ -92,6 +92,15 @@
                         style="width: 0%;">
                         <span class="progress-label" id="progress-label-{{ job_id }}">Canceled</span>
                     </div>
+
+                    {% elif progress_tuple[0] == progress_tuple[1] %}
+
+                    <div id="progress-{{ job_id }}" class="progress-bar bg-success"
+                        style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">
+                    </div>
+                    <span class="progress-label" id="progress-label-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} | Completed in {{ progress_tuple[4] }}</span>
+
+
                     {% elif progress_tuple[2] %}
                     <div id="progress-{{ job_id }}" class="progress-bar bg-success"
                         style="width: {{ (progress_tuple[0] / progress_tuple[1]) * 100 }}%;">
@@ -99,7 +108,6 @@
                     </div>
                     <span class="progress-label" id="progress-label-{{ job_id }}">{{ progress_tuple[0] }} / {{ progress_tuple[1] }}</span>
 
-                    
                     {% else %}
                     <div id="progress-{{ job_id }}" class="progress-bar bg-danger" style="width: 100%;">
                         <span class="small">{{ progress_tuple[0] }} / {{ progress_tuple[1] }} FAILED</span>
@@ -187,7 +195,7 @@
 
         var progress_label = document.getElementById('progress-label-' + job_id);
         if (progress_label) {
-            progress_label.innerText = progress + ' / ' + totalSteps + ' Remaining Time: ' + remaining_time;
+            progress_label.innerText = progress + ' / ' + totalSteps + ' | Remaining Time ' + remaining_time;
         }
 
         // make progress label text white if progress is bigger than 50%
@@ -199,10 +207,15 @@
     socket.on('llm_progress_complete', function (data) {
 
         var job_id = data.job_id;
+        var total_time = data.total_time;
         var progressBar = document.getElementById('progress-' + job_id);
 
         progressBar.className = 'progress-bar bg-success';
         progressBar.style.width = '100%';
+        var progress_label = document.getElementById('progress-label-' + job_id);
+        if (progress_label) {
+            progress_label.innerText = progress_label.innerText + ' | Completed in ' + total_time;
+        }
 
         // Enable download button
         var downloadLink = document.getElementById('download-' + job_id);

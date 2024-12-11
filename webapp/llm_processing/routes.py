@@ -68,21 +68,22 @@ def format_time(seconds):
         return f"{seconds / 86400:.1f}d"
 
 
-def update_progress(job_id, progress: tuple[int, int, bool, bool]):
+def update_progress(job_id, progress: tuple[int, int, bool, bool, str]):
     global llm_progress
 
     # Initialize llm_progress dictionary if not already initialized
     if "llm_progress" not in globals():
         llm_progress = {}
 
-    # Update progress dictionary
-    llm_progress[job_id] = progress
-
     # Calculate elapsed time since the job started
-
     if job_id not in start_times or progress[0] == 0:
         start_times[job_id] = time.time()
     elapsed_time = time.time() - start_times[job_id]
+
+    progress = (progress[0], progress[1], progress[2], progress[3], format_time(elapsed_time))
+
+    # Update progress dictionary
+    llm_progress[job_id] = progress
 
     # Calculate average time per progress step
     if progress[0] > 0:
@@ -117,6 +118,7 @@ def update_progress(job_id, progress: tuple[int, int, bool, bool]):
             "total": progress[1],
             "remaining_time": estimated_remaining_time,
             "canceled": progress[3],
+            "elapsed_time": format_time(elapsed_time)
         },
     )
 
@@ -597,7 +599,7 @@ class CancellableJob:
 
             socketio.emit(
                 "llm_progress_complete", 
-                {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped}
+                {"job_id": self.job_id, "total_steps": len(self.df) - self.skipped, "total_time": format_time(time.time() - start_times[self.job_id])}
             )
 
             llm_metadata = {

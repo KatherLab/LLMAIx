@@ -127,9 +127,20 @@
                 </div>
                   
                 <script>
+                    // Check initial state on page load
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const checkbox = document.querySelector('#chat_endpoint');
+                        const container = document.querySelector('#system_prompt_container');
+                        if (checkbox.checked) {
+                            container.style.display = 'block';
+                        }
+                    });
+                    
+                    // Handle changes
                     document.querySelector('#chat_endpoint').addEventListener('change', function() {
                         document.querySelector('#system_prompt_container').style.display = this.checked ? 'block' : 'none';
                     });
+  
                 </script>
 
                 <div class="col-md-12">
