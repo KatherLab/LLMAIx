@@ -146,3 +146,58 @@ The **Annotation Helper** tool enables you to create your own annotation based o
 
 > [!TIP]
 > If you want to know how well the LLM is able to predict your annotations, you can use the **Label Annotation Viewer** with your manually curated annotations csv file as the ground truth. 
+
+
+## Use additional Reasoning
+
+You can add a reasoning column to your grammar (add it as first row as it will be generated before the other JSON fields).
+
+
+The prompt then could look like this:
+```
+From the following medical report, extract the following information and return it in JSON format. First, please provide a reasoning for each non-trivial information to be extracted. Please still keep the reasoning short and to the point.
+
+    reasoning: Please reason in this field about the following json fields if the information in the report is not trivial for extracting it.
+    shortness of breath: true / false 
+    chest pain: true / false
+    leg pain or swelling: true / false
+    heart palpitations: true / false
+    cough: true / false
+    dizziness: true / false
+    location: main / segmental / unknown
+    side: left / right / bilateral
+
+This is the medical report:
+{report}
+
+The JSON:
+```
+
+An example grammar with a reasoning column:
+
+```
+root ::= allrecords
+
+allrecords ::= (
+  "{"
+ws "\"reasoning\":" ws "\"" char{1,2000} "\"" ","
+ws "\"shortness of breath\":" ws boolean ","
+ws "\"chest pain\":" ws boolean ","
+ws "\"leg pain or swelling\":" ws boolean ","
+ws "\"heart palpitations\":" ws boolean ","
+ws "\"cough\":" ws boolean ","
+ws "\"dizziness\":" ws boolean ","
+ws "\"location\":" ws "\"" ( "main" | "segmental" | "unknown" ) "\"" ","
+ws "\"side\":" ws "\"" ( "left" | "right" | "bilateral" ) "\"" ","
+
+  ws "}"
+  ws
+)
+
+ws ::= ([ \t\n])?
+
+char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
+boolean ::= "\"" ("true" | "false") "\"" ws
+```
+
+Note: This grammar limits the reasoning to 2000 characters. Please adjust this limit according to your needs!

@@ -464,7 +464,9 @@ def accumulate_metrics(data_list):
                 tempfile.mkdtemp(), f"confusion_matrix_{label}.svg"
             )
         
-        if label_type_mapping[label]['label_type'] == 'boolean':
+        if label_type_mapping[label]['label_type'] == 'ignore':
+            pass
+        elif label_type_mapping[label]['label_type'] == 'boolean':
             generate_confusion_matrix_from_counts(label_metrics['tp'], label_metrics['tn'], label_metrics['fp'], label_metrics['fn'], confusion_matrix_filepath, ['true', 'false'], title=f"Confusion Matrix for {label}", xlabel='LLM', ylabel='Ground Truth')
         elif label_type_mapping[label]['label_type'] == 'multiclass':
             generate_confusion_matrix_from_matrix(label_metrics['confusion_matrix_list'], confusion_matrix_filepath, title=f"Confusion Matrix for {label}", xlabel='LLM', ylabel='Ground Truth', classes=label_type_mapping[label]['label_classes'])
@@ -536,11 +538,14 @@ def generate_report_dict(row, df_annotation, label_type_mapping: dict) -> dict:
     annotation_labels = list(report_dict["annotation_labels"].keys())
     llm_output_labels = list(report_dict["llm_output_labels"].keys())
 
-    if not all([key in annotation_labels for key in llm_output_labels]):
+    ignored_labels = [label for label in llm_output_labels if label_type_mapping[label]['label_type'] == 'ignore']
+
+    if not all([key in annotation_labels for key in llm_output_labels if key not in ignored_labels]):
         raise Exception("Mismatch in label keys in llm output: " + str(
             llm_output_labels)
             + " vs annotation: "
             + str(annotation_labels)
+            + " ignored labels: " + str(ignored_labels)
         )
 
     # go trough values of annotation labels and use the first list element as value 
@@ -668,16 +673,20 @@ def labelannotationselector():
             flash(f"Error processing label {label['label_name']}: {e}", "danger")
             return redirect(url_for("labelannotation.main"))
 
+        # if label["label_name"] not in list(df_annotation.keys()):
+        #     flash(f"Label {label['label_name']} not in the annotation file.", "danger")
+        #     return redirect(url_for("labelannotation.main"))
         if label["label_name"] not in list(df_annotation.keys()):
-            flash(f"Label {label['label_name']} not in the annotation file.", "danger")
-            return redirect(url_for("labelannotation.main"))
-
-        annotation_values = [value for value in list(df_annotation[label["label_name"]]) if isinstance(value, str)]
+            flash(f"Label {label['label_name']} not in the annotation file.", "warning")
+            label["label_type"] = "ignore"
+            annotation_values = []
+        else:
+            annotation_values = [value for value in list(df_annotation[label["label_name"]]) if isinstance(value, str)]
         if len(set(annotation_values)) == 2 and ("True" in annotation_values and "False" in annotation_values or "true" in annotation_values and "false" in annotation_values or "1" in annotation_values and "0" in annotation_values or 1 in annotation_values and 0 in annotation_values or "yes" in annotation_values and "no" in annotation_values):
             label["label_type"] = "boolean"
         elif set(llm_output_values) == set(annotation_values):
             label["label_type"] = "multiclass"
-        else:
+        elif not label['label_type']:
             label["label_type"] = "stringmatch"
         label["label_classes"] = ",".join(set(annotation_values))
 

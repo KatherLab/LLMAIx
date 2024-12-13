@@ -21,8 +21,18 @@
                             {{ label_entry.label_name.label(class="form-control-label") }} {{ label_entry.label_name(class="form-control") }}
                         </div>
                         <div class="form-group col-md-3">
-                            {{ label_entry.label_type.label(class="form-control-label") }} {{ label_entry.label_type(class="form-select", id="label_type_" + loop.index0|string, data_index=loop.index0|string) }}
+                            {{ label_entry.label_type.label(class="form-control-label") }}
+                            {{ label_entry.label_type(
+                                class="form-select",
+                                id="label_type_" + loop.index0|string,
+                                data_index=loop.index0|string,
+                                **({"disabled": "disabled"} if label_entry.label_type.data == "ignore" else {})
+                            ) }}
+                            {% if label_entry.label_type.data == "ignore" %}
+                                <input type="hidden" name="{{ label_entry.label_type.name }}" value="{{ label_entry.label_type.data }}">
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group col-md-6 label-classes-container" id="label_classes_container_{{ loop.index0|string }}" style="display: {% if label_entry.label_type.data != 'multiclass' %}none{% endif %};">
                             {{ label_entry.label_classes.label(class="form-control-label") }} {{ label_entry.label_classes(class="form-control") }}
                         </div>

@@ -5,7 +5,7 @@ from wtforms import SubmitField, FileField, Form, StringField, SelectField, Fiel
 
 class LabelField(Form):
     label_name = StringField("Label Name")
-    label_type = SelectField("Label Type", choices=[("multiclass", "Multiclass"), ("boolean", "Boolean"), ("stringmatch", "String Match")])
+    label_type = SelectField("Label Type", choices=[("multiclass", "Multiclass"), ("boolean", "Boolean"), ("stringmatch", "String Match"), ("ignore", "Ignore Label")])
     label_classes = StringField("Classes")
 
 class LabelSelectorForm(FlaskForm):
