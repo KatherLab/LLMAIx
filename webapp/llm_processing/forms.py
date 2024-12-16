@@ -116,7 +116,7 @@ class LLMPipelineForm(FlaskForm):
 
     n_predict = IntegerField("n_predict:", validators=[validators.NumberRange(1, 96000)], default=1024)
 
-    top_k = IntegerField("Top K:", validators=[validators.NumberRange(1, 100)], default=1)
-    top_p = FloatField("Top P:", validators=[validators.NumberRange(0, 1)], default=0)
+    top_k = IntegerField("Top K:", validators=[validators.NumberRange(0, 100)], default=30)
+    top_p = FloatField("Top P:", validators=[validators.NumberRange(0, 1)], default=0.9)
 
     submit = SubmitField("Run Pipeline")
