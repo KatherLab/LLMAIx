@@ -626,6 +626,8 @@ class CancellableJob:
                 "prompt": self.prompt,
                 "symptoms": self.symptoms,
                 "temperature": self.temperature,
+                "top_k": self.top_k,
+                "top_p": self.top_p,
                 "n_predict": self.n_predict,
                 "ctx_size": self.ctx_size,
                 "grammar": self.grammar,
