@@ -199,6 +199,7 @@ class CancellableJob:
     chat_endpoint: bool = False
     system_prompt: str = ""
     job_name: str = ""
+    seed: int = 42
     _canceled: bool = field(default=False, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
@@ -239,7 +240,8 @@ class CancellableJob:
                     "role": "user",
                     "content": prompt_formatted
                 }
-            ]
+            ], 
+            "seed": self.seed
         }
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
@@ -298,7 +300,8 @@ class CancellableJob:
             "prompt": prompt_formatted,
             "n_predict": self.n_predict,
             "temperature": self.temperature,
-            "cache_prompt": True
+            "cache_prompt": True,
+            "seed": self.seed
         }
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
@@ -534,6 +537,8 @@ class CancellableJob:
                     "512",
                     "-t",
                     "8",
+                    "--seed",
+                    str(self.seed)
                 ] + 
                 (["--verbose"] if self.verbose_llama else []) +
                 (["--mlock"] if self.mlock else []) +
@@ -1009,7 +1014,8 @@ def main():
             mode=current_app.config['MODE'],
             chat_endpoint=form.chat_endpoint.data,
             system_prompt=form.system_prompt.data,
-            job_name=form.job_name.data
+            job_name=form.job_name.data,
+            seed=model_config['seed']
         )
 
         print(f"Started job {job_id} successfully!")

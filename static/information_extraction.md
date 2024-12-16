@@ -196,8 +196,9 @@ ws "\"side\":" ws "\"" ( "left" | "right" | "bilateral" ) "\"" ","
 
 ws ::= ([ \t\n])?
 
-char ::= [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
+char ::= [^"\\] | "\\" ([\\bfnrt/] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
 boolean ::= "\"" ("true" | "false") "\"" ws
 ```
 
 Note: This grammar limits the reasoning to 2000 characters. Please adjust this limit according to your needs!
+Note: Please use this adjusted char rule as it excludes " characters leading to the llm being able to destroy the json structure within the reasoning field.
