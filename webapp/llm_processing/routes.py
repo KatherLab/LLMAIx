@@ -241,7 +241,8 @@ class CancellableJob:
                     "content": prompt_formatted
                 }
             ], 
-            "seed": self.seed
+            "seed": self.seed,
+            "temperature": self.temperature
         }
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
