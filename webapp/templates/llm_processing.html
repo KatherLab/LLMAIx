@@ -120,7 +120,7 @@
                             {% endfor %}
                             </div>
                         {% else %}
-                            {{ form.system_prompt(class="form-control", placeholder="Enter system prompt here...", rows="7", style="height: 200px;") }}
+                            {{ form.system_prompt(class="form-control", placeholder="Enter system prompt here...", rows="4", style="height: 100px;") }}
                             <label for="prompt">System Prompt</label>
                         {% endif %}
                     </div>
@@ -179,7 +179,7 @@
                 </div>
     
                 <!-- Temperature, N Predict, and Model Settings -->
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <div class="form-floating">
                         {% if form.temperature.errors %}
                         {{ form.temperature(class="form-control is-invalid", min=0, max=1, placeholder="Temperature") }}
@@ -195,8 +195,42 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        {% if form.top_k.errors %}
+                        {{ form.top_k(class="form-control is-invalid", min=0, max=1, placeholder="top_k") }}
+                        <label for="top_k">top_k</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.top_k.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.top_k(class="form-control", min=0, max=1, placeholder="top_k") }}
+                        <label for="top_k">top_k</label>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        {% if form.top_p.errors %}
+                        {{ form.top_p(class="form-control is-invalid", min=0, max=1, placeholder="top_p") }}
+                        <label for="top_p">top_p</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.top_p.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.top_p(class="form-control", min=0, max=1, placeholder="top_p") }}
+                        <label for="top_p">top_p</label>
+                        {% endif %}
+                    </div>
+                </div>
     
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <div class="form-floating">
                         {% if form.n_predict.errors %}
                         {{ form.n_predict(class="form-control is-invalid", placeholder="Max. Number of Tokens to Predict") }}

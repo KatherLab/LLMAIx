@@ -200,6 +200,8 @@ class CancellableJob:
     system_prompt: str = ""
     job_name: str = ""
     seed: int = 42
+    top_k: int = 1
+    top_p: float = 0
     _canceled: bool = field(default=False, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
@@ -242,7 +244,9 @@ class CancellableJob:
                 }
             ], 
             "seed": self.seed,
-            "temperature": self.temperature
+            "temperature": self.temperature,
+            "top_k": self.top_k,
+            "top_p": self.top_p
         }
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
@@ -302,7 +306,9 @@ class CancellableJob:
             "n_predict": self.n_predict,
             "temperature": self.temperature,
             "cache_prompt": True,
-            "seed": self.seed
+            "seed": self.seed,
+            "top_k": self.top_k,
+            "top_p": self.top_p
         }
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
@@ -515,7 +521,7 @@ class CancellableJob:
             if server_connection:
                 server_connection.kill()
 
-            print("Starting new server for model", self.model_name)
+            print("Starting new server for model", self.model_name, "with seed", self.seed)
 
             new_model = True
             server_connection = subprocess.Popen(
@@ -1016,7 +1022,9 @@ def main():
             chat_endpoint=form.chat_endpoint.data,
             system_prompt=form.system_prompt.data,
             job_name=form.job_name.data,
-            seed=model_config['seed']
+            seed=model_config['seed'], 
+            top_k=form.top_k.data,
+            top_p=form.top_p.data,
         )
 
         print(f"Started job {job_id} successfully!")
