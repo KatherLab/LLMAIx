@@ -550,7 +550,8 @@ class CancellableJob:
                 (["--verbose"] if self.verbose_llama else []) +
                 (["--mlock"] if self.mlock else []) +
                 (["-ctk", self.kv_cache_type, "-ctv", self.kv_cache_type] if self.kv_cache_type != "" else []) +
-                (["-sm", "none", "-mg", str(self.gpu)] if self.gpu not in ["all", "ALL", "mps", ""] else []) +
+                (["-sm", "none", "-mg", str(self.gpu)] if self.gpu not in ["all", "ALL", "mps", "", "row"] else []) +
+                (["-sm", "row"] if self.gpu == "row" else []) +
                 (["-fa"] if self.flash_attention else []),
             )
             

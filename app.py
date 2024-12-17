@@ -29,7 +29,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
     parser.add_argument("--n_gpu_layers", type=int, default=int(os.getenv('N_GPU_LAYERS', 80)))
     parser.add_argument("--llamacpp_port", type=int, default=int(os.getenv('LLAMACPP_PORT', 2929)))
-    parser.add_argument("--gpu", type=str, default=os.getenv('GPU', "all"), help="Which GPU to use", choices=["all", "0", "1", "2", "3", "4", "5", "6", "7", "mps"])
+    parser.add_argument("--gpu", type=str, default=os.getenv('GPU', "all"), help="Which GPU to use?", choices=["all", "0", "1", "2", "3", "4", "5", "6", "7", "mps", "row"])
     parser.add_argument("--debug", action="store_true", default=os.getenv('DEBUG', 'false') == 'true')
     parser.add_argument("--mode", type=str, default=os.getenv('MODE', "choice"), choices=["anonymizer", "informationextraction", "choice"], help="Which mode to run")
     parser.add_argument("--disable_parallel", action="store_true", default=os.getenv('DISABLE_PARALLEL', 'false') == 'true', help="Disable parallel llama-cpp processing. If not set, the number of parallel server slot is determined by the model config file.")
