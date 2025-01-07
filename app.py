@@ -27,7 +27,6 @@ def create_parser() -> ArgumentParser:
     parser.add_argument("--port", type=int, default=int(os.getenv('PORT', 5000)), help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default=os.getenv('HOST', "localhost"))
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
-    parser.add_argument("--n_gpu_layers", type=int, default=int(os.getenv('N_GPU_LAYERS', 80)))
     parser.add_argument("--llamacpp_port", type=int, default=int(os.getenv('LLAMACPP_PORT', 2929)))
     parser.add_argument("--gpu", type=str, default=os.getenv('GPU', "all"), help="Which GPU to use?", choices=["all", "0", "1", "2", "3", "4", "5", "6", "7", "mps", "row"])
     parser.add_argument("--debug", action="store_true", default=os.getenv('DEBUG', 'false') == 'true')
