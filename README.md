@@ -20,7 +20,8 @@ Web-based tool to extract structured information from medical reports, anonymize
 **Information Extraction**:
 
 - Structured information extraction and comparison against a ground truth. 
-- **NEW**: Support for **JSON Schemas** as an alternative to llama.cpp grammars.
+- Support for **JSON Schemas** as an alternative to llama.cpp grammars.
+- **NEW**: Support for OpenAI-compatible APIs (e.g. ChatGPT) instead of local models.
 - Detailed metrics on label- and document-level.
 
 ![Label Annotation Report](static/image_labelannotation_report.png)
@@ -135,6 +136,8 @@ Run:
 |--no_parallel_preprocessing|Disable parallel preprocessing. Default: False|False|
 |--verbose_llama|Enable verbose logging of llama.cpp. Default: False|False|
 |--password|If a password is added, it will be used for password protection. Default username: llmaix||
+|--api_url|If an OpenAI-compatible API URL is added, it will be used for OpenAI-compatible API requests. Default: ''|''|
+|--api_key|If an API key is added, it will be used for OpenAI-compatible API requests. Default: ''|''|
 
 
 ## Additional Notes
@@ -149,4 +152,4 @@ Pull requests are welcome!
 
 ## Citation
 
-This repository is part of the paper [LLM-AIx: An open source pipeline for Information Extraction from unstructured medical text based on privacy pre-serving Large Language Models](https://doi.org/10.1101/2024.09.02.24312917)
+This repository is part of this publication: [LLM-AIx: An open source pipeline for Information Extraction from unstructured medical text based on privacy pre-serving Large Language Models](https://doi.org/10.1101/2024.09.02.24312917)

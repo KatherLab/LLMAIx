@@ -4,7 +4,7 @@ import os
 from argparse import ArgumentParser
 
 import yaml
-from webapp import create_app, socketio
+from webapp import create_app, socketio, init_api
 
 os.makedirs("logs", exist_ok=True)
 
@@ -35,6 +35,8 @@ def create_parser() -> ArgumentParser:
     parser.add_argument("--no_parallel_preprocessing", action="store_true", default=os.getenv('NO_PARALLEL_PREPROCESSING', 'false') == 'true', help="Disable parallel preprocessing")
     parser.add_argument("--verbose_llama", action="store_true", default=os.getenv('VERBOSE_LLAMA', 'false') == 'true', help="Verbose llama cpp")
     parser.add_argument("--password", type=str, default=os.getenv('PASSWORD', ""), help="Password for password protection")
+    parser.add_argument("--api_url", type=str, default=os.getenv('API_URL', ""), help="URL of an OpenAI-compatible API to use instead of local models")
+    parser.add_argument("--api_key", type=str, default=os.getenv('API_KEY', ""), help="API key to use with the OpenAI-compatible API")
     return parser
 
 
@@ -156,6 +158,8 @@ if __name__ == "__main__":
     app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
 
     app.config["MODE"] = args.mode
+
+    init_api(args.api_url, args.api_key)
 
     if args.gpu != "all":
         print("Using GPU " + args.gpu)

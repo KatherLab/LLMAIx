@@ -25,3 +25,4 @@ prometheus_client
 PyMuPDF
 aiohttp
 openpyxl
+openai

@@ -41,7 +41,7 @@ from .utils import (
     is_empty_string_nan_or_none,
 )
 from io import BytesIO
-from .. import set_mode
+from .. import set_mode, get_openai_client
 
 server_connection: Optional[subprocess.Popen[Any]] = None
 current_model = None
@@ -175,6 +175,7 @@ def get_metrics():
 class CancellableJob:
     df: pd.DataFrame
     model_name: str
+    api_model: bool
     prompt: str
     symptoms: Iterable[str]
     temperature: float
@@ -223,6 +224,79 @@ class CancellableJob:
         ) as response:
             return await response.json()
         
+    
+    async def fetch_chat_result_openai(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
+        if self._canceled:
+            raise asyncio.CancelledError()
+
+        openai_client = get_openai_client()
+        
+        # Prepare the base message data
+        data = {
+            "model": self.model_name,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": self.system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": prompt_formatted
+                }
+            ],
+            "temperature": self.temperature,
+            "max_tokens": self.n_predict
+        }
+
+        # Add json_schema only if it's not empty
+        if self.json_schema and self.json_schema not in [" ", None, "\n", "\r", "\r\n"]:
+            data["response_format"] = {
+                "type": "json_schema",
+                "json_schema": self.json_schema
+            }
+
+        async def watch_cancellation():
+            while True:
+                if self._canceled:
+                    print("Watching cancellation received cancel signal")
+                    raise asyncio.CancelledError()
+                await asyncio.sleep(0.1)
+
+        try:
+            cancel_task = asyncio.create_task(watch_cancellation())
+
+            # Create a coroutine for the OpenAI API call
+            async def make_openai_request():
+                return await asyncio.to_thread(
+                    openai_client.chat.completions.create,
+                    **data
+                )
+
+            response_task = asyncio.create_task(make_openai_request())
+
+            try:
+                # Wait for either the response or cancellation
+                done, pending = await asyncio.wait(
+                    [response_task, cancel_task],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                print("Done")
+
+                # If we were cancelled, ensure it propagates
+                if cancel_task in done and self._canceled:
+                    raise asyncio.CancelledError()
+
+                return await response_task
+
+            finally:
+                # Clean up tasks
+                cancel_task.cancel()
+                if not response_task.done():
+                    response_task.cancel()
+
+        except asyncio.CancelledError:
+            raise
+
     async def fetch_chat_result(self, session: aiohttp.ClientSession, prompt_formatted: str) -> dict:
         if self._canceled:
             raise asyncio.CancelledError()
@@ -397,21 +471,43 @@ class CancellableJob:
                 self.results[id]["report"] = report
                 self.results[id]["symptom"] = symptom
                 
-
                 if self.chat_endpoint:  
-                    summary = await self.fetch_chat_result(session, prompt_formatted)
+                    if self.api_model:
+                        summary = await self.fetch_chat_result_openai(session, prompt_formatted)
+                        self.results[id]['content'] = summary.choices[-1].message.content
 
-                    # self.results[id]["summary"] = summary
-                    self.results[id]['content'] = summary['choices'][-1]['message']['content']
+                        if summary.choices[-1].finish_reason == "length":
+                            warning_job(
+                                job_id=self.job_id,
+                                message=f"Report {id}: Generation stopped after {summary.usage.completion_tokens} tokens "
+                                        f"(limit reached), the results might be incomplete! Please increase n_predict!",
+                            )
+                        
+                        if summary.choices[-1].message.refusal:
+                            warning_job(
+                                job_id=self.job_id,
+                                message=f"Report {id}: Generation stopped after {summary.usage.completion_tokens} tokens "
+                                        f"(refusal), the results might be incomplete! Please increase n_predict!",
+                            )
+                    else:
+                        summary = await self.fetch_chat_result(session, prompt_formatted)
+                        self.results[id]['content'] = summary['choices'][-1]['message']['content']
 
-                    if summary['choices'][-1]['finish_reason'] == "length":
-                        warning_job(
-                            job_id=self.job_id,
-                            message=f"Report {id}: Generation stopped after {summary['usage']['completion_tokens']} tokens "
-                                    f"(limit reached), the results might be incomplete! Please increase n_predict!",
-                        )
+                        if summary['choices'][-1]['finish_reason'] == "length":
+                            warning_job(
+                                job_id=self.job_id,
+                                message=f"Report {id}: Generation stopped after {summary['usage']['completion_tokens']} tokens "
+                                        f"(limit reached), the results might be incomplete! Please increase n_predict!",
+                            )
 
                 else:
+                    if self.api_model:
+                        warning_job(
+                            job_id=self.job_id,
+                            message=f"Report {id}: Using OpenAI-compatible API, non-chat completion is not supported!",
+                        )
+                        raise NotImplementedError("OpenAI-compatible API does not support non-chat completion")
+
                     summary = await self.fetch_completion_result(session, prompt_formatted)
 
                     if 'error' in summary:
@@ -614,7 +710,8 @@ class CancellableJob:
 
     def process(self) -> Tuple[Tuple[pd.DataFrame, int], str]:
         try:
-            self.start_server()
+            if not self.api_model:
+                self.start_server()
             if self._canceled:
                 print("Processing cancelled #1")
                 update_progress(job_id=self.job_id, progress=(0, len(self.df), False, True))
@@ -891,10 +988,14 @@ def main():
     except Exception as e:
         flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
         return redirect(request.referrer)
-
+    
+    if get_openai_client():
+        api_models = get_openai_client().models.list()
+    else:
+        api_models = None
 
     form = LLMPipelineForm(
-        config_file_path, current_app.config["MODEL_PATH"]
+        config_file_path, current_app.config["MODEL_PATH"], api_models
     )
     form.variables.render_kw = {"disabled": "disabled"}
 
@@ -982,10 +1083,25 @@ def main():
             return render_template("llm_processing.html", form=form)
 
         model_name = ""
+        api_model = False
 
-        for filename, name in form.model.choices:
-            if filename == form.model.data:
-                model_name = name
+        if form.model.data.startswith("[API]"):
+            model_name = form.model.data[5:]
+            api_model = True
+
+            if not (is_empty_string_nan_or_none(form.grammar.data) and is_empty_string_nan_or_none(form.json_schema.data)):
+                if not form.use_json_schema.data:
+                    flash("Grammar is not supported for API models!", "danger")
+                    return render_template("llm_processing.html", form=form)
+            
+            if not form.chat_endpoint.data:
+                flash("Chat endpoint is required for API models!", "danger")
+                return render_template("llm_processing.html", form=form)
+        else:
+            for filename, name in form.model.choices:
+                if filename == form.model.data:
+                    model_name = name
+                    break
 
         variables = [var.strip() for var in form.variables.data.split(",")]
 
@@ -1029,7 +1145,8 @@ def main():
         # print("Run job!")
         global llm_jobs
 
-        model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
+        if not api_model:
+            model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
 
         update_progress(job_id=job_id, progress=(0, len(df), True, False))
 
@@ -1038,32 +1155,33 @@ def main():
             executor=executor,
             job_id=job_id,
             df=df,
-            model_name=form.model.data,
+            model_name=model_name if api_model else form.model.data,
+            api_model=api_model,
             prompt=form.prompt.data,
             symptoms=variables,
             temperature=float(form.temperature.data),
             grammar=form.grammar.data.replace("\r\n", "\n") if not form.use_json_schema.data else "",
             json_schema=schema if form.use_json_schema.data else "",
-            model_path=current_app.config["MODEL_PATH"],
-            server_path=current_app.config["SERVER_PATH"],
+            model_path=current_app.config["MODEL_PATH"] if not api_model else None,
+            server_path=current_app.config["SERVER_PATH"] if not api_model else None,
             n_predict=form.n_predict.data,
-            ctx_size=model_config['kv_cache_size'],
-            n_gpu_layers=model_config['n_gpu_layers'],
+            ctx_size=model_config['kv_cache_size'] if not api_model else 0,
+            n_gpu_layers=model_config['n_gpu_layers'] if not api_model else 0,
             zip_file_path=zip_file_path or None,
             llamacpp_port=current_app.config["LLAMACPP_PORT"],
             debug=current_app.config["DEBUG"],
             model_name_name=model_name,
-            parallel_slots=model_config['server_slots'],
+            parallel_slots=model_config['server_slots'] if not api_model else 0,
             verbose_llama=current_app.config['VERBOSE_LLAMA'],
             gpu=current_app.config['GPU'],
-            flash_attention=model_config['flash_attention'],
-            mlock=model_config['mlock'],
-            kv_cache_type=model_config['kv_cache_quants'],
+            flash_attention=model_config['flash_attention'] if not api_model else False,
+            mlock=model_config['mlock'] if not api_model else False,
+            kv_cache_type=model_config['kv_cache_quants'] if not api_model else None,
             mode=current_app.config['MODE'],
             chat_endpoint=form.chat_endpoint.data,
             system_prompt=form.system_prompt.data,
             job_name=form.job_name.data,
-            seed=model_config['seed'], 
+            seed=model_config['seed'] if not api_model else 0,  
             top_k=form.top_k.data,
             top_p=form.top_p.data,
         )

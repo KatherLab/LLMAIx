@@ -29,6 +29,9 @@ If the input is an image or a PDF which contains no text, OCR (Optical Character
 
 ## LLM Information Extraction
 
+> [!NOTE]
+> You can use **OpenAI-compatible APIs** instead of local models. Please specify the `--api_url` and `--api_key` parameters when lauching LLM-AIx. Please note that you need to use **Chat Mode** and if you want to use structured output you need to use the **Use JSON Schema** checkbox. (No structured output mode is used if you leave the JSON Schema textarea empty.)
+
 ![Information Extraction](image_information_extraction.png)
 
 
@@ -103,7 +106,7 @@ You can save and load the Grammar Builder configuration. Press **Generate Gramma
 The **JSON Schema** can be used alternatively to the grammar. If you switch on the **Use JSON Schema** checkbox, the grammar will be ignored and the JSON Schema will be used instead. There is a JSON Schema Builder which works like the Grammar Builder.
 
 > [!NOTE]
-> In the future, mostly JSON schemas should be used to be able to use structured output also with other OpenAI-compatible APIs.
+> Mostly JSON schemas should be used to be able to use structured output also with other OpenAI-compatible APIs.
 
 Example JSON Schema: 
 

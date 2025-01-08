@@ -81,25 +81,31 @@ class SchemaField(wtforms.Form):
 
 
 class LLMPipelineForm(FlaskForm):
-    def __init__(self, config_file_path, model_path, *args, **kwargs):
+    def __init__(self, config_file_path, model_path, api_models=ModuleNotFoundError, *args, **kwargs):
         super(LLMPipelineForm, self).__init__(*args, **kwargs)
         import yaml
 
         with open(config_file_path, 'r') as file:
             config_data = yaml.safe_load(file)
 
+        if api_models:
+            model_choices = [(f"[API]{model.id}", f"[API] {model.id}")
+                             for model in api_models.data]
+        else:
+            model_choices = []
+
         # Extract model choices from config data
-        model_choices = [(model["file_name"], model["display_name"])
-                         for model in config_data["models"]]
+        model_choices.extend([(model["file_name"], model["display_name"])
+                         for model in config_data["models"]])
 
         # Set choices for the model field
         self.model.choices = model_choices
-        if model_path:
-            self.model.validators = [FileExistsValidator(
-                message='Model path does not exist.', path=model_path)]
-            # self.model.validators.append(FileExistsValidator(message='File does not exist.', path=model_path))
-        else:
-            raise ValueError("Model path is required")
+        # if model_path:
+        #     self.model.validators = [FileExistsValidator(
+        #         message='Model path does not exist.', path=model_path)]
+        #     # self.model.validators.append(FileExistsValidator(message='File does not exist.', path=model_path))
+        # else:
+        #     raise ValueError("Model path is required")
 
     job_name = StringField("Job Name:")
 
