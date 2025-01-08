@@ -23,6 +23,7 @@ from pathlib import Path
 import subprocess
 import time
 import ast
+import re
 from dataclasses import dataclass, field
 from typing import Iterable, Optional, Tuple, Dict, Any
 import os
@@ -178,6 +179,7 @@ class CancellableJob:
     symptoms: Iterable[str]
     temperature: float
     grammar: str
+    json_schema: str
     model_path: str
     server_path: str
     ctx_size: int
@@ -252,6 +254,9 @@ class CancellableJob:
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
             data["grammar"] = self.grammar
 
+        if self.json_schema and self.json_schema not in [" ", None, "\n", "\r", "\r\n"]:
+            data["json_schema"] = self.json_schema
+
         async def watch_cancellation():
             while True:
                 if self._canceled:
@@ -313,6 +318,9 @@ class CancellableJob:
 
         if self.grammar and self.grammar not in [" ", None, "\n", "\r", "\r\n"]:
             json_data["grammar"] = self.grammar
+        
+        if self.json_schema and self.json_schema not in [" ", None, "\n", "\r", "\r\n"]:
+            json_data["json_schema"] = self.json_schema
 
         async def watch_cancellation():
             while True:
@@ -406,6 +414,24 @@ class CancellableJob:
                 else:
                     summary = await self.fetch_completion_result(session, prompt_formatted)
 
+                    if 'error' in summary:
+                        if 'code' in summary['error']:
+                            if summary['error']['code'] == 400 and summary['error']['message'].startswith('"json_schema": JSON schema conversion failed'):
+                                warning_job(
+                                    job_id=self.job_id,
+                                    message=f"Report {id}: JSON schema conversion failed. Please check the JSON schema and try again! Full Error: {summary['error']['message']}",
+                                )
+                            else:
+                                warning_job(
+                                    job_id=self.job_id,
+                                    message=f"Report {id}: An error occurred: {summary['error']['message']}",
+                                )
+
+                    if 'content' not in summary:
+                        warning_job(
+                            job_id=self.job_id,
+                            message=f"Report {id}: An error occurred: {summary['error']['message']}",
+                        )
                     # self.results[id]["summary"] = summary
                     self.results[id]["content"] = summary['content']
 
@@ -632,6 +658,7 @@ class CancellableJob:
                 "n_predict": self.n_predict,
                 "ctx_size": self.ctx_size,
                 "grammar": self.grammar,
+                "json_schema": self.json_schema,
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
 
@@ -694,15 +721,16 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
             content = content.replace("\n","")
             content = content.replace("\r","")
             content = content.replace("\\", "")
+            content = re.sub(r',\s*}', '}', content) # remove trailing comma
 
             try:
-                info_dict_raw = ast.literal_eval(content)
+                info_dict_raw = json.loads(content)
             except Exception:
+                breakpoint()
                 try:
-                    content = content.replace(" null,", '' ,' "null",')
-                    # print("REPLACE NULL")
-                
-                    info_dict_raw = ast.literal_eval(content)
+                    content = content.replace(" null,", '',).replace(' "null",', "")
+
+                    info_dict_raw = json.loads(content)
                 except Exception as e:
                     print("Failed to parse LLM output. Did you set --n_predict too low or is the input too long? Maybe you can try to lower the temperature a little. ({content=})", flush=True)
                     print("RAW LLM OUTPUT: '" + info["content"] + "'", flush=True)
@@ -716,7 +744,7 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
                 if is_empty_string_nan_or_none(value):
                     info_dict[key] = ""
                 else:
-                    info_dict[key] = value
+                    info_dict[key] = str(value)
 
             # print(f"Successfully parsed LLM output. ({content=})")
         except Exception as e:
@@ -739,8 +767,6 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
 
         metadata = ast.literal_eval(metadata)
         metadata["llm_processing"] = llm_metadata
-
-        import json
 
         # Construct a dictionary containing the report and extracted information
         extracted_info = {
@@ -982,6 +1008,17 @@ def main():
             + secrets.token_urlsafe(8)
         )
 
+        if form.use_json_schema.data:
+            try:
+                # Parse the schema string into a JSON object
+                schema = json.loads(form.json_schema.data)
+            except json.JSONDecodeError:
+                flash(
+                    "Invalid JSON schema. The schema itself must be a valid JSON string.",
+                    "danger",
+                )
+                return render_template("llm_processing.html", form=form)
+
         if not os.path.isfile(current_app.config["SERVER_PATH"]):
             flash(
                 "Llama CPP Server executable not found. Did you specify --server_path correctly?",
@@ -1005,7 +1042,8 @@ def main():
             prompt=form.prompt.data,
             symptoms=variables,
             temperature=float(form.temperature.data),
-            grammar=form.grammar.data.replace("\r\n", "\n"),
+            grammar=form.grammar.data.replace("\r\n", "\n") if not form.use_json_schema.data else "",
+            json_schema=schema if form.use_json_schema.data else "",
             model_path=current_app.config["MODEL_PATH"],
             server_path=current_app.config["SERVER_PATH"],
             n_predict=form.n_predict.data,

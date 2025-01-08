@@ -123,9 +123,9 @@ def check_model_config(model_dir, model_config_file):
         elif model_dict['kv_cache_quants'] != "" and not model_dict['flash_attention']:
             raise ValueError(
                 f"Model config for {model_dict['name']} has kv_cache_quants set but flash_attention is False")
-        elif model_dict['kv_cache_quants'] not in ["q4_0", "q8_0", "f16", "f32", "q5_0", "q5_1", "q4_1", "iq4_nl"]:
+        elif model_dict['kv_cache_quants'] not in ["q4_0", "q8_0", "f16", "f32", "q5_0", "q5_1", "q4_1", "iq4_nl", "bf16"]:
             raise ValueError(
-                f"Model config for {model_dict['name']} has invalid kv_cache_quants value. Please use one of: q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl")
+                f"Model config for {model_dict['name']} has invalid kv_cache_quants value. Please use one of: q4_0, q8_0, f16, f32, q5_0, q5_1, q4_1, iq4_nl, bf16")
         if 'model_context_size' not in model_dict:
             raise ValueError(f"Model config for {model_dict['name']} is missing 'model_context_size'")
         if 'display_name' not in model_dict:

@@ -70,6 +70,16 @@ class GrammarField(wtforms.Form):
   custom_rule = StringField('Custom Rule (RULENAME ::= <YOURCUSTOMRULE>)', [validators.Optional()])
 
 
+class SchemaField(wtforms.Form):
+  field_name = StringField('Field Name', validators=[validators.Optional()])
+  field_type = SelectField('Field Type', choices=[('string', 'String'), ('number', 'Number'), ('boolean', 'Boolean'), ('options', 'Categories')])
+  string_length = IntegerField('Max Length', [validators.Optional()])
+  string_min_length = IntegerField('Min Length', [validators.Optional()], default=1)
+  number_length = IntegerField('Max Length', [validators.Optional()])
+  number_min_length = IntegerField('Min Length', [validators.Optional()], default=1)
+  options = StringField('Categories (comma-separated, no spaces)', [validators.Optional()])
+
+
 class LLMPipelineForm(FlaskForm):
     def __init__(self, config_file_path, model_path, *args, **kwargs):
         super(LLMPipelineForm, self).__init__(*args, **kwargs)
@@ -103,6 +113,12 @@ class LLMPipelineForm(FlaskForm):
     grammarbuilder = FieldList(FormField(GrammarField), min_entries=1, max_entries=100)
 
     extra_grammar_rules = TextAreaField("Extra Grammar Rules:", validators=[], default="")
+
+    use_json_schema = BooleanField("Use JSON Schema", default=False)
+
+    json_schema = TextAreaField("JSON Schema:", validators=[], default="")
+
+    schemabuilder = FieldList(FormField(SchemaField), min_entries=1, max_entries=100)
 
     chat_endpoint = BooleanField("Chat Endpoint:", default=False)
 

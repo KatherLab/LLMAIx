@@ -242,6 +242,14 @@
                             <th>Grammar</th>
                             <td style="overflow: hidden;">{{ report_summary_dict['metadata']['llm_processing']['grammar']}}</td>
                         </tr>
+                        <tr>
+                            <th>JSON Schema</th>
+                            <td style="overflow: hidden;">
+                                {% if 'json_schema' in report_summary_dict['metadata']['llm_processing'] %}
+                                {{ report_summary_dict['metadata']['llm_processing']['json_schema']}}
+                                {% endif %}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

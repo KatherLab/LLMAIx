@@ -139,6 +139,8 @@ def is_empty_string_nan_or_none(variable) -> bool:
         return False
     if isinstance(variable, float) and math.isnan(variable):
         return True
+    if isinstance(variable, int) or isinstance(variable, bool) or isinstance(variable, float):
+        return False
     
     # If variable is not a recognized type, we assume it's invalid and return True.
     # print(f"WARNING: Removed {variable} from list.")

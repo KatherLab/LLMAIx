@@ -100,6 +100,52 @@ You can save and load the Grammar Builder configuration. Press **Generate Gramma
 
 ---
 
+The **JSON Schema** can be used alternatively to the grammar. If you switch on the **Use JSON Schema** checkbox, the grammar will be ignored and the JSON Schema will be used instead. There is a JSON Schema Builder which works like the Grammar Builder.
+
+> [!NOTE]
+> In the future, mostly JSON schemas should be used to be able to use structured output also with other OpenAI-compatible APIs.
+
+Example JSON Schema: 
+
+```
+{
+  "type": "object",
+  "properties": {
+    "shortness of breath": {
+      "type": "boolean"
+    },
+    "chest pain": {
+      "type": "boolean"
+    },
+    "leg pain or swelling": {
+      "type": "boolean"
+    },
+    "heart palpitations": {
+      "type": "boolean"
+    },
+    "cough": {
+      "type": "boolean"
+    },
+    "dizziness": {
+      "type": "boolean"
+    },
+    "location": {
+      "type": "string",
+      "enum": ["main", "segmental", "unknown"]
+    },
+    "side": {
+      "type": "string",
+      "enum": ["left", "right", "bilateral"]
+    }
+  },
+  "required": ["shortness of breath", "chest pain", "leg pain or swelling", "heart palpitations", "cough", "dizziness", "location", "side"]
+}
+```
+
+You can also find the Schema to import in the JSON Schema Builder in `examples/schemas/ie_schema.csv`.
+
+---
+
 The **temperature** parameter determines the randomness of the model. A higher temperature makes the model more unpredictable / creative. A temperature of 0.0 makes the model deterministic.
 
 ---

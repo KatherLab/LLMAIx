@@ -68,6 +68,14 @@
                             <th>Grammar</th>
                             <td>{{ job_info['metadata']['llm_processing']['grammar']}}</td>
                         </tr>
+                        <tr>
+                            <th>JSON Schema</th>
+                            <td style="overflow: hidden;">
+                                {% if 'json_schema' in job_info['metadata']['llm_processing'] %}
+                                {{ job_info['metadata']['llm_processing']['json_schema']}}
+                                {% endif %}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

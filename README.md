@@ -20,11 +20,12 @@ Web-based tool to extract structured information from medical reports, anonymize
 **Information Extraction**:
 
 - Structured information extraction and comparison against a ground truth. 
+- **NEW**: Support for **JSON Schemas** as an alternative to llama.cpp grammars.
 - Detailed metrics on label- and document-level.
 
 ![Label Annotation Report](static/image_labelannotation_report.png)
 
-**New: Annotation Helper**:
+**Annotation Helper**:
 
 - Speed up your annotation process by using the LLM output as a starting point and only curate the LLM output.
 

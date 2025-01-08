@@ -3,42 +3,58 @@
 
 <style>
     .info-callout {
-        border-left: 5px solid #17a2b8; /* Bootstrap info color */
-        background-color: #e9f7fb; /* Lightened info background */
+        border-left: 5px solid #17a2b8;
+        /* Bootstrap info color */
+        background-color: #e9f7fb;
+        /* Lightened info background */
         padding: 15px;
         margin-bottom: 5px;
         margin-top: 20px;
         border-radius: 4px;
-        color: #0c5460; /* Bootstrap info text color */
+        color: #0c5460;
+        /* Bootstrap info text color */
     }
-    
+
     .info-callout .callout-title {
         font-size: 18px;
         font-weight: 600;
         margin-bottom: 10px;
     }
+
     .col-md-1 {
-        display: flex; /* Make sure the column itself is a flex container */
-        align-items: center; /* Center content vertically within the column */
-        justify-content: flex-end; /* Align content to the right within the column */
-        padding: 0; /* Remove any default padding */
+        display: flex;
+        /* Make sure the column itself is a flex container */
+        align-items: center;
+        /* Center content vertically within the column */
+        justify-content: flex-end;
+        /* Align content to the right within the column */
+        padding: 0;
+        /* Remove any default padding */
     }
 
     .remove-row {
-        width: 40px; /* Adjust size as needed */
-        height: 40px; /* Same as width for a round button */
-        padding: 0; /* Remove default padding */
-        display: flex; /* Flexbox to center content */
-        justify-content: center; /* Center icon horizontally */
-        align-items: center; /* Center icon vertically */
-        border-radius: 15%; /* Ensure the button is round */
-        border: none; /* Remove default border */
+        width: 40px;
+        /* Adjust size as needed */
+        height: 40px;
+        /* Same as width for a round button */
+        padding: 0;
+        /* Remove default padding */
+        display: flex;
+        /* Flexbox to center content */
+        justify-content: center;
+        /* Center icon horizontally */
+        align-items: center;
+        /* Center icon vertically */
+        border-radius: 15%;
+        /* Ensure the button is round */
+        border: none;
+        /* Remove default border */
     }
 
     .remove-row i {
-        font-size: 24px; /* Adjust icon size as needed */
+        font-size: 24px;
+        /* Adjust icon size as needed */
     }
-    
 </style>
 
 <div class="content-section">
@@ -46,10 +62,11 @@
 
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-    
+
         <fieldset class="form-control p-4 mb-4">
-            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Upload Preprocessed Documents & LLM Settings</legend>
-    
+            <legend class="w-auto px-2 bg-white text-dark fw-bold fs-4 border-bottom pb-2 mb-3">Upload Preprocessed
+                Documents & LLM Settings</legend>
+
             <!-- Job Name -->
             <div class="row g-3 mb-3">
                 <div class="col-md-12">
@@ -66,7 +83,7 @@
                     </div>
                 </div>
             </div>
-            
+
 
             <!-- File Upload Section -->
             <div class="row g-3 mb-3">
@@ -86,7 +103,7 @@
                     </div>
                 </div>
             </div>
-    
+
             <!-- LLM Settings Section -->
             <div class="row g-3">
 
@@ -94,59 +111,62 @@
 
                 <div class="col-md-12">
                     <div class="form-check form-switch">
-                      {% if form.chat_endpoint.errors %}
+                        {% if form.chat_endpoint.errors %}
                         {{ form.chat_endpoint(class="form-check-input is-invalid") }}
                         <label class="form-check-label ms-2" for="chat_endpoint">Enable Chat mode</label>
                         <div class="invalid-feedback">
-                          {% for error in form.chat_endpoint.errors %}
+                            {% for error in form.chat_endpoint.errors %}
                             <span>{{ error }}</span>
-                          {% endfor %}
+                            {% endfor %}
                         </div>
-                      {% else %}
+                        {% else %}
                         {{ form.chat_endpoint(class="form-check-input") }}
                         <label class="form-check-label ms-2" for="chat_endpoint">Enable Chat Mode</label>
-                      {% endif %}
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-12 mt-3" id="system_prompt_container" style="display: none;">
-                    <div class="form-floating">
-                        {% if form.system_prompt.errors %}
-                            {{ form.system_prompt(class="form-control is-invalid", placeholder="Enter system prompt here...", rows="4", style="height: 100px;") }}
-                            <label for="prompt">System Prompt</label>
-                            <div class="invalid-feedback">
-                            {% for error in form.system_prompt.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.system_prompt(class="form-control", placeholder="Enter system prompt here...", rows="4", style="height: 100px;") }}
-                            <label for="prompt">System Prompt</label>
                         {% endif %}
                     </div>
                 </div>
-                  
+
+                <div class="col-md-12 mt-3" id="system_prompt_container" style="display: none;">
+                    <div class="form-floating">
+                        {% if form.system_prompt.errors %}
+                        {{ form.system_prompt(class="form-control is-invalid", placeholder="Enter system prompt
+                        here...", rows="4", style="height: 100px;") }}
+                        <label for="prompt">System Prompt</label>
+                        <div class="invalid-feedback">
+                            {% for error in form.system_prompt.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ form.system_prompt(class="form-control", placeholder="Enter system prompt here...", rows="4",
+                        style="height: 100px;") }}
+                        <label for="prompt">System Prompt</label>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <script>
                     // Check initial state on page load
-                    document.addEventListener('DOMContentLoaded', function() {
+                    document.addEventListener('DOMContentLoaded', function () {
                         const checkbox = document.querySelector('#chat_endpoint');
                         const container = document.querySelector('#system_prompt_container');
                         if (checkbox.checked) {
                             container.style.display = 'block';
                         }
                     });
-                    
+
                     // Handle changes
-                    document.querySelector('#chat_endpoint').addEventListener('change', function() {
+                    document.querySelector('#chat_endpoint').addEventListener('change', function () {
                         document.querySelector('#system_prompt_container').style.display = this.checked ? 'block' : 'none';
                     });
-  
+
                 </script>
 
                 <div class="col-md-12">
                     <div class="form-floating">
                         {% if form.prompt.errors %}
-                        {{ form.prompt(class="form-control is-invalid", placeholder="Enter LLM prompt here...", rows="7", style="height: 200px;") }}
+                        {{ form.prompt(class="form-control is-invalid", placeholder="Enter LLM prompt here...",
+                        rows="7", style="height: 200px;") }}
                         <label for="prompt">LLM Prompt</label>
                         <div class="invalid-feedback">
                             {% for error in form.prompt.errors %}
@@ -154,12 +174,13 @@
                             {% endfor %}
                         </div>
                         {% else %}
-                        {{ form.prompt(class="form-control", placeholder="Enter LLM prompt here...", rows="7", style="height: 200px;") }}
+                        {{ form.prompt(class="form-control", placeholder="Enter LLM prompt here...", rows="7",
+                        style="height: 200px;") }}
                         <label for="prompt">LLM Prompt</label>
                         {% endif %}
                     </div>
                 </div>
-    
+
                 <!-- Hidden Variables Field -->
                 <div class="col-md-12" style="display: none;">
                     <div class="form-floating">
@@ -177,7 +198,7 @@
                         {% endif %}
                     </div>
                 </div>
-    
+
                 <!-- Temperature, N Predict, and Model Settings -->
                 <div class="col-md-2">
                     <div class="form-floating">
@@ -229,11 +250,12 @@
                         {% endif %}
                     </div>
                 </div>
-    
+
                 <div class="col-md-2">
                     <div class="form-floating">
                         {% if form.n_predict.errors %}
-                        {{ form.n_predict(class="form-control is-invalid", placeholder="Max. Number of Tokens to Predict") }}
+                        {{ form.n_predict(class="form-control is-invalid", placeholder="Max. Number of Tokens to
+                        Predict") }}
                         <label for="n_predict">Max. Number of Tokens to Predict</label>
                         <div class="invalid-feedback">
                             {% for error in form.n_predict.errors %}
@@ -246,7 +268,7 @@
                         {% endif %}
                     </div>
                 </div>
-    
+
                 <div class="col-md-4">
                     <div class="form-floating">
                         {% if form.model.errors %}
@@ -264,212 +286,439 @@
                     </div>
                 </div>
             </div>
-    
-            <!-- Tabs for Grammar and Grammar Builder -->
-            <nav class="mt-5">
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                    <button class="nav-link active" id="nav-grammar-tab" data-bs-toggle="tab" data-bs-target="#nav-grammar" type="button" role="tab" aria-controls="nav-grammar" aria-selected="true">Grammar</button>
-                    <button class="nav-link" id="nav-grammarbuilder-tab" data-bs-toggle="tab" data-bs-target="#nav-grammarbuilder" type="button" role="tab" aria-controls="nav-grammarbuilder" aria-selected="false">Grammar Builder</button>
-                </div>
-            </nav>
-    
-            <!-- Tab Contents -->
-            <div class="tab-content" id="nav-tabContent">
-                <!-- Grammar Tab -->
-                <div class="tab-pane fade show active" id="nav-grammar" role="tabpanel" aria-labelledby="nav-grammar-tab">
-                    <div class="form-floating mt-3">
-                        {% if form.grammar.errors %}
-                        {{ form.grammar(class="form-control is-invalid", rows="12", placeholder="Grammar Content", style="height: 300px;") }}
-                        <label for="grammar">Grammar</label>
+
+            <div class="row g-3 pt-3">
+                <div class="col-md-12">
+                    <div class="form-check form-switch">
+                        {% if form.use_json_schema.errors %}
+                        {{ form.use_json_schema(class="form-check-input is-invalid") }}
+                        <label class="form-check-label ms-2" for="use_json_schema">Use JSON Schema</label>
                         <div class="invalid-feedback">
-                            {% for error in form.grammar.errors %}
+                            {% for error in form.use_json_schema.errors %}
                             <span>{{ error }}</span>
                             {% endfor %}
                         </div>
                         {% else %}
-                        {{ form.grammar(class="form-control", rows="12", placeholder="Grammar Content", style="height: 300px;") }}
-                        <label for="grammar">Grammar</label>
+                        {{ form.use_json_schema(class="form-check-input") }}
+                        <label class="form-check-label ms-2" for="use_json_schema">Use JSON Schema</label>
                         {% endif %}
                     </div>
-                    <button type="submit" name="submit-form" class="btn btn-secondary mt-3 w-100">
-                        <i class="bi bi-cpu"></i> Run LLM Processing
-                    </button>
                 </div>
-    
-                <!-- Grammar Builder Tab -->
-<div class="tab-pane fade" id="nav-grammarbuilder" role="tabpanel" aria-labelledby="nav-grammarbuilder-tab">
-    <fieldset class="form-control p-3">
-        <div class="row mb-3">
-            <div class="col">
-                <legend class="h5">Grammar Builder</legend>
             </div>
-            <div class="col text-end">
-                <button id="save-configuration" class="btn btn-primary me-2">
-                    <i class="bi bi-save"></i> Save Configuration
-                </button>
-                <button id="load-configuration" class="btn btn-secondary me-2">
-                    <i class="bi bi-upload"></i> Load Configuration
-                </button>
-                <button id="generate-grammar" class="btn btn-success">
-                    <i class="bi bi-file-earmark-code"></i> Generate Grammar
-                </button>
-            </div>
-        </div>
 
-        <input type="file" id="load-file" style="display:none;" />
-        <a id="download-link" style="display:none;"></a>
+            <div class="col-md-12" id="json_schema_container" style="display: none;">
+                <nav class="mt-1">
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <button class="nav-link active" id="nav-schema-tab" data-bs-toggle="tab"
+                            data-bs-target="#nav-schema" type="button" role="tab" aria-controls="nav-schema"
+                            aria-selected="true">JSON Schema</button>
+                        <button class="nav-link" id="nav-schemabuilder-tab" data-bs-toggle="tab"
+                            data-bs-target="#nav-schemabuilder" type="button" role="tab"
+                            aria-controls="nav-schemabuilder" aria-selected="false">JSON Schema Builder</button>
+                    </div>
+                </nav>
 
-        <!-- Grammar Entries -->
-        <div id="grammar_entries" class="list-group">
-            {% for grammar_entry in form.grammarbuilder %}
-            <div class="list-group-item">
-                <div class="entry row g-2">
-                    <!-- Field Name -->
-                    <div class="col-md-3 form-floating">
-                        {{ grammar_entry.field_name(class="form-control", placeholder="Field Name") }}
-                        <label for="field_name">Field Name</label>
-                    </div>
-
-                    <!-- Field Type -->
-                    <div class="col-md-2 form-floating">
-                        {{ grammar_entry.field_type(class="form-select", placeholder="Field Type") }}
-                        <label for="field_type">Field Type</label>
-                    </div>
-
-                    <!-- Conditional Field: String Min Length -->
-                    <div class="conditional-field col-md-2 form-floating" data-field-type="string">
-                        {{ grammar_entry.string_min_length(class="form-control", placeholder="Min Length") }}
-                        <label for="string_min_length">Min Length</label>
-                    </div>
-
-                    <!-- Conditional Field: String Length -->
-                    <div class="conditional-field col-md-2 form-floating" data-field-type="string">
-                        {{ grammar_entry.string_length(class="form-control", placeholder="Length") }}
-                        <label for="string_length">Max Length</label>
-                    </div>
-
-                    <!-- Conditional Field: Number Min Length -->
-                    <div class="conditional-field col-md-2 form-floating" data-field-type="number">
-                        {{ grammar_entry.number_min_length(class="form-control", placeholder="Min Value") }}
-                        <label for="number_min_length">Min Length</label>
-                    </div>
-
-                    <!-- Conditional Field: Number Length -->
-                    <div class="conditional-field col-md-2 form-floating" data-field-type="number">
-                        {{ grammar_entry.number_length(class="form-control", placeholder="Max Value") }}
-                        <label for="number_length">Max Length</label>
-                    </div>
-
-                    <!-- Conditional Field: Floating Point Number Length (Disabled) -->
-                    <div class="conditional-field col-md-2 form-floating" data-field-type="fp-number-disabled">
-                        {{ grammar_entry.fp_number_length(class="form-control", placeholder="Decimal Precision") }}
-                        <label for="fp_number_length">Decimal Precision</label>
-                    </div>
-
-                    <!-- Conditional Field: Options -->
-                    <div class="conditional-field col-md-6 form-floating" data-field-type="options">
-                        {{ grammar_entry.options(class="form-control", placeholder="Options") }}
-                        <label for="options">Options</label>
-                    </div>
-
-                    <!-- Conditional Field: Custom Rule -->
-                    <div class="conditional-field col-md-6 form-floating" data-field-type="custom">
-                        {{ grammar_entry.custom_rule(class="form-control", placeholder="Custom Rule") }}
-                        <label for="custom_rule">Custom Rule (RULENAME ::= &lt;YOURCUSTOMRULE&gt;)</label>
-                    </div>
-
-                    <!-- Layout Placeholders -->
-                    <div class="conditional-field col-md-2" data-field-type="string">
-                        <!-- Empty placeholder for layout consistency -->
-                    </div>
-                    <div class="conditional-field col-md-2" data-field-type="number">
-                        <!-- Empty placeholder for layout consistency -->
-                    </div>
-                    <div class="conditional-field col-md-6" data-field-type="boolean">
-                        <!-- Empty placeholder for layout consistency -->
-                    </div>
-                    <div class="conditional-field col-md-6" data-field-type="fp-number">
-                        <!-- Empty placeholder for layout consistency -->
-                    </div>
-
-                    <!-- Remove Row Button -->
-                    <div class="col-md-1 d-flex">
-                        <button type="button" class="remove-row btn btn-danger">
-                            <i class="bi bi-x-circle"></i>
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- JSON Schema Tab -->
+                    <div class="tab-pane fade show active" id="nav-schema" role="tabpanel"
+                        aria-labelledby="nav-schema-tab">
+                        <div class="form-floating mt-3">
+                            {% if form.json_schema.errors %}
+                            {{ form.json_schema(class="form-control is-invalid", rows="12", placeholder="JSON Schema
+                            Content",
+                            style="height: 300px;") }}
+                            <label for="json_schema">JSON Schema</label>
+                            <div class="invalid-feedback">
+                                {% for error in form.json_schema.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            {{ form.json_schema(class="form-control", rows="12", placeholder="JSON Schema Content",
+                            style="height:
+                            300px;") }}
+                            <label for="json_schema">JSON Schema</label>
+                            {% endif %}
+                        </div>
+                        <button type="submit" name="submit-form" class="btn btn-secondary mt-3 w-100">
+                            <i class="bi bi-cpu"></i> Run LLM Processing
                         </button>
                     </div>
-                    
-                    
-                    
+
+
+                    <!-- JSON Schema Builder Tab -->
+                    <div class="tab-pane fade" id="nav-schemabuilder" role="tabpanel"
+                        aria-labelledby="nav-schemabuilder-tab">
+                        <fieldset class="form-control p-3">
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <legend class="h5">JSON Schema Builder</legend>
+                                </div>
+                                <div class="col text-end">
+                                    <button id="save-schema" class="btn btn-primary me-2">
+                                        <i class="bi bi-save"></i> Save Schema
+                                    </button>
+                                    <button id="load-schema" class="btn btn-secondary me-2">
+                                        <i class="bi bi-upload"></i> Load Schema
+                                    </button>
+                                    <button id="generate-schema" class="btn btn-success">
+                                        <i class="bi bi-file-earmark-code"></i> Generate Schema
+                                    </button>
+                                </div>
+                            </div>
+
+                            <input type="file" id="load-file-schema" style="display:none;" />
+                            <a id="download-link" style="display:none;"></a>
+
+                            <!-- Schema Entries -->
+                            <div id="schema_entries" class="list-group">
+                                {% for schema_entry in form.schemabuilder %}
+                                <div class="list-group-item">
+                                    <div class="entry row g-2">
+                                        <!-- Field Name -->
+                                        <div class="col-md-3 form-floating">
+                                            {{ schema_entry.field_name(class="form-control", placeholder="Field Name")
+                                            }}
+                                            <label for="field_name">Field Name</label>
+                                        </div>
+
+                                        <!-- Field Type -->
+                                        <div class="col-md-2 form-floating">
+                                            {{ schema_entry.field_type(class="form-select", placeholder="Field Type")
+                                            }}
+                                            <label for="field_type">Field Type</label>
+                                        </div>
+
+                                        <!-- Conditional Field: String Min Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                                            {{ schema_entry.string_min_length(class="form-control", placeholder="Min
+                                            Length") }}
+                                            <label for="string_min_length">Min Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: String Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                                            {{ schema_entry.string_length(class="form-control", placeholder="Length")
+                                            }}
+                                            <label for="string_length">Max Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Number Min Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                                            {{ schema_entry.number_min_length(class="form-control", placeholder="Min
+                                            Value") }}
+                                            <label for="number_min_length">Min Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Number Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                                            {{ schema_entry.number_length(class="form-control", placeholder="Max
+                                            Value") }}
+                                            <label for="number_length">Max Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Options -->
+                                        <div class="conditional-field col-md-6 form-floating" data-field-type="options">
+                                            {{ schema_entry.options(class="form-control", placeholder="Options") }}
+                                            <label for="options">Options</label>
+                                        </div>
+
+
+                                        <!-- Layout Placeholders -->
+                                        <div class="conditional-field col-md-2" data-field-type="string">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+                                        <div class="conditional-field col-md-2" data-field-type="number">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+                                        <div class="conditional-field col-md-6" data-field-type="boolean">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+
+                                        <!-- Remove Row Button -->
+                                        <div class="col-md-1 d-flex">
+                                            <button type="button" class="remove-row btn btn-danger">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Add New Rule Button -->
+                            <button type="button" id="add-row-schema" class="btn btn-outline-success mt-3">
+                                <i class="bi bi-plus-circle"></i> Add Rule
+                            </button>
+                        </fieldset>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
 
-        <!-- Add New Rule Button -->
-        <button type="button" id="add-row" class="btn btn-outline-success mt-3">
-            <i class="bi bi-plus-circle"></i> Add Rule
-        </button>
+            <script>
+                // Check initial state on page load
+                document.addEventListener('DOMContentLoaded', function () {
+                    const use_json_schema = document.querySelector('#use_json_schema');
+                    const json_schema_container = document.querySelector('#json_schema_container');
+                    const grammar_container = document.querySelector('#grammar_container');
+                    if (use_json_schema.checked) {
+                        json_schema_container.style.display = 'block';
+                        grammar_container.style.display = 'none';
+                    }
+                });
 
-        <!-- Extra Grammar Rules Field -->
-<div class="row mt-3">
-    <div class="form-group col-md-12">
-        <div class="form-floating">
-            {% if form.extra_grammar_rules.errors %}
-            {{ form.extra_grammar_rules(class="form-control is-invalid", rows="3", placeholder="Extra Grammar Rules") }}
-            <label for="extra_grammar_rules">Extra Grammar Rules</label>
-            <div class="invalid-feedback">
-                {% for error in form.extra_grammar_rules.errors %}
-                <span>{{ error }}</span>
-                {% endfor %}
-            </div>
-            {% else %}
-            {{ form.extra_grammar_rules(class="form-control", rows="3", placeholder="Extra Grammar Rules") }}
-            <label for="extra_grammar_rules">Extra Grammar Rules</label>
-            {% endif %}
-        </div>
-    </div>
-</div>
+                // Handle changes
+                document.querySelector('#use_json_schema').addEventListener('change', function () {
+                    document.querySelector('#json_schema_container').style.display = this.checked ? 'block' : 'none';
+                    document.querySelector('#grammar_container').style.display = this.checked ? 'none' : 'block';
+                });
 
-    </fieldset>
-</div>
+            </script>
 
+            <div class="col-md-12" id="grammar_container" style="display: block;">
+                <!-- Tabs for Grammar and Grammar Builder -->
+                <nav class="mt-1">
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <button class="nav-link active" id="nav-grammar-tab" data-bs-toggle="tab"
+                            data-bs-target="#nav-grammar" type="button" role="tab" aria-controls="nav-grammar"
+                            aria-selected="true">Grammar</button>
+                        <button class="nav-link" id="nav-grammarbuilder-tab" data-bs-toggle="tab"
+                            data-bs-target="#nav-grammarbuilder" type="button" role="tab"
+                            aria-controls="nav-grammarbuilder" aria-selected="false">Grammar Builder</button>
+                    </div>
+                </nav>
+
+                <!-- Tab Contents -->
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- Grammar Tab -->
+                    <div class="tab-pane fade show active" id="nav-grammar" role="tabpanel"
+                        aria-labelledby="nav-grammar-tab">
+                        <div class="form-floating mt-3">
+                            {% if form.grammar.errors %}
+                            {{ form.grammar(class="form-control is-invalid", rows="12", placeholder="Grammar Content",
+                            style="height: 300px;") }}
+                            <label for="grammar">Grammar</label>
+                            <div class="invalid-feedback">
+                                {% for error in form.grammar.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            {{ form.grammar(class="form-control", rows="12", placeholder="Grammar Content",
+                            style="height:
+                            300px;") }}
+                            <label for="grammar">Grammar</label>
+                            {% endif %}
+                        </div>
+                        <button type="submit" name="submit-form" class="btn btn-secondary mt-3 w-100">
+                            <i class="bi bi-cpu"></i> Run LLM Processing
+                        </button>
+                    </div>
+
+                    <!-- Grammar Builder Tab -->
+                    <div class="tab-pane fade" id="nav-grammarbuilder" role="tabpanel"
+                        aria-labelledby="nav-grammarbuilder-tab">
+                        <fieldset class="form-control p-3">
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <legend class="h5">Grammar Builder</legend>
+                                </div>
+                                <div class="col text-end">
+                                    <button id="save-configuration" class="btn btn-primary me-2">
+                                        <i class="bi bi-save"></i> Save Configuration
+                                    </button>
+                                    <button id="load-configuration" class="btn btn-secondary me-2">
+                                        <i class="bi bi-upload"></i> Load Configuration
+                                    </button>
+                                    <button id="generate-grammar" class="btn btn-success">
+                                        <i class="bi bi-file-earmark-code"></i> Generate Grammar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <input type="file" id="load-file" style="display:none;" />
+                            <a id="download-link" style="display:none;"></a>
+
+                            <!-- Grammar Entries -->
+                            <div id="grammar_entries" class="list-group">
+                                {% for grammar_entry in form.grammarbuilder %}
+                                <div class="list-group-item">
+                                    <div class="entry row g-2">
+                                        <!-- Field Name -->
+                                        <div class="col-md-3 form-floating">
+                                            {{ grammar_entry.field_name(class="form-control", placeholder="Field Name")
+                                            }}
+                                            <label for="field_name">Field Name</label>
+                                        </div>
+
+                                        <!-- Field Type -->
+                                        <div class="col-md-2 form-floating">
+                                            {{ grammar_entry.field_type(class="form-select", placeholder="Field Type")
+                                            }}
+                                            <label for="field_type">Field Type</label>
+                                        </div>
+
+                                        <!-- Conditional Field: String Min Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                                            {{ grammar_entry.string_min_length(class="form-control", placeholder="Min
+                                            Length") }}
+                                            <label for="string_min_length">Min Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: String Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="string">
+                                            {{ grammar_entry.string_length(class="form-control", placeholder="Length")
+                                            }}
+                                            <label for="string_length">Max Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Number Min Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                                            {{ grammar_entry.number_min_length(class="form-control", placeholder="Min
+                                            Value") }}
+                                            <label for="number_min_length">Min Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Number Length -->
+                                        <div class="conditional-field col-md-2 form-floating" data-field-type="number">
+                                            {{ grammar_entry.number_length(class="form-control", placeholder="Max
+                                            Value") }}
+                                            <label for="number_length">Max Length</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Floating Point Number Length (Disabled) -->
+                                        <div class="conditional-field col-md-2 form-floating"
+                                            data-field-type="fp-number-disabled">
+                                            {{ grammar_entry.fp_number_length(class="form-control", placeholder="Decimal
+                                            Precision") }}
+                                            <label for="fp_number_length">Decimal Precision</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Options -->
+                                        <div class="conditional-field col-md-6 form-floating" data-field-type="options">
+                                            {{ grammar_entry.options(class="form-control", placeholder="Options") }}
+                                            <label for="options">Options</label>
+                                        </div>
+
+                                        <!-- Conditional Field: Custom Rule -->
+                                        <div class="conditional-field col-md-6 form-floating" data-field-type="custom">
+                                            {{ grammar_entry.custom_rule(class="form-control", placeholder="Custom
+                                            Rule") }}
+                                            <label for="custom_rule">Custom Rule (RULENAME ::=
+                                                &lt;YOURCUSTOMRULE&gt;)</label>
+                                        </div>
+
+                                        <!-- Layout Placeholders -->
+                                        <div class="conditional-field col-md-2" data-field-type="string">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+                                        <div class="conditional-field col-md-2" data-field-type="number">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+                                        <div class="conditional-field col-md-6" data-field-type="boolean">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+                                        <div class="conditional-field col-md-6" data-field-type="fp-number">
+                                            <!-- Empty placeholder for layout consistency -->
+                                        </div>
+
+                                        <!-- Remove Row Button -->
+                                        <div class="col-md-1 d-flex">
+                                            <button type="button" class="remove-row btn btn-danger">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+
+
+
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Add New Rule Button -->
+                            <button type="button" id="add-row" class="btn btn-outline-success mt-3">
+                                <i class="bi bi-plus-circle"></i> Add Rule
+                            </button>
+
+                            <!-- Extra Grammar Rules Field -->
+                            <div class="row mt-3">
+                                <div class="form-group col-md-12">
+                                    <div class="form-floating">
+                                        {% if form.extra_grammar_rules.errors %}
+                                        {{ form.extra_grammar_rules(class="form-control is-invalid", rows="3",
+                                        placeholder="Extra Grammar Rules") }}
+                                        <label for="extra_grammar_rules">Extra Grammar Rules</label>
+                                        <div class="invalid-feedback">
+                                            {% for error in form.extra_grammar_rules.errors %}
+                                            <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        {{ form.extra_grammar_rules(class="form-control", rows="3", placeholder="Extra
+                                        Grammar Rules") }}
+                                        <label for="extra_grammar_rules">Extra Grammar Rules</label>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </div>
+
+
+                </div>
 
             </div>
 
             <div class="info-callout">
                 <h3 class="callout-title">Information</h3>
-                <p><b>Model / n_predit:</b> Each model has a context size of e.g. 8192 tokens in case of Llama 3. 
-                    One token can be a word, parts of a word or a special character. 
+                <p><b>Model / n_predit:</b> Each model has a context size of e.g. 8192 tokens in case of Llama 3.
+                    One token can be a word, parts of a word or a special character.
                     <br>
-                    The parameter <i>n_predict</i> specifies how many tokens the model is allowed to generate. 
-                    <br>
-                    <br>
-                    <b>The whole prompt</b> (including the text from the report) <b>AND the answer</b> which is generated <b>must fit into the model's context size</b>!
+                    The parameter <i>n_predict</i> specifies how many tokens the model is allowed to generate.
                     <br>
                     <br>
-                    After submitting your LLM Processing job, this tool will check for each report, if the tokenized prompt (including the report) and the specified maximum length for the answer will fit into the context size!
-                    However, if <i>n_predict</i> is too low it might happen that your answer is incomplete and cannot be processed later (e.g. the generation of the JSON output stops midway). 
-                    Optimally for <i>n_predict</i> you estimate how many tokens are needed to generate a JSON output according to your grammar and add a bit security margin on top.
+                    <b>The whole prompt</b> (including the text from the report) <b>AND the answer</b> which is
+                    generated <b>must fit into the model's context size</b>!
                     <br>
                     <br>
-                    <b>Temperature:</b> This parameter specifies the randomness / creativity of the model. A value of 0.0 means no randomness, a value of 1.0 means very high randomness.
+                    After submitting your LLM Processing job, this tool will check for each report, if the tokenized
+                    prompt (including the report) and the specified maximum length for the answer will fit into the
+                    context size!
+                    However, if <i>n_predict</i> is too low it might happen that your answer is incomplete and cannot be
+                    processed later (e.g. the generation of the JSON output stops midway).
+                    Optimally for <i>n_predict</i> you estimate how many tokens are needed to generate a JSON output
+                    according to your grammar and add a bit security margin on top.
                     <br>
                     <br>
-                    <b>Model:</b> The model to use. Bigger models (with more parameters, e.g. 70B parameters) usually perform better than smaller ones. Smaller ones are faster and require less memory.
+                    <b>Temperature:</b> This parameter specifies the randomness / creativity of the model. A value of
+                    0.0 means no randomness, a value of 1.0 means very high randomness.
                     <br>
                     <br>
-                    <b>Prompt:</b> Explain to the model what it should do. The {report} placeholder will be replaced with the report, do not remove it! Formulate the prompt in a way that the model can just continue writing the prompt and this way generates your desired answer.
+                    <b>Model:</b> The model to use. Bigger models (with more parameters, e.g. 70B parameters) usually
+                    perform better than smaller ones. Smaller ones are faster and require less memory.
                     <br>
                     <br>
-                    <b>Grammar:</b> To get a output which can be processed automatically it must be in a machine-readable format. In this case a JSON output is desired. 
-                    While newer and bigger models tend to generate valid JSON if you instruct it what exactly to generate, this cannot always be guaranteed. The grammar restricts what the model is allowed to generate, for example it can only generate valid JSON. 
+                    <b>Prompt:</b> Explain to the model what it should do. The {report} placeholder will be replaced
+                    with the report, do not remove it! Formulate the prompt in a way that the model can just continue
+                    writing the prompt and this way generates your desired answer.
                     <br>
-                    Please use the <b>Grammar Builder</b> to design the grammar. You can save and load grammars. At the end, press <b>Generate Full Grammar</b> to apply it.
                     <br>
-                    You can still instruct the model in the prompt what it should generate and give more instructions per field. The grammar in the end ensures that the output is always in the correct format.
+                    <b>Grammar:</b> To get a output which can be processed automatically it must be in a
+                    machine-readable format. In this case a JSON output is desired.
+                    While newer and bigger models tend to generate valid JSON if you instruct it what exactly to
+                    generate, this cannot always be guaranteed. The grammar restricts what the model is allowed to
+                    generate, for example it can only generate valid JSON.
                     <br>
-                </p> 
+                    Please use the <b>Grammar Builder</b> to design the grammar. You can save and load grammars. At the
+                    end, press <b>Generate Full Grammar</b> to apply it.
+                    <br>
+                    You can still instruct the model in the prompt what it should generate and give more instructions
+                    per field. The grammar in the end ensures that the output is always in the correct format.
+                    <br>
+                </p>
             </div>
         </fieldset>
     </form>
@@ -478,9 +727,313 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
+
+<!-- Schema Builder -->
+
 <script>
-$(document).ready(function () {
-    let entryIndex = {{ form.grammarbuilder|length }};
+    $(document).ready(function () {
+        let entryIndex = {{ form.schemabuilder| length
+    }};
+
+    function updateConditionalFieldsSchema(entry) {
+        const selectField = entry.find('select[name^="schemabuilder-"][name$="-field_type"]');
+        selectedValue = selectField.val();
+        entry.find('.conditional-field').hide();
+
+        // if selectedValue equals 'stringN' or 'stringuptoN', set selectedValue to stringN
+        if (selectedValue === 'stringN' || selectedValue === 'stringuptoN') {
+            selectedValue = 'stringN';
+        }
+
+        if (selectedValue === 'numberN' || selectedValue === 'numberuptoN') {
+            selectedValue = 'numberN';
+        }
+
+        entry.find(`.conditional-field[data-field-type="${selectedValue}"]`).show();
+    }
+
+    function getEntryDataSchema(entry) {
+        return {
+            field_name: entry.find('input[name^="schemabuilder-"][name$="-field_name"]').val(),
+            field_type: entry.find('select[name^="schemabuilder-"][name$="-field_type"]').val(),
+            string_min_length: entry.find('input[name^="schemabuilder-"][name$="-string_min_length"]').val(),
+            string_length: entry.find('input[name^="schemabuilder-"][name$="-string_length"]').val(),
+            number_min_length: entry.find('input[name^="schemabuilder-"][name$="-number_min_length"]').val(),
+            number_length: entry.find('input[name^="schemabuilder-"][name$="-number_length"]').val(),
+            options: entry.find('input[name^="schemabuilder-"][name$="-options"]').val(),
+        };
+    }
+
+    function createEntryHTMLSchema(data = {}, index) {
+        const {
+            field_name = '',
+            field_type = 'string',  // Default to "string"
+            string_min_length = '1',
+            string_length = '',
+            number_min_length = '1',
+            number_length = '',
+            options = '',
+        } = data;
+
+        // alert the currrent field type
+        // alert(field_type);
+
+        return `
+        <div class="list-group-item">
+            <div class="entry row g-2">
+                
+                <div class="form-floating col-md-3">
+                    <input type="text" name="schemabuilder-${index}-field_name" id="schemabuilder-${index}-field_name" class="form-control" value="${field_name}" placeholder="Field Name">
+                    <label for="schemabuilder-${index}-field_name">{{ form.schemabuilder[0].field_name.label }}</label>
+
+                </div>
+                <div class="form-floating col-md-2">
+                    <select name="schemabuilder-${index}-field_type" id="schemabuilder-${index}-field_type" class="form-select">
+                        {% for field_type in form.schemabuilder[0].field_type %}
+                        {{field_type}}
+                        {% endfor %}
+                    </select>
+                    <label for="schemabuilder-${index}-field_type">{{ form.schemabuilder[0].field_type.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                    <input type="number" name="schemabuilder-${index}-string_min_length" id="schemabuilder-${index}-string_min_length" class="form-control" value="${string_min_length}" placeholder="Min Length">
+                    <label for="schemabuilder-${index}-string_min_length">{{ form.schemabuilder[0].string_min_length.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                    <input type="number" name="schemabuilder-${index}-string_length" id="schemabuilder-${index}-string_length" class="form-control" value="${string_length}" placeholder="Max Length">
+                    <label for="schemabuilder-${index}-string_length">{{ form.schemabuilder[0].string_length.label }}</label>
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                    <input type="number" name="schemabuilder-${index}-number_min_length" id="schemabuilder-${index}-number_min_length" class="form-control" value="${number_min_length}" placeholder="Min Length">
+                    <label for="schemabuilder-${index}-number_min_length">{{ form.schemabuilder[0].number_min_length.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                    <input type="number" name="schemabuilder-${index}-number_length" id="schemabuilder-${index}-number_length" class="form-control" value="${number_length}" placeholder="Max Length">
+                    <label for="schemabuilder-${index}-number_length">{{ form.schemabuilder[0].number_length.label }}</label>
+
+                </div>
+                <div class="conditional-field form-floating col-md-6" data-field-type="options" style="display: ${field_type == 'options' ? 'block' : 'none'};">
+                    <input type="text" name="schemabuilder-${index}-options" id="schemabuilder-${index}-options" class="form-control" value="${options}" placeholder="Options">
+                    <label for="schemabuilder-${index}-options">{{ form.schemabuilder[0].options.label }}</label>
+
+                </div>
+                <div class="conditional-field form-group col-md-2" data-field-type="string" style="display: ${field_type == 'string' ? 'block' : 'none'};">
+                </div>
+                <div class="conditional-field form-group col-md-2" data-field-type="number" style="display: ${field_type == 'number' ? 'block' : 'none'};">
+                </div>
+                <div class="conditional-field form-group col-md-6" data-field-type="boolean" style="display: ${field_type == 'boolean' ? 'block' : 'none'};">
+                </div>
+                <div class="col-md-1 d-flex">
+                        <button type="button" class="remove-row btn btn-danger">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+            </div>
+        </div>`;
+    }
+
+    $('#add-row-schema').click(function () {
+        entryIndex++;
+        let newEntry = createEntryHTMLSchema({}, entryIndex);
+        $('#schema_entries').append(newEntry);
+        let newEntryElement = $('#schema_entries').children().last();
+        updateConditionalFieldsSchema(newEntryElement);
+    });
+
+    $(document).on('change', 'select[name^="schemabuilder-"][name$="-field_type"]', function () {
+        let entry = $(this).closest('.entry');
+        updateConditionalFieldsSchema(entry);
+    });
+
+    $('#schema_entries .entry').each(function () {
+        updateConditionalFieldsSchema($(this));
+    });
+
+    $(document).on('click', '.remove-row', function () {
+        $(this).closest('.list-group-item').remove();
+    });
+
+    function downloadFileSchema(content, filename, contentType) {
+        const link = document.createElement("a");
+        const file = new Blob([content], { type: contentType });
+        link.href = URL.createObjectURL(file);
+        link.download = filename;
+
+        // Append link to the body to ensure it works in Firefox
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    $('#save-schema').click(function (event) {
+        event.preventDefault();
+        let entriesData = [];
+        $('#schema_entries .entry').each(function () {
+            let entryData = getEntryDataSchema($(this));
+            entriesData.push(entryData);
+        });
+
+        // Create CSV content for entries
+        const csvContent = entriesData.map(e => [
+            e.field_name,
+            e.field_type,
+            e.string_min_length || '1',
+            e.string_length || '',
+            e.number_min_length || '1',
+            e.number_length || '',
+            e.options || '',
+        ].join(";")).join("\n");
+
+        downloadFileSchema(csvContent, 'schema_entries.csv', 'text/csv');
+    });
+
+    $('#load-schema').click(function (event) {
+        event.preventDefault(); // Prevent default action to avoid page scroll
+        $('#load-file-schema').click();
+    });
+
+    $('#load-file-schema').change(function (event) {
+        event.preventDefault();
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const csv = e.target.result;
+
+                // Split CSV into lines
+                const lines = csv.split("\n");
+
+                // Parse entries
+                const entriesData = lines.map(row => {
+                    const cols = row.split(";");
+
+                    // if length of cols is less than 9, alert user
+                    if (cols.length < 7) {
+                        alert("The csv might have been created using the Grammar Builder");
+                        return;
+                    }
+                    return {
+                        field_name: cols[0].replace(/"/g, '&quot;') || '',
+                        field_type: cols[1].replace(/"/g, '&quot;') || 'string',
+                        string_min_length: cols[2].replace(/"/g, '&quot;') || '',
+                        string_length: cols[3].replace(/"/g, '&quot;') || '',
+                        number_min_length: cols[4].replace(/"/g, '&quot;') || '',
+                        number_length: cols[5].replace(/"/g, '&quot;') || '',
+                        options: cols[6].replace(/"/g, '&quot;') || '',
+                    };
+                });
+
+                // Append rows to the form
+                $('#schema_entries').empty();
+                entriesData.forEach(function (entryData, index) {
+                    let newEntry = createEntryHTMLSchema(entryData, index);
+                    $('#schema_entries').append(newEntry);
+                    let newEntryElement = $('#schema_entries').children().last();
+                    newEntryElement.find(`select[name="schemabuilder-${index}-field_type"]`).val(entryData.field_type);
+                    updateConditionalFieldsSchema(newEntryElement);
+                    // alert(entryData.custom_rule)
+                });
+                entryIndex = entriesData.length;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    $('#generate-schema').click(function (event) {
+        event.preventDefault();
+
+        /* Example JSON Schema: 
+
+        {
+        "type": "object",
+        "properties": {
+            "name": {
+            "type": "string"
+            },
+            "date_of_birth": {
+            "type": "string"
+            },
+            "age": {
+            "type": "integer",
+            "minimum": 0
+            }
+        },
+        "required": ["name", "date_of_birth", "age"]
+        }
+
+        */
+
+        // Generate schema for each entry
+        let schema = '';
+        let field_names = '';
+        $('#schema_entries .entry').each(function () {
+            let entryData = getEntryDataSchema($(this));
+            let fieldName = entryData.field_name;
+            field_names += `"${fieldName}", `;
+        
+            // Generate schema for different field types
+            if (entryData.field_type === 'string') {
+                schema += `    "${fieldName}": {\n      "type": "string"`;
+                if (entryData.string_min_length !== undefined && entryData.string_min_length !== '') {
+                    schema += `,\n      "minLength": ${entryData.string_min_length}`;
+                }
+                if (entryData.string_length !== undefined && entryData.string_length !== '') {
+                    schema += `,\n      "maxLength": ${entryData.string_length}`;
+                }
+                schema += `\n    },\n`;
+            } else if (entryData.field_type === 'number') {
+                schema += `    "${fieldName}": {\n      "type": "integer"`;
+                if (entryData.number_min_length !== undefined && entryData.number_min_length !== '') {
+                    schema += `,\n      "minimum": ${entryData.number_min_length}`;
+                }
+                if (entryData.number_length !== undefined && entryData.number_length !== '') {
+                    schema += `,\n      "maximum": ${entryData.number_length}`;
+                }
+                schema += `\n    },\n`;
+            } else if (entryData.field_type === 'boolean') {
+                schema += `    "${fieldName}": {\n      "type": "boolean"\n    },\n`;
+            } else if (entryData.field_type === 'options') {
+                let options = entryData.options.split(',').map(option => `"${option.trim()}"`).join(', ');
+                schema += `    "${fieldName}": {\n      "type": "string",\n      "enum": [${options}]\n    },\n`;
+            }
+        });
+        
+
+        // Construct full JSON schema
+        let fullSchema = `{
+  "type": "object",
+  "properties": {
+${schema.slice(0, -2)}
+  },
+  "required": [${field_names.slice(0, -2)}]
+}
+`;
+
+
+        // Alert the output
+        // alert(fullGrammar);
+        var textarea = document.getElementById("json_schema");
+        textarea.value = fullSchema; // Set the text content here
+
+        var firstTabButton = document.getElementById("nav-schema-tab");
+
+        // Trigger a click event on the first tab button
+        firstTabButton.click();
+
+    });
+});
+
+
+</script>
+
+
+<!-- Grammar Builder -->
+
+<script>
+    $(document).ready(function () {
+        let entryIndex = {{ form.grammarbuilder| length
+    }};
 
     function updateConditionalFields(entry) {
         const selectField = entry.find('select[name^="grammarbuilder-"][name$="-field_type"]');
@@ -495,7 +1048,7 @@ $(document).ready(function () {
         if (selectedValue === 'numberN' || selectedValue === 'numberuptoN') {
             selectedValue = 'numberN';
         }
-        
+
         entry.find(`.conditional-field[data-field-type="${selectedValue}"]`).show();
     }
 
@@ -687,14 +1240,14 @@ $(document).ready(function () {
                     }
                     return {
                         field_name: cols[0].replace(/"/g, '&quot;') || '',
-                    field_type: cols[1].replace(/"/g, '&quot;') || 'string',
-                    string_min_length: cols[2].replace(/"/g, '&quot;') || '',
-                    string_length: cols[3].replace(/"/g, '&quot;') || '',
-                    number_min_length: cols[4].replace(/"/g, '&quot;') || '',
-                    number_length: cols[5].replace(/"/g, '&quot;') || '',
-                    fp_number_length: cols[6].replace(/"/g, '&quot;') || '',
-                    options: cols[7].replace(/"/g, '&quot;') || '',
-                    custom_rule: cols[8].replace(/"/g, '&quot;') || ''
+                        field_type: cols[1].replace(/"/g, '&quot;') || 'string',
+                        string_min_length: cols[2].replace(/"/g, '&quot;') || '',
+                        string_length: cols[3].replace(/"/g, '&quot;') || '',
+                        number_min_length: cols[4].replace(/"/g, '&quot;') || '',
+                        number_length: cols[5].replace(/"/g, '&quot;') || '',
+                        fp_number_length: cols[6].replace(/"/g, '&quot;') || '',
+                        options: cols[7].replace(/"/g, '&quot;') || '',
+                        custom_rule: cols[8].replace(/"/g, '&quot;') || ''
                     };
                 });
 
@@ -720,11 +1273,11 @@ $(document).ready(function () {
 
     $('#generate-grammar').click(function (event) {
         event.preventDefault();
-        
+
         // Generate grammar for each entry
         let grammar = '';
         $('#grammar_entries .entry').each(function () {
-            
+
             let entryData = getEntryData($(this));
             if (entryData.field_type === 'string') {
                 grammar += `ws "\\"${entryData.field_name}\\":" ws "\\"" char{${entryData.string_min_length},${entryData.string_length}} "\\"" ","\n`;
@@ -758,34 +1311,34 @@ ws ::= ([ \\t\\n])?
 
 `;
 
-    let addedRules = new Set();
-    let charRuleAdded = false;
+        let addedRules = new Set();
+        let charRuleAdded = false;
 
-    $('#grammar_entries .entry').each(function () {
-        let entryData = getEntryData($(this));
-        let stringRule = '';
+        $('#grammar_entries .entry').each(function () {
+            let entryData = getEntryData($(this));
+            let stringRule = '';
 
-        var charDefinition = 'char ::= [^"\\\\] | "\\\\" (["\\\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])\n\n';
+            var charDefinition = 'char ::= [^"\\\\] | "\\\\" (["\\\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])\n\n';
 
-        if (entryData.field_type === 'string') {
-            if (!charRuleAdded) {
-                fullGrammar += charDefinition;
-                charRuleAdded = true;
+            if (entryData.field_type === 'string') {
+                if (!charRuleAdded) {
+                    fullGrammar += charDefinition;
+                    charRuleAdded = true;
+                }
+            } else if (entryData.field_type === 'numberN' && entryData.number_length) {
+                stringRule = generateNumberRule(entryData.number_length);
+            } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {
+                stringRule = generateNumberRuleOptional(entryData.number_length);
+            } else if (entryData.field_type === 'boolean') {
+                stringRule = `boolean ::= "\\"" ("true" | "false") "\\"" ws\n\n`;
             }
-        } else if (entryData.field_type === 'numberN' && entryData.number_length) {
-            stringRule = generateNumberRule(entryData.number_length);
-        } else if (entryData.field_type === 'numberuptoN' && entryData.number_length) {
-            stringRule = generateNumberRuleOptional(entryData.number_length);
-        } else if (entryData.field_type === 'boolean') {
-            stringRule = `boolean ::= "\\"" ("true" | "false") "\\"" ws\n\n`;
-        }
 
-        // Check if the rule already exists
-        if (stringRule && !addedRules.has(stringRule)) {
-            fullGrammar += stringRule;
-            addedRules.add(stringRule); // Add the rule to the set
-        }
-    });
+            // Check if the rule already exists
+            if (stringRule && !addedRules.has(stringRule)) {
+                fullGrammar += stringRule;
+                addedRules.add(stringRule); // Add the rule to the set
+            }
+        });
 
 
         // Add extra grammar rules
@@ -800,7 +1353,7 @@ ws ::= ([ \\t\\n])?
         textarea.value = fullGrammar; // Set the text content here
 
         var firstTabButton = document.getElementById("nav-grammar-tab");
-        
+
         // Trigger a click event on the first tab button
         firstTabButton.click();
 
@@ -811,58 +1364,58 @@ ws ::= ([ \\t\\n])?
 
 });
 
-function generateStringRule(length) {
-    let stringRule = `string${length} ::= "\\""`;
-    for (let i = 0; i < length; i++) {
-        stringRule += ` char`;
-    }
-    stringRule += ` "\\"" ws\n\n`;
-    return stringRule;
-}
-
-// This rule should generate nested chars: (char (char (char)?)?)? (e.g. for length=3)
-function generateStringRuleOptional(length) {
-    let stringRule = `stringupto${length} ::= "\\""`; // Starting rule
-
-    for (let i = 0; i < length; i++) {
-        stringRule += '('; // Open nested parentheses
-        stringRule += 'char '; // Add the char
+    function generateStringRule(length) {
+        let stringRule = `string${length} ::= "\\""`;
+        for (let i = 0; i < length; i++) {
+            stringRule += ` char`;
+        }
+        stringRule += ` "\\"" ws\n\n`;
+        return stringRule;
     }
 
-    for (let i = 0; i < length; i++) {
-        stringRule += ')?'; // Close nested parentheses with optional character
+    // This rule should generate nested chars: (char (char (char)?)?)? (e.g. for length=3)
+    function generateStringRuleOptional(length) {
+        let stringRule = `stringupto${length} ::= "\\""`; // Starting rule
+
+        for (let i = 0; i < length; i++) {
+            stringRule += '('; // Open nested parentheses
+            stringRule += 'char '; // Add the char
+        }
+
+        for (let i = 0; i < length; i++) {
+            stringRule += ')?'; // Close nested parentheses with optional character
+        }
+
+        stringRule += ' "\\"" ws\n\n'; // Closing rule
+
+        return stringRule;
     }
 
-    stringRule += ' "\\"" ws\n\n'; // Closing rule
-
-    return stringRule;
-}
-
-function generateNumberRule(length) {
-    let numberRule = `number${length} ::= "\\""`;
-    for (let i = 0; i < length; i++) {
-        numberRule += `[0-9]`;
-    }
-    numberRule += ` "\\"" ws\n\n`; // Closing rule
-    return numberRule;
-}
-
-function generateNumberRuleOptional(length) {
-    let numberRule = `numberupto${length} ::= "\\""`;
-
-    for (let i = 0; i < length; i++) {
-        numberRule += '('; // Open nested parentheses
-        numberRule += '[0-9]'; // Add the digit
+    function generateNumberRule(length) {
+        let numberRule = `number${length} ::= "\\""`;
+        for (let i = 0; i < length; i++) {
+            numberRule += `[0-9]`;
+        }
+        numberRule += ` "\\"" ws\n\n`; // Closing rule
+        return numberRule;
     }
 
-    for (let i = 0; i < length; i++) {
-        numberRule += ')?'; // Close nested parentheses with optional digit
+    function generateNumberRuleOptional(length) {
+        let numberRule = `numberupto${length} ::= "\\""`;
+
+        for (let i = 0; i < length; i++) {
+            numberRule += '('; // Open nested parentheses
+            numberRule += '[0-9]'; // Add the digit
+        }
+
+        for (let i = 0; i < length; i++) {
+            numberRule += ')?'; // Close nested parentheses with optional digit
+        }
+
+        numberRule += ' "\\"" ws\n\n'; // Closing rule
+
+        return numberRule;
     }
-
-    numberRule += ' "\\"" ws\n\n'; // Closing rule
-
-    return numberRule;
-}
 
 
 </script>
