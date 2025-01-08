@@ -57,6 +57,12 @@ def init_api(api_url: str, api_key: str) -> None:
         if not api_url:
             print("API Key but no API URL specified!")
             exit()
+    else:
+        if api_url:
+            print("API URL but no API Key specified!")
+            exit()
+        else:
+            return
 
     print("Initializing OpenAI client...")
 
