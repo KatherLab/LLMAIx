@@ -165,7 +165,6 @@ class AnnotationHelperJob:
         return self.label_type_mapping[label]['label_type']
 
 
-
 annotation_jobs:dict[str, AnnotationHelperJob] = {}
 
 

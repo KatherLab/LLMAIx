@@ -22,6 +22,8 @@ services:
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
+      - API_URL=${API_URL:-""}
+      - API_KEY=${API_KEY:-""}
     deploy:
       resources:
         reservations:
