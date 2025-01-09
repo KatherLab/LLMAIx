@@ -5,7 +5,6 @@ ARG BASE_CUDA_RUN_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_V
 
 # Builder Stage
 FROM ${BASE_CUDA_DEV_CONTAINER} AS build
-
 # CUDA architecture to build for
 ARG CUDA_COMPUTE_LEVEL="86"
 
@@ -27,12 +26,12 @@ WORKDIR /build
 RUN git clone https://github.com/ggerganov/llama.cpp && \
     cd llama.cpp && \
     cmake -B build \
-        -DGGML_NATIVE=OFF \
-        -DGGML_CUDA=ON \
-        -DLLAMA_CURL=ON \
-        -DBUILD_SHARED_LIBS=ON \
-        -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
-        -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
+    -DGGML_NATIVE=OFF \
+    -DGGML_CUDA=ON \
+    -DLLAMA_CURL=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} \
+    -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
     cmake --build build --config Release --target llama-server -j$(nproc) && \
     # Find and copy all .so files to a common directory for easier copying
     mkdir -p build/all_libs && \
@@ -45,8 +44,8 @@ FROM ${BASE_CUDA_RUN_CONTAINER} AS runtime
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip \
-    python-is-python3 \
+    python3.12 \
+    python3.12-venv \
     libcurl4-openssl-dev \
     libgomp1 \
     curl \
@@ -62,16 +61,28 @@ COPY --from=build /build/llama.cpp/build/all_libs/* /usr/local/lib/
 # Configure library path and update cache
 RUN ldconfig /usr/local/lib
 
-# Set up Python environment
+# Set up Python environment with uv
 WORKDIR /app
+
+# Install uv and set up Python environment
+ENV PYTHONPATH=/app/.venv/lib/python3.12/site-packages
+ENV PATH="/root/.local/bin:$PATH"
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv venv && \
+    . .venv/bin/activate && \
+    uv pip install wheel setuptools
+
+# Copy requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+RUN . .venv/bin/activate && \
+    uv pip install -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
 
 # Configure server host
 ENV LLAMA_ARG_HOST=0.0.0.0
+
 # Add library path to environment
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
@@ -80,4 +91,5 @@ HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 
 EXPOSE 5000
 
-CMD ["python", "app.py", "--server_path", "/usr/local/bin/llama-server", "--model_path", "/models"]
+# Update the CMD to use the virtual environment's Python
+CMD [".venv/bin/python", "app.py", "--server_path", "/usr/local/bin/llama-server", "--model_path", "/models"]
