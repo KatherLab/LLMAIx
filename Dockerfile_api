@@ -1,7 +1,9 @@
-# Use official Python image
+# Platform argument is optional
+ARG TARGETPLATFORM
+# Use standard Python image
 FROM python:3.12-slim
 
-# Install system dependencies
+# Rest remains the same as before
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
@@ -10,32 +12,24 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up working directory
 WORKDIR /app
 
-# Install uv and set up Python environment
 ENV PYTHONPATH=/app/.venv/lib/python3.12/site-packages
 ENV PATH="/root/.local/bin:$PATH"
 
-# Install uv package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     uv venv && \
     . .venv/bin/activate && \
     uv pip install wheel setuptools
 
-# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN . .venv/bin/activate && \
     uv pip install -r requirements.txt
 
-# Copy the application
 COPY . .
 
-# Add health check
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 
-# Expose the API port
 EXPOSE 5000
 
-# Start the application in API-only mode
 CMD [".venv/bin/python", "app.py", "--only_api"]
