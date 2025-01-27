@@ -22,6 +22,9 @@ services:
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
+      # Set a password here if you want to protect the API
+      - PASSWORD=${PASSWORD:-""}
+      # Adjust the API URL and Key if you want to use an OpenAI-compatible API
       - API_URL=${API_URL:-""}
       - API_KEY=${API_KEY:-""}
     deploy:

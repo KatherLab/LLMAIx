@@ -53,9 +53,7 @@ From the following medical report, extract the following information and return 
     side: left / right / bilateral
 
 This is the medical report:
-{report}
-
-The JSON:
+{report}:
 ```
 
 > [!TIP]
@@ -217,9 +215,7 @@ From the following medical report, extract the following information and return 
     side: left / right / bilateral
 
 This is the medical report:
-{report}
-
-The JSON:
+{report}:
 ```
 
 An example grammar with a reasoning column:

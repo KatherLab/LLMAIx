@@ -56,8 +56,6 @@ From the following medical report, extract the following patient information and
 
 This is the medical report:
 {report}
-
-The JSON:
 ```
 
 ---

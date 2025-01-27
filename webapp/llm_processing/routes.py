@@ -49,7 +49,7 @@ model_active = False
 
 JobID = str
 llm_jobs: dict[JobID, futures.Future] = {}
-executor = futures.ThreadPoolExecutor(1)
+executor = None
 
 
 new_model = False
@@ -197,7 +197,7 @@ class CancellableJob:
     mlock: bool = True
     gpu: str = "ALL"
     flash_attention: bool = False
-    buffer_slots: int = 2
+    buffer_slots: int = 10
     mode: str = "informationextraction"
     chat_endpoint: bool = False
     system_prompt: str = ""
@@ -252,7 +252,12 @@ class CancellableJob:
         if self.json_schema and self.json_schema not in [" ", None, "\n", "\r", "\r\n"]:
             data["response_format"] = {
                 "type": "json_schema",
-                "json_schema": self.json_schema
+                "json_schema": {
+                    "name": "structured_output",
+                    "schema": self.json_schema,
+                    "strict": True
+                },
+                "strict": True
             }
 
         async def watch_cancellation():
@@ -266,6 +271,7 @@ class CancellableJob:
             cancel_task = asyncio.create_task(watch_cancellation())
 
             # Create a coroutine for the OpenAI API call
+            print(f"Send data to OpenAI API: {data}")
             async def make_openai_request():
                 return await asyncio.to_thread(
                     openai_client.chat.completions.create,
@@ -475,6 +481,7 @@ class CancellableJob:
                     if self.api_model:
                         summary = await self.fetch_chat_result_openai(session, prompt_formatted)
                         self.results[id]['content'] = summary.choices[-1].message.content
+                        print(f"Output for {id}: {summary.choices[-1].message.content}")
 
                         if summary.choices[-1].finish_reason == "length":
                             warning_job(
@@ -975,19 +982,22 @@ def get_model_config(model_dir, config_file, model_file_path):
 @llm_processing.route("/llm", methods=["GET", "POST"])
 def main():
 
-    try:
-        import yaml
+    if not current_app.config["ONLY_API"]:
+        try:
+            import yaml
 
-        config_file_path = current_app.config["CONFIG_FILE"]
+            config_file_path = current_app.config["CONFIG_FILE"]
 
-        if not is_path(config_file_path):
-            config_file_path = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
+            if not is_path(config_file_path):
+                config_file_path = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
 
-        with open(config_file_path, 'r') as file:
-            _ = yaml.safe_load(file)
-    except Exception as e:
-        flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
-        return redirect(request.referrer)
+            with open(config_file_path, 'r') as file:
+                _ = yaml.safe_load(file)
+        except Exception as e:
+            flash(f"Cannot open LLM View - Cannot load config.yaml file. Error: {str(e)}", "danger")
+            return redirect(request.referrer)
+    else:
+        config_file_path = None
     
     if get_openai_client():
         api_models = get_openai_client().models.list()
@@ -995,7 +1005,7 @@ def main():
         api_models = None
 
     form = LLMPipelineForm(
-        config_file_path, current_app.config["MODEL_PATH"], api_models
+        config_file_path, current_app.config["MODEL_PATH"], api_models, only_api=current_app.config["ONLY_API"]
     )
     form.variables.render_kw = {"disabled": "disabled"}
 
@@ -1135,7 +1145,7 @@ def main():
                 )
                 return render_template("llm_processing.html", form=form)
 
-        if not os.path.isfile(current_app.config["SERVER_PATH"]):
+        if not os.path.isfile(current_app.config["SERVER_PATH"]) and not api_model:
             flash(
                 "Llama CPP Server executable not found. Did you specify --server_path correctly?",
                 "danger",
@@ -1149,6 +1159,10 @@ def main():
             model_config = get_model_config(current_app.config["MODEL_PATH"], current_app.config["CONFIG_FILE"], form.model.data)
 
         update_progress(job_id=job_id, progress=(0, len(df), True, False))
+
+        global executor
+        if not executor:
+            executor = futures.ThreadPoolExecutor(10 if current_app.config["ONLY_API"] else 1)
 
         submit_llm_job(
             llm_jobs=llm_jobs,

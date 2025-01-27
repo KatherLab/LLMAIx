@@ -13,9 +13,7 @@ default_prompt = r"""From the following medical report, extract the following in
     patientsex: The sex of the patient. Use "m" for male, "w" for female, and "d" for diverse.
 
 This is the medical report:
-{report}
-
-The JSON:"""
+{report}"""
 
 
 default_grammar = r"""root ::= allrecords
@@ -81,22 +79,25 @@ class SchemaField(wtforms.Form):
 
 
 class LLMPipelineForm(FlaskForm):
-    def __init__(self, config_file_path, model_path, api_models=ModuleNotFoundError, *args, **kwargs):
+    def __init__(self, config_file_path, model_path, api_models=ModuleNotFoundError, only_api=False, *args, **kwargs):
         super(LLMPipelineForm, self).__init__(*args, **kwargs)
-        import yaml
 
-        with open(config_file_path, 'r') as file:
-            config_data = yaml.safe_load(file)
+        if not only_api:
+            import yaml
+
+            with open(config_file_path, 'r') as file:
+                config_data = yaml.safe_load(file)
 
         if api_models:
             model_choices = [(f"[API]{model.id}", f"[API] {model.id}")
-                             for model in api_models.data]
+                            for model in api_models.data]
         else:
             model_choices = []
 
         # Extract model choices from config data
-        model_choices.extend([(model["file_name"], model["display_name"])
-                         for model in config_data["models"]])
+        if not only_api:
+            model_choices.extend([(model["file_name"], model["display_name"])
+                                 for model in config_data["models"]])
 
         # Set choices for the model field
         self.model.choices = model_choices

@@ -37,6 +37,7 @@ def create_parser() -> ArgumentParser:
     parser.add_argument("--password", type=str, default=os.getenv('PASSWORD', ""), help="Password for password protection")
     parser.add_argument("--api_url", type=str, default=os.getenv('API_URL', ""), help="URL of an OpenAI-compatible API to use instead of local models")
     parser.add_argument("--api_key", type=str, default=os.getenv('API_KEY', ""), help="API key to use with the OpenAI-compatible API")
+    parser.add_argument("--only_api", action="store_true", default=os.getenv('ONLY_API', 'false') == 'true', help="Only use the OpenAI-compatible API for processing. Do not check for local models and the llama.cpp server.")
     return parser
 
 
@@ -156,25 +157,32 @@ if __name__ == "__main__":
     app.config["NO_PARALLEL"] = args.disable_parallel
     app.config["VERBOSE_LLAMA"] = args.verbose_llama
     app.config["PARALLEL_PREPROCESSING"] = not args.no_parallel_preprocessing
+    app.config["ONLY_API"] = args.only_api
 
     app.config["MODE"] = args.mode
 
+    if args.only_api:
+        print("Running in API-only mode. No llama-cpp server will be loaded.")
+        if not args.api_url or not args.api_key:
+            raise ValueError("API URL and API key must be specified when running in API-only mode. Please set --api_url and --api_key.")
+
     init_api(args.api_url, args.api_key)
 
-    if args.gpu != "all":
+    if args.gpu != "all" and not args.only_api:
         print("Using GPU " + args.gpu)
 
     # if model path is relative, make it absolute
-    if not os.path.isabs(app.config["MODEL_PATH"]):
+    if not os.path.isabs(app.config["MODEL_PATH"]) and not args.only_api:
         app.config["MODEL_PATH"] = os.path.abspath(app.config["MODEL_PATH"])
 
     # if server path is relative, make it absolute
-    if not os.path.isabs(app.config["SERVER_PATH"]):
+    if not os.path.isabs(app.config["SERVER_PATH"]) and not args.only_api:
         app.config["SERVER_PATH"] = os.path.abspath(app.config["SERVER_PATH"])
 
-    check_model_config(app.config["MODEL_PATH"], app.config["CONFIG_FILE"],)
+    if not args.only_api:
+        check_model_config(app.config["MODEL_PATH"], app.config["CONFIG_FILE"],)
 
-    if not os.path.isfile(app.config["SERVER_PATH"]):
+    if not os.path.isfile(app.config["SERVER_PATH"]) and not args.only_api:
         print("WARNING: Llama.cpp server executable not found in '"  + app.config["SERVER_PATH"] + "'. Did you specify --server_path correctly?")
 
     print("Start Webserver on http://" + args.host + ":" + str(args.port))

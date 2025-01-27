@@ -238,13 +238,13 @@ def annotationhelperselector():
             label["label_classes"] = label_type_mapping[label["label_name"]]["label_classes"]
         else:
             llm_output_values = annotation_jobs[job_id].llm_output_df[label["label_name"]]
-            llm_output_values = [value for value in llm_output_values if isinstance(value, str)]
+            llm_output_values = [str(value) for value in llm_output_values] #[value for value in llm_output_values if isinstance(value, str)]
             # check if any of the values starts with "["
             if any(str(value).startswith('[') for value in llm_output_values):
                 llm_output_values = extract_first_non_empty_string(llm_output_values)
 
             # check what label type (boolean, multiclass, stringmatch) could be used for a label based on the values (multiclass if at least one value appears more than one time)
-            if len(set(llm_output_values)) == 2 and ("True" in llm_output_values and "False" in llm_output_values or "true" in llm_output_values and "false" in llm_output_values or 1 in llm_output_values and 0 in llm_output_values or "yes" in llm_output_values and "no" in llm_output_values or "ja" in llm_output_values and "nein" in llm_output_values):
+            if len(set(llm_output_values)) == 2 and ("True" in llm_output_values and "False" in llm_output_values or "true" in llm_output_values and "false" in llm_output_values or 1 in llm_output_values and 0 in llm_output_values or "yes" in llm_output_values and "no" in llm_output_values or "ja" in llm_output_values and "nein" in llm_output_values or "TRUE" in llm_output_values and "FALSE" in llm_output_values):
                 label["label_type"] = "boolean"
             elif len(set(llm_output_values)) < len(llm_output_values):
                 label["label_type"] = "multiclass"
