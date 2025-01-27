@@ -15,7 +15,7 @@ Web-based tool to extract structured information from medical reports, anonymize
 
 - Supports various input formats: pdf, png, jpg, jpeg, txt, csv, xlsx and docx (only if Word is installed on your system)
 - Performs OCR if necessary (_tesseract_ and _surya-ocr_)
-- Extracts (personal) information from medical reports in JSON format (enforced by a grammar)
+- Extracts (personal) information from medical reports in JSON format (enforced by a JSON schema or [llama.cpp GBNF grammar](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md))
 
 **Information Extraction**:
 
@@ -76,7 +76,7 @@ models:
     n_gpu_layers: 200 # How many layers to offload to the GPU. You should always try to offload all! e.g. 33 for Llama 3.1 8B or 82 for Llama 3.1 70B. Can be set to e.g. 200 to make sure all layers are offloaded for (almost) all models.
 ```
 
-## Run with Docker
+## Run with Docker (CUDA)
 
 > [!IMPORTANT]
 > The docker images currently only support NVIDIA GPUs with compute level 8.6 or higher (Ampere generation). You can manually build the docker image for other architectures or use the manual setup. Llama.cpp which is used as a backend for LLM-AIx supports a huge variety of hardware (including NVIDIA, AMD, Apple, Intel GPUs and also CPUs).
@@ -86,20 +86,29 @@ models:
 2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
 3. Go to the repository directory: `cd LLMAIx`
 4. Edit `docker-compose.yml` with the correct path to the models directory. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
-5. Run the docker image: `docker-compose up` (add `-d` to run in detached mode)
+5. Run the docker image: `docker compose up` (add `-d` to run in detached mode)
 
 Now access in your browser via `http://localhost:19999`
 
-Alternatively to the first step, create a `docker-compose.yml` and `config.yml` file. Edit the files according to this repository, no need to download the whole repository!
+## Run with Docker (API only)
 
-### Build Docker Image
+> [!TIP]
+> If you want to use LLMAIx only with an OpenAI-compatible API, then you don't need the large CUDA-enabled docker images including llama.cpp.
+
+1. Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
+2. Go to the repository directory: `cd LLMAIx`
+3. Edit `docker-compose-api.yml` with the `API_URL` and `API_KEY`. 
+4. Run the docker image: `docker compose -f docker-compose-api.yml up` (add `-d` to run in detached mode)
+
+
+## Build Docker Image
 
 Run `docker compose build` inside of the repository.
 
 > [!Tip]
 > You can specify the compute level of your CUDA-capable GPU in the docker-compose file. 
 >
-> Use `86` for compute level 8.6.
+> Use `86` for compute level 8.6 (Ampere generation, except the server GPUs like A100 which need 8.0).
 >
 > Look up here for your GPU: [GPU Compute Capabilites](https://developer.nvidia.com/cuda-gpus)
 
@@ -115,11 +124,10 @@ Run `docker compose build` inside of the repository.
   - `source venv/bin/activate`
   - `pip install -r requirements.txt`
 
-## Launch LLM-AIx
+6. Run: `python app.py`
 
-Run:
-`python app.py`
 
+## LLMAIx Parameters
 
 |Parameter|Description|Example|
 |---|---|---|
@@ -138,6 +146,7 @@ Run:
 |--password|If a password is added, it will be used for password protection. Default username: llmaix||
 |--api_url|If an OpenAI-compatible API URL is added, it will be used for OpenAI-compatible API requests. Default: ''|''|
 |--api_key|If an API key is added, it will be used for OpenAI-compatible API requests. Default: ''|''|
+|--only_api|If specified, you have to set --api_url and --api_key. The model config / llama.cpp server path will not be checked. Default: False|
 
 
 ## Additional Notes
@@ -148,7 +157,7 @@ Run:
 
 ## Contributions
 
-Pull requests are welcome!
+Please open an issue or discussion if you have any question.Pull requests are welcome!
 
 ## Citation
 
