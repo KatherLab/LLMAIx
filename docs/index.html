@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Schema Builder</title>
+    <!-- Add necessary CSS dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">JSON Schema Builder</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <button id="save-schema" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Schema
+                    </button>
+                    <button id="load-schema" class="btn btn-secondary">
+                        <i class="bi bi-upload"></i> Load Schema
+                    </button>
+                    <button id="generate-schema" class="btn btn-success">
+                        <i class="bi bi-file-earmark-code"></i> Generate Schema
+                    </button>
+                </div>
+
+                <input type="file" id="load-file-schema" style="display:none;" />
+                
+                <!-- Schema Entries -->
+                <div id="schema_entries" class="list-group">
+                    <!-- Initial row will be added by JavaScript -->
+                </div>
+
+                <!-- Add New Rule Button -->
+                <button type="button" id="add-row-schema" class="btn btn-outline-success mt-3">
+                    <i class="bi bi-plus-circle"></i> Add Rule
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for displaying generated schema -->
+    <div class="modal fade" id="schemaModal" tabindex="-1" aria-labelledby="schemaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="schemaModalLabel">Generated JSON Schema</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="generatedSchema"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="copySchema" class="btn btn-primary">Copy Schema</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add necessary JS dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let entryIndex = 0;  // Initial row index
+
+        function createEntryHTML(data = {}) {
+            const {
+                field_name = '',
+                field_type = 'string',
+                string_min_length = '',
+                string_length = '',
+                number_min_length = '',
+                number_length = '',
+                options = ''
+            } = data;
+        
+            // Function to create the options for field_type dropdown with correct selection
+            function createFieldTypeOptions(selectedType) {
+                const fieldTypes = ['string', 'number', 'boolean', 'options'];
+                return fieldTypes.map(type => {
+                    return `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type.charAt(0).toUpperCase() + type.slice(1)}</option>`;
+                }).join('');
+            }
+        
+            return `
+                <div class="list-group-item">
+                    <div class="entry row g-2">
+                        <!-- Field Name -->
+                        <div class="col-md-3 form-floating">
+                            <input type="text" name="field_name" class="form-control" value="${field_name}" placeholder="Field Name">
+                            <label for="field_name">Field Name</label>
+                        </div>
+        
+                        <!-- Field Type -->
+                        <div class="col-md-2 form-floating">
+                            <select name="field_type" class="form-select">
+                                ${createFieldTypeOptions(field_type)}
+                            </select>
+                            <label>Field Type</label>
+                        </div>
+        
+                        <!-- String fields -->
+                        <div class="col-md-2 form-floating string-field" style="display: ${field_type === 'string' ? 'block' : 'none'};">
+                            <input type="number" name="string_min_length" class="form-control" value="${string_min_length}" placeholder="Min Length">
+                            <label>Min Length</label>
+                        </div>
+                        <div class="col-md-2 form-floating string-field" style="display: ${field_type === 'string' ? 'block' : 'none'};">
+                            <input type="number" name="string_length" class="form-control" value="${string_length}" placeholder="Max Length">
+                            <label>Max Length</label>
+                        </div>
+        
+                        <!-- Number fields -->
+                        <div class="col-md-2 form-floating number-field" style="display: ${field_type === 'number' ? 'block' : 'none'};">
+                            <input type="number" name="number_min_length" class="form-control" value="${number_min_length}" placeholder="Min Value">
+                            <label>Min Value</label>
+                        </div>
+                        <div class="col-md-2 form-floating number-field" style="display: ${field_type === 'number' ? 'block' : 'none'};">
+                            <input type="number" name="number_length" class="form-control" value="${number_length}" placeholder="Max Value">
+                            <label>Max Value</label>
+                        </div>
+        
+                        <!-- Options field -->
+                        <div class="col-md-6 form-floating options-field" style="display: ${field_type === 'options' ? 'block' : 'none'};">
+                            <input type="text" name="options" class="form-control" value="${options}" placeholder="Options (comma-separated)">
+                            <label>Options</label>
+                        </div>
+        
+                        <!-- Remove button -->
+                        <div class="col-md-1 d-flex">
+                            <button type="button" class="remove-row btn btn-danger">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize with one row
+        $(document).ready(function() {
+            const initialRow = createEntryHTML();
+            $('#schema_entries').append(initialRow);
+        });
+
+        // Add row functionality
+        $('#add-row-schema').click(function() {
+            const newRow = createEntryHTML();
+            $('#schema_entries').append(newRow);
+            entryIndex++;
+        });
+
+        // Remove row functionality
+        $(document).on('click', '.remove-row', function() {
+            $(this).closest('.list-group-item').remove();
+        });
+
+        // Handle field type changes
+        $(document).on('change', 'select[name="field_type"]', function() {
+            const entry = $(this).closest('.entry');
+            const fieldType = $(this).val();
+            
+            entry.find('.string-field, .number-field, .options-field').hide();
+            entry.find(`.${fieldType}-field`).show();
+        });
+
+        $('#save-schema').click(function() {
+            const schemaData = [];
+            $('#schema_entries .entry').each(function() {
+                const entryData = {
+                    field_name: $(this).find('input[name="field_name"]').val(),
+                    field_type: $(this).find('select[name="field_type"]').val(),
+                    string_min_length: $(this).find('input[name="string_min_length"]').val(),
+                    string_length: $(this).find('input[name="string_length"]').val(),
+                    number_min_length: $(this).find('input[name="number_min_length"]').val(),
+                    number_length: $(this).find('input[name="number_length"]').val(),
+                    options: $(this).find('input[name="options"]').val()
+                };
+                schemaData.push(entryData);
+            });
+        
+            // Create CSV content for entries
+            const csvContent = schemaData.map(e => [
+                e.field_name,
+                e.field_type,
+                e.string_min_length || '',
+                e.string_length || '',
+                e.number_min_length || '',
+                e.number_length || '',
+                e.options || '',
+            ].join(";")).join("\n");
+        
+            // Function to download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'schema_entries.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+
+        // Save schema functionality
+        $('#generate-schema').click(function() {
+            const schemaData = [];
+            $('#schema_entries .entry').each(function() {
+                const entryData = {
+                    field_name: $(this).find('input[name="field_name"]').val(),
+                    field_type: $(this).find('select[name="field_type"]').val(),
+                    string_min_length: $(this).find('input[name="string_min_length"]').val(),
+                    string_length: $(this).find('input[name="string_length"]').val(),
+                    number_min_length: $(this).find('input[name="number_min_length"]').val(),
+                    number_length: $(this).find('input[name="number_length"]').val(),
+                    options: $(this).find('input[name="options"]').val()
+                };
+                schemaData.push(entryData);
+            });
+
+            // Convert to JSON
+            const schemaJSON = {
+                type: "object",
+                properties: {},
+                required: []
+            };
+
+            schemaData.forEach(entry => {
+                const field = {};
+                field.type = entry.field_type;
+                
+                if (entry.field_type === 'string') {
+                    if (entry.string_min_length) field.minLength = parseInt(entry.string_min_length);
+                    if (entry.string_length) field.maxLength = parseInt(entry.string_length);
+                } else if (entry.field_type === 'number') {
+                    if (entry.number_min_length) field.minimum = parseInt(entry.number_min_length);
+                    if (entry.number_length) field.maximum = parseInt(entry.number_length);
+                } else if (entry.field_type === 'options') {
+                    field.enum = entry.options.split(',').map(o => o.trim());
+                }
+
+                schemaJSON.properties[entry.field_name] = field;
+                schemaJSON.required.push(entry.field_name);
+            });
+
+            // Show in modal
+            $('#generatedSchema').text(JSON.stringify(schemaJSON, null, 4));
+            $('#schemaModal').modal('show');
+        });
+
+        // Copy to clipboard functionality
+        $('#copySchema').click(function() {
+            const schemaContent = $('#generatedSchema').text();
+            navigator.clipboard.writeText(schemaContent).then(() => {
+                alert('Schema copied to clipboard!');
+            });
+        });
+
+        // Load schema functionality (CSV)
+        $('#load-schema').click(function() {
+            $('#load-file-schema').click();
+        });
+
+        $('#load-file-schema').change(function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    const rows = csv.split('\n');
+                    const parsedData = rows.map(row => {
+                        const [field_name, field_type, string_min_length, string_length, number_min_length, number_length, options] = row.split(';');
+                        return {
+                            field_name,
+                            field_type,
+                            string_min_length,
+                            string_length,
+                            number_min_length,
+                            number_length,
+                            options
+                        };
+                    });
+                    
+                    // Clear existing entries
+                    $('#schema_entries').empty();
+                    entryIndex = 0;
+
+                    // Add parsed data as rows
+                    parsedData.forEach(data => {
+                        const newRow = createEntryHTML(data);
+                        $('#schema_entries').append(newRow);
+                        entryIndex++;
+                    });
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>
