@@ -154,6 +154,9 @@ Run `docker compose build` inside of the repository.
 > [!NOTE] 
 > An active internet connection is currently required. This is because some javascript and CSS libraries are loaded directly from CDNs. To change that please download them and replace the respective occurrences in the html files.
 
+## JSON Schema Builder
+
+To generate JSON Schemas for structured generation without having to install LLM-AIx, you can use the [JSON Schema Builder](https://katherlab.github.io/LLMAIx/).
 
 ## Contributions
 
