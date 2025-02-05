@@ -7,7 +7,7 @@ ARG UBUNTU_VERSION="24.04"
 # Select base image based on architecture
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder-amd64
 FROM ubuntu:${UBUNTU_VERSION} AS builder-arm64
-FROM ${TARGETARCH:+builder-${TARGETARCH}}
+FROM ${TARGETARCH:+builder-${TARGETARCH}} AS builder
 
 # Common build arguments
 ARG TARGETARCH
@@ -71,8 +71,8 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=0 /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
-COPY --from=0 /build/llama.cpp/build/all_libs/* /usr/local/lib/
+COPY --from=builder /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
+COPY --from=builder /build/llama.cpp/build/all_libs/* /usr/local/lib/
 RUN ldconfig /usr/local/lib
 
 WORKDIR /app
