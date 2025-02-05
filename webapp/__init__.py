@@ -64,7 +64,7 @@ def init_api(api_url: str, api_key: str) -> None:
         else:
             return
 
-    print("Initializing OpenAI client...")
+    print("Initializing OpenAI client with API URL: ", api_url)
 
     openai_client = openai.OpenAI(api_key=api_key, base_url=api_url)
     openai_client.models.list()

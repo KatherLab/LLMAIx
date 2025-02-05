@@ -1,16 +1,20 @@
 # syntax=docker/dockerfile:1
 
+ARG TARGETARCH
 ARG CUDA_VERSION="12.6.3"
 ARG UBUNTU_VERSION="24.04"
-ARG BASE_CUDA_DEV_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
-ARG BASE_CUDA_RUN_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
-FROM ${BASE_CUDA_DEV_CONTAINER} AS builder
+# Select base image based on architecture
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder-amd64
+FROM ubuntu:${UBUNTU_VERSION} AS builder-arm64
+FROM ${TARGETARCH:+builder-${TARGETARCH}}
 
+# Common build arguments
 ARG TARGETARCH
-ARG GGML_CPU_ARM_ARCH=armv8-a
+ARG GGML_CPU_ARM_ARCH=arm64
 ARG CUDA_COMPUTE_LEVEL="86"
 
+# Install build dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -41,19 +45,18 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
             -DLLAMA_CURL=ON \
             -DGGML_NATIVE=OFF \
             -DGGML_CPU_ARM_ARCH=${GGML_CPU_ARM_ARCH}; \
-    else \
-        echo "Unsupported architecture: $TARGETARCH"; \
-        exit 1; \
     fi && \
     cmake --build build -j$(nproc)
 
-# Copy libraries and clean up
 RUN mkdir -p build/all_libs && \
     find build -name "*.so*" -exec cp {} build/all_libs/ \; || true && \
     find build -name "*.dylib" -exec cp {} build/all_libs/ \; || true && \
     find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
 
-FROM ${BASE_CUDA_RUN_CONTAINER} AS runtime
+# Runtime stage - select base image based on architecture
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS runtime-amd64
+FROM ubuntu:${UBUNTU_VERSION} AS runtime-arm64
+FROM ${TARGETARCH:+runtime-${TARGETARCH}}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -64,12 +67,12 @@ RUN apt-get update && \
     libgomp1 \
     curl \
     tesseract-ocr-deu \
-    && apt-get install -y ocrmypdf \
+    ocrmypdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
-COPY --from=builder /build/llama.cpp/build/all_libs/* /usr/local/lib/
+COPY --from=0 /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
+COPY --from=0 /build/llama.cpp/build/all_libs/* /usr/local/lib/
 RUN ldconfig /usr/local/lib
 
 WORKDIR /app
@@ -86,7 +89,6 @@ RUN . .venv/bin/activate && \
     uv pip install -r requirements.txt
 
 COPY . .
-
 ENV LLAMA_ARG_HOST=0.0.0.0
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
