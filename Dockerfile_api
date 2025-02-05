@@ -1,9 +1,6 @@
-# Platform argument is optional
 ARG TARGETPLATFORM
-# Use standard Python image
 FROM python:3.12-slim
 
-# Rest remains the same as before
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
@@ -13,7 +10,6 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
 ENV PYTHONPATH=/app/.venv/lib/python3.12/site-packages
 ENV PATH="/root/.local/bin:$PATH"
 
@@ -27,9 +23,6 @@ RUN . .venv/bin/activate && \
     uv pip install -r requirements.txt
 
 COPY . .
-
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
-
 EXPOSE 5000
-
 CMD [".venv/bin/python", "app.py", "--only_api"]

@@ -71,7 +71,6 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      # Build and push API-only multi-arch image
       - name: Build and push API-only Docker image
         uses: docker/build-push-action@v6
         with:
@@ -79,6 +78,8 @@ jobs:
           file: ./Dockerfile_api
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
