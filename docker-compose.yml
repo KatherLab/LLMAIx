@@ -27,6 +27,7 @@ services:
       # Adjust the API URL and Key if you want to use an OpenAI-compatible API
       - API_URL=${API_URL:-""}
       - API_KEY=${API_KEY:-""}
+      - ONLY_API=${ONLY_API:-false} # if true, a local model config will not be checked
     deploy:
       resources:
         reservations:

@@ -16,3 +16,4 @@ services:
       # Adjust the API URL and Key
       - API_URL=${API_URL:-""}
       - API_KEY=${API_KEY:-""}
+      - ONLY_API=${ONLY_API:-true} # only use the API, local model config will not be checked
