@@ -67,6 +67,7 @@ def init_api(api_url: str, api_key: str) -> None:
     print("Initializing OpenAI client...")
 
     openai_client = openai.OpenAI(api_key=api_key, base_url=api_url)
+    openai_client.models.list()
     try:
         openai_client.models.list()
     except Exception as e:
