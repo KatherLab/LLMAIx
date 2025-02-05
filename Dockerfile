@@ -59,11 +59,12 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3.12 \
     python3.12-venv \
+    python3-pluggy \
     libcurl4-openssl-dev \
     libgomp1 \
     curl \
-    ocrmypdf \
     tesseract-ocr-deu \
+    && apt-get install -y ocrmypdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
