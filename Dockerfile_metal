@@ -1,0 +1,76 @@
+# syntax=docker/dockerfile:1
+ARG UBUNTU_VERSION="24.04"
+
+# Use standard Ubuntu base image for ARM64 (no CUDA)
+FROM ubuntu:${UBUNTU_VERSION} AS builder
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    cmake \
+    libcurl4-openssl-dev \
+    python3.12 \
+    python3.12-venv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+RUN git clone https://github.com/ggerganov/llama.cpp
+WORKDIR /build/llama.cpp
+
+# Build with Metal support (for macOS ARM64)
+ARG GGML_CPU_ARM_ARCH=armv8-a
+RUN cmake -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLAMA_CURL=ON \
+    -DGGML_NATIVE=OFF \
+    -DGGML_CPU_ARM_ARCH=${GGML_CPU_ARM_ARCH} && \
+    cmake --build build -j$(nproc)
+
+# Copy built files
+RUN mkdir -p build/all_libs && \
+    find build -name "*.dylib" -exec cp {} build/all_libs/ \; || true
+
+# Runtime stage
+FROM ubuntu:${UBUNTU_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-venv \
+    python3-pluggy \
+    libcurl4-openssl-dev \
+    libgomp1 \
+    curl \
+    tesseract-ocr-deu \
+    ocrmypdf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /build/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server
+COPY --from=builder /build/llama.cpp/build/all_libs/* /usr/local/lib/
+RUN ldconfig /usr/local/lib
+
+WORKDIR /app
+ENV PYTHONPATH=/app/.venv/lib/python3.12/site-packages
+ENV PATH="/root/.local/bin:$PATH"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv venv && \
+    . .venv/bin/activate && \
+    uv pip install wheel setuptools
+
+COPY requirements.txt .
+RUN . .venv/bin/activate && \
+    uv pip install -r requirements.txt
+
+COPY . .
+ENV LLAMA_ARG_HOST=0.0.0.0
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
+EXPOSE 5000
+
+CMD [".venv/bin/python", "app.py", "--server_path", "/usr/local/bin/llama-server", "--model_path", "/models"]

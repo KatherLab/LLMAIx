@@ -1,18 +1,9 @@
 # syntax=docker/dockerfile:1
-
-ARG TARGETARCH
 ARG CUDA_VERSION="12.6.3"
 ARG UBUNTU_VERSION="24.04"
 
-# Select base image based on architecture
-FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder-amd64
-FROM ubuntu:${UBUNTU_VERSION} AS builder-arm64
-FROM ${TARGETARCH:+builder-${TARGETARCH}} AS builder
-
-# Common build arguments
-ARG TARGETARCH
-ARG GGML_CPU_ARM_ARCH=armv8-a
-ARG CUDA_COMPUTE_LEVEL="86"
+# Use NVIDIA CUDA base image for development
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
 
 # Install build dependencies
 RUN apt-get update && \
@@ -30,33 +21,23 @@ WORKDIR /build
 RUN git clone https://github.com/ggerganov/llama.cpp
 WORKDIR /build/llama.cpp
 
-# Configure build based on architecture
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DLLAMA_CUDA=ON \
-            -DLLAMA_CURL=ON \
-            -DGGML_CUDA=ON \
-            -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL}; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        cmake -B build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DLLAMA_CURL=ON \
-            -DGGML_NATIVE=OFF \
-            -DGGML_CPU_ARM_ARCH=${GGML_CPU_ARM_ARCH}; \
-    fi && \
+# Build with CUDA support
+ARG CUDA_COMPUTE_LEVEL="86"
+RUN cmake -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLAMA_CUDA=ON \
+    -DLLAMA_CURL=ON \
+    -DGGML_CUDA=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} && \
     cmake --build build -j$(nproc)
 
+# Copy built files
 RUN mkdir -p build/all_libs && \
-    find build -name "*.so*" -exec cp {} build/all_libs/ \; || true && \
-    find build -name "*.dylib" -exec cp {} build/all_libs/ \; || true && \
-    find . -maxdepth 1 \( -name "llama-*" -o -name "ggml" -o -name "examples" -o -name "models" \) ! -name "llama-server" -exec rm -rf {} +
+    find build -name "*.so*" -exec cp {} build/all_libs/ \; || true
 
-# Runtime stage - select base image based on architecture
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS runtime-amd64
-FROM ubuntu:${UBUNTU_VERSION} AS runtime-arm64
-FROM ${TARGETARCH:+runtime-${TARGETARCH}}
+# Runtime stage
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

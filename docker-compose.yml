@@ -5,7 +5,8 @@ services:
       args:
         COMPUTE_LEVEL: "86" # Your CUDA GPU compute level (here: 8.6)
         CUDA_VERSION: "12.6.3"
-    image: ghcr.io/katherlab/llmaix:latest
+    # Change image to ghcr.io/katherlab/llmaix-metal:latest to use on Apple Silicon
+    image: ghcr.io/katherlab/llmaix-cuda:latest
     ports:
       - "19999:${PORT:-5000}"
     volumes:

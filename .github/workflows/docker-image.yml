@@ -1,4 +1,5 @@
 name: Build and Push Multi-arch Docker Images
+
 on:
   release:
     types: [published]
@@ -84,16 +85,28 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
 
-      # Build and push CUDA/Metal version for different architectures
-      - name: Build and push CUDA/Metal Docker image
+      - name: Build and push CUDA-enabled Docker image (AMD64 only)
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          file: ./Dockerfile_cuda
+          platforms: linux/amd64
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:latest
+
+      - name: Build and push Metal-enabled Docker image (ARM64 only)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile_metal
+          platforms: linux/arm64
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-metal:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-metal:latest
