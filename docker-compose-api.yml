@@ -11,9 +11,9 @@ services:
       - HOST=${HOST:-0.0.0.0}
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
-      # Set a password here if you want to protect the API
-      - PASSWORD=${PASSWORD:-""}
-      # Adjust the API URL and Key
-      - API_URL=${API_URL:-""}
-      - API_KEY=${API_KEY:-""}
+      # Set a password here if you want to protect the API (e.g. - PASSWORD=llmaix)
+      - PASSWORD=${PASSWORD:-}
+      # Adjust the API URL and Key (e.g. - API_URL=http://localhost:5000 - API_KEY=someapikey)
+      - API_URL=${API_URL:-}
+      - API_KEY=${API_KEY:-}
       - ONLY_API=${ONLY_API:-true} # only use the API, local model config will not be checked

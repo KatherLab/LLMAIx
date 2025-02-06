@@ -53,6 +53,9 @@ def create_app(auth_required: bool = False, password: str = ""):
 def init_api(api_url: str, api_key: str) -> None:
     global openai_client
 
+    api_key = api_key.strip('"')
+    api_url = api_url.strip('"')
+
     if api_key:
         if not api_url:
             print("API Key but no API URL specified!")

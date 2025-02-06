@@ -11,7 +11,7 @@ FROM ${TARGETARCH:+builder-${TARGETARCH}} AS builder
 
 # Common build arguments
 ARG TARGETARCH
-ARG GGML_CPU_ARM_ARCH=arm64
+ARG GGML_CPU_ARM_ARCH=armv8-a
 ARG CUDA_COMPUTE_LEVEL="86"
 
 # Install build dependencies

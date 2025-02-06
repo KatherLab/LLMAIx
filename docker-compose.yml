@@ -22,11 +22,11 @@ services:
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
-      # Set a password here if you want to protect the API
-      - PASSWORD=${PASSWORD:-""}
-      # Adjust the API URL and Key if you want to use an OpenAI-compatible API
-      - API_URL=${API_URL:-""}
-      - API_KEY=${API_KEY:-""}
+      # Set a password here if you want to protect the API (e.g. - PASSWORD=llmaixpassword). If you set a password, the username is llmaix
+      - PASSWORD=${PASSWORD:-}
+      # Adjust the API URL and Key (e.g. - API_URL=http://localhost:5000 - API_KEY=someapikey)
+      - API_URL=${API_URL:-}
+      - API_KEY=${API_KEY:-}
       - ONLY_API=${ONLY_API:-false} # if true, a local model config will not be checked
     deploy:
       resources:
