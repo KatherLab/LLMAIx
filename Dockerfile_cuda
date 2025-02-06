@@ -9,27 +9,34 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    git \
     cmake \
+    git \
     libcurl4-openssl-dev \
     python3.12 \
     python3.12-venv \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Set CUDA architecture
+ARG CUDA_DOCKER_ARCH="86"
+
 WORKDIR /build
 RUN git clone https://github.com/ggerganov/llama.cpp
 WORKDIR /build/llama.cpp
 
 # Build with CUDA support
-ARG CUDA_COMPUTE_LEVEL="86"
-RUN cmake -B build \
+ARG CMAKE_ARGS=""
+RUN if [ "${CUDA_DOCKER_ARCH}" != "default" ]; then \
+    CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=${CUDA_DOCKER_ARCH}"; \
+fi && \
+    cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLAMA_CUDA=ON \
     -DLLAMA_CURL=ON \
     -DGGML_CUDA=ON \
     -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_CUDA_ARCHITECTURES=${CUDA_COMPUTE_LEVEL} && \
+    ${CMAKE_ARGS} \
+    -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined . && \
     cmake --build build -j$(nproc)
 
 # Copy built files
