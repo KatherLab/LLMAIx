@@ -55,7 +55,7 @@ Examples of doctoral reports in various formats as well as grammar examples and 
 
 ## LLM Models and Model Config
 
-LLM-AIx supports all models which are supported by llama-cpp at the time. Please download models in the **gguf** format.
+LLM-AIx supports all models which are supported by llama-cpp at the time. Please download models in the **gguf** format. 
 
 In addition, create a config.yml file inside of the model directoy and configure your downloaded models according to the following example.
 
@@ -81,6 +81,7 @@ models:
 > [!IMPORTANT]
 > The docker images currently only support NVIDIA GPUs with compute level 8.6 or higher (Ampere generation). You can manually build the docker image for other architectures or use the manual setup. Llama.cpp which is used as a backend for LLM-AIx supports a huge variety of hardware (including NVIDIA, AMD, Apple, Intel GPUs and also CPUs).
 
+This Docker image ships [llama.cpp](https://github.com/ggerganov/llama.cpp), special thanks to all contributors!
 
 1. Download the desired models (must be compatible with llama-cpp, in gguf format, e.g. from HuggingFace) into a new models directory!
 2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
@@ -165,3 +166,14 @@ Please open an issue or discussion if you have any question.Pull requests are we
 ## Citation
 
 This repository is part of this publication: [LLM-AIx: An open source pipeline for Information Extraction from unstructured medical text based on privacy pre-serving Large Language Models](https://doi.org/10.1101/2024.09.02.24312917)
+
+
+## License
+
+This project ships under the [AGPL-3.0](LICENSE) license.
+
+## Docker images: Llama CPP License
+
+The docker images include a pre-built version of [llama.cpp](https://github.com/ggerganov/llama.cpp), special thanks to all contributors!
+
+Please note the [MIT licence](https://github.com/ggerganov/llama.cpp/blob/master/LICENSE) of llama.cpp!
