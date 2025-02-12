@@ -3,7 +3,7 @@ services:
     build: 
       context: .
       args:
-        COMPUTE_LEVEL: "86" # Your CUDA GPU compute level (here: 8.6)
+        COMPUTE_LEVEL: "86" # Your CUDA GPU compute level (here: 8.6). Only relevant when building the image.
         CUDA_VERSION: "12.6.3"
     # Change image to ghcr.io/katherlab/llmaix-metal:latest to use on Apple Silicon
     image: ghcr.io/katherlab/llmaix-cuda:latest
@@ -23,9 +23,9 @@ services:
       - DEBUG=${DEBUG:-false}
       - MODE=${MODE:-choice}
       - VERBOSE_LLAMA=${VERBOSE_LLAMA:-false}
-      # Set a password here if you want to protect the API (e.g. - PASSWORD=llmaixpassword). If you set a password, the username is llmaix
+      # Set a password here if you want to protect the API (e.g. - PASSWORD:-llmaixpassword). If you set a password, the username is llmaix
       - PASSWORD=${PASSWORD:-}
-      # Adjust the API URL and Key (e.g. - API_URL=http://localhost:5000 - API_KEY=someapikey)
+      # Adjust the API URL and Key (e.g. - API_URL:-http://localhost:5000 - API_KEY:-someapikey)
       - API_URL=${API_URL:-}
       - API_KEY=${API_KEY:-}
       - ONLY_API=${ONLY_API:-false} # if true, a local model config will not be checked
