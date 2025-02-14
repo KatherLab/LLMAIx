@@ -24,6 +24,7 @@ ENV TARGETPLATFORM_ARCH=${TARGETPLATFORM_ARCH}
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    ca-certificates \
     curl \
     ocrmypdf \
     tesseract-ocr-deu \
@@ -45,15 +46,17 @@ ENV PIP_PLATFORM=${PIP_PLATFORM}
 
 # Install uv and set up virtual environment
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    /root/.cargo/bin/uv venv && \
+    . /root/.cargo/env && \
+    uv venv && \
     . .venv/bin/activate && \
-    /root/.cargo/bin/uv pip install wheel setuptools
+    uv pip install wheel setuptools
 
 # Copy and install requirements
 COPY requirements.txt .
-RUN . .venv/bin/activate && \
+RUN . /root/.cargo/env && \
+    . .venv/bin/activate && \
     # Force platform-specific wheels
-    /root/.cargo/bin/uv pip install --platform ${TARGETPLATFORM_ARCH}-linux-gnu \
+    uv pip install --platform ${TARGETPLATFORM_ARCH}-linux-gnu \
                   --only-binary=:all: \
                   --target-python-version=cp312 \
                   -r requirements.txt
