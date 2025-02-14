@@ -46,16 +46,15 @@ ENV PIP_PLATFORM=${PIP_PLATFORM}
 # Install uv and set up virtual environment
 ENV PATH="/root/.local/bin:$PATH"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    uv venv && \
+    /root/.local/bin/uv venv && \
     . .venv/bin/activate && \
-    uv pip install wheel setuptools
+    /root/.local/bin/uv pip install wheel setuptools
 
 # Copy and install requirements
 COPY requirements.txt .
-RUN . /root/.cargo/env && \
-    . .venv/bin/activate && \
+RUN . .venv/bin/activate && \
     # Force platform-specific wheels
-    uv pip install --platform ${TARGETPLATFORM_ARCH}-linux-gnu \
+    /root/.local/bin/uv pip install --platform ${TARGETPLATFORM_ARCH}-linux-gnu \
                   --only-binary=:all: \
                   --target-python-version=cp312 \
                   -r requirements.txt
