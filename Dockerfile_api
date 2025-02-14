@@ -7,6 +7,8 @@ RUN apt-get update && \
     ocrmypdf \
     tesseract-ocr-deu \
     libjpeg-dev \
+    libxml2 \
+    libxslt1-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

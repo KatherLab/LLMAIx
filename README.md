@@ -47,6 +47,10 @@ View one of the tutorials:
 
 [Anonymizer Tutorial](static/anonymization.md)
 
+## Hardware Requirements
+
+[Hardware Requirements](static/hardware.md)
+
 
 ## Examples
 
