@@ -39,14 +39,13 @@ WORKDIR /app
 
 # Set Python environment variables
 ENV PYTHONPATH=/app/.venv/lib/python3.12/site-packages
-ENV PATH="/root/.local/bin:$PATH"
 # Set platform-specific pip configurations
 RUN echo "export PIP_PLATFORM=$(cat /platform)-linux-gnu" >> /etc/environment
 ENV PIP_PLATFORM=${PIP_PLATFORM}
 
 # Install uv and set up virtual environment
+ENV PATH="/root/.local/bin:$PATH"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    . /root/.cargo/env && \
     uv venv && \
     . .venv/bin/activate && \
     uv pip install wheel setuptools
