@@ -2,6 +2,7 @@ services:
   web:
     build: 
       context: .
+      dockerfile: Dockerfile_cuda
       args:
         COMPUTE_LEVEL: "86" # Your CUDA GPU compute level (here: 8.6). Only relevant when building the image.
         CUDA_VERSION: "12.6.3"
