@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: katherlab/llmaix
 
 jobs:
-  docker-linux:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -72,12 +72,12 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build and push API-only Docker image (AMD64)
+      - name: Build and push API-only Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile_api
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -85,7 +85,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
 
-      - name: Build and push CUDA-enabled Docker image (AMD64)
+      - name: Build and push CUDA-enabled Docker image (AMD64 only)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -98,43 +98,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:${{ env.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:latest
 
-  docker-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker
-        run: |
-          brew install colima docker docker-compose
-          colima start --arch aarch64 --memory 4 --disk 100 --cpu 4 --vm-type=vz --mount-type=virtiofs
-          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract version from tag
-        id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Build and push API-only Docker image (ARM64)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile_api
-          platforms: linux/arm64
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
-
-      - name: Build and push Metal-enabled Docker image (ARM64)
+      - name: Build and push Metal-enabled Docker image (ARM64 only)
         uses: docker/build-push-action@v6
         with:
           context: .
