@@ -106,6 +106,7 @@ jobs:
 
       - name: Set up Docker
         run: |
+          brew install colima
           brew install docker docker-compose
           colima start
 
