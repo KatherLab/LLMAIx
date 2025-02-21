@@ -65,4 +65,4 @@ COPY . .
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 EXPOSE 5000
 
-CMD [".venv/bin/activate", "&&", ".venv/bin/python", "app.py", "--only_api"]
+CMD ["sh", "-c", ". .venv/bin/activate && .venv/bin/python app.py --only_api"]
