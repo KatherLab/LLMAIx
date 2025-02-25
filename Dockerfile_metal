@@ -44,6 +44,7 @@ RUN apt-get update && \
     libcurl4-openssl-dev \
     libgomp1 \
     curl \
+    build-essential \
     tesseract-ocr-deu \
     ocrmypdf \
     && apt-get clean \

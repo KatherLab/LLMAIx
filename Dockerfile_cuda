@@ -53,6 +53,7 @@ RUN apt-get update && \
     python3-pluggy \
     libcurl4-openssl-dev \
     libgomp1 \
+    build-essential \
     curl \
     tesseract-ocr-deu \
     ocrmypdf \
