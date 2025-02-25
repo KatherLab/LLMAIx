@@ -39,22 +39,33 @@ def add_strings_with_no_umlauts(string_list):
 def convert_personal_info_list(personal_info_list: str) -> list:
     import ast
     from collections import OrderedDict
-
+    
     # Clean the input string
     personal_info_list = personal_info_list.replace("nan,", "").replace("'',", "").replace("nan", '')
     
-    # Convert to list
-    personal_info_list = ast.literal_eval(personal_info_list)
+    try:
+        # Try to convert to list using ast.literal_eval
+        personal_info_list = ast.literal_eval(personal_info_list)
+        
+        # If it's a single item (not a list), wrap it in a list
+        if not isinstance(personal_info_list, list):
+            personal_info_list = [personal_info_list]
+            
+    except (ValueError, SyntaxError):
+        # If ast.literal_eval fails, assume it's a single value
+        # Strip any extra quotes and put it in a list
+        personal_info_list = personal_info_list.strip("'\"")
+        personal_info_list = [personal_info_list]
     
     # Use OrderedDict to remove duplicates while preserving order
     personal_info_list = list(OrderedDict.fromkeys(personal_info_list))
     
     # Use list comprehension to filter out empty strings, "nan", and None
     personal_info_list_output = [item for item in personal_info_list if not is_empty_string_nan_or_none(item)]
-
+    
     # Add another version without umlauts
     personal_info_list_output = add_strings_with_no_umlauts(personal_info_list_output)
-
+    
     return personal_info_list_output
 
 
