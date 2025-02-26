@@ -95,6 +95,9 @@ This Docker image ships [llama.cpp](https://github.com/ggerganov/llama.cpp), spe
 
 Now access in your browser via `http://localhost:19999`
 
+Update the docker image: `docker compose pull`
+
+
 ## Run with Docker (API only)
 
 > [!TIP]
@@ -105,6 +108,7 @@ Now access in your browser via `http://localhost:19999`
 3. Edit `docker-compose-api.yml` with the `API_URL` and `API_KEY`. 
 4. Run the docker image: `docker compose -f docker-compose-api.yml up` (add `-d` to run in detached mode)
 
+Update the docker image: `docker compose -f docker-compose-api.yml pull`
 
 ## Build Docker Image
 
