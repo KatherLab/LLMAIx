@@ -12,8 +12,6 @@ import time
 import subprocess
 from PIL import Image
 from docx import Document
-from odf import teletype
-from odf.opendocument import load
 import uuid
 import zipfile
 from io import BytesIO
@@ -423,13 +421,6 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
             pdf_file_save_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path).split('.docx')[0]}.pdf")
             convert_docx(file_path, pdf_file_save_path)
             merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': pdf_file_save_path, 'id': ''}))
-
-        elif file_path.endswith('.odt'):
-            doc = load(file_path)
-            doc_text = ''
-            for element in doc.getElementsByType(text.P):
-                doc_text += teletype.extractText(element)
-            merged_data.append(pd.DataFrame({'report': [doc_text], 'filepath': '', 'id': ''}))
 
         else:
             return f"Unsupported file format: {file_path}"

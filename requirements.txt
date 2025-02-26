@@ -6,7 +6,6 @@ dkpro-cassis
 docx2pdf
 matplotlib
 numpy
-odfpy
 pandas
 pillow
 PyYAML
