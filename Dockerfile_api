@@ -55,7 +55,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     /root/.local/bin/uv pip install wheel setuptools
 
 # Copy and install requirements
-COPY requirements.txt .
+COPY requirements_api.txt .
 RUN . .venv/bin/activate && \
     /root/.local/bin/uv pip install \
         --python-platform="$(cat /platform)-unknown-linux-gnu" \
