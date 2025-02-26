@@ -59,7 +59,7 @@ COPY requirements.txt .
 RUN . .venv/bin/activate && \
     /root/.local/bin/uv pip install \
         --python-platform="$(cat /platform)-unknown-linux-gnu" \
-        -r requirements.txt
+        -r requirements_api.txt
 
 COPY . .
 

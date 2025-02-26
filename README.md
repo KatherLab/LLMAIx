@@ -103,6 +103,9 @@ Update the docker image: `docker compose pull`
 > [!TIP]
 > If you want to use LLMAIx only with an OpenAI-compatible API, then you don't need the large CUDA-enabled docker images including llama.cpp.
 
+> [!IMPORTANT]
+> This packages does only contain support for the tesseract OCR method!
+
 1. Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
 2. Go to the repository directory: `cd LLMAIx`
 3. Edit `docker-compose-api.yml` with the `API_URL` and `API_KEY`. 
