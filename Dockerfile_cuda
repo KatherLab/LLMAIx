@@ -56,6 +56,7 @@ RUN apt-get update && \
     libgomp1 \
     build-essential \
     curl \
+    pngquant \
     tesseract-ocr-deu \
     ocrmypdf \
     && apt-get clean \

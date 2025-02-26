@@ -47,6 +47,7 @@ RUN apt-get update && \
     curl \
     build-essential \
     tesseract-ocr-deu \
+    pngquant \
     ocrmypdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

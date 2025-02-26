@@ -26,8 +26,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    ocrmypdf \
+    pngquant \
     tesseract-ocr-deu \
+    ocrmypdf \
     libjpeg-dev \
     libxml2 \
     libxslt1-dev \

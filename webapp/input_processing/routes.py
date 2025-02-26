@@ -260,13 +260,13 @@ def extract_text_from_images_surya(images, det_model, rec_model, langs):
 
     return predictions
 
-def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model):
+def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model, ocr_languages):
     from PIL import Image
 
     from surya.input.load import load_pdf
 
 
-    langs = ["de", "en"] 
+    # langs = ["de", "en"] 
 
     if file_path.endswith('.pdf'):
         pass
@@ -289,7 +289,7 @@ def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model):
         raise ValueError("Unsupported file type")
     
     images, names = load_pdf(file_path)
-    ocr_output = extract_text_from_images_surya(images, det_model, rec_model, langs)
+    ocr_output = extract_text_from_images_surya(images, det_model, rec_model, ocr_languages)
     text = add_text_layer_to_pdf(file_path, ocr_output, ocr_file_output_path)
 
     del rec_model
@@ -298,7 +298,7 @@ def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model):
     return text
 
 
-def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_previous_ocr=False, det_model=None, rec_model=None):
+def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_languages:list=[], remove_previous_ocr=False, det_model=None, rec_model=None):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
@@ -345,10 +345,12 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                 if contains_text and force_ocr and remove_previous_ocr:
                     remove_selectable_text_from_pdf(file_path)
                 if ocr_method == 'tesseract':
+                    if not ocr_languages:
+                        ocr_languages = ['en']
                     ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
                     if shutil.which("tesseract") is not None:
                         if shutil.which("ocrmypdf") is not None:
-                            subprocess.run(['ocrmypdf', '-l', 'deu', '--force-ocr', file_path, ocr_output_path])
+                            subprocess.run(['ocrmypdf', '-l', '+'.join(ocr_languages), '--force-ocr', file_path, ocr_output_path])
                         else:
                             return "OCRMyPDF not found but required for OCR."
                     else:
@@ -386,7 +388,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', remove_p
                         print(str(e))
                         return "surya or torch pyhton library not found but required for surya OCR."
 
-                    ocr_text = ocr_surya(file_path, ocr_output_path, det_model, rec_model)
+                    ocr_text = ocr_surya(file_path, ocr_output_path, det_model, rec_model, ocr_languages)
                     # ocr_output_path = file_path
 
                 
@@ -471,8 +473,10 @@ def remove_selectable_text_from_pdf(pdf_path):
     os.rename(temp_path, pdf_path)
 
 
-def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract', remove_previous_ocr=False):
+def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr=False, ocr_method='tesseract', ocr_languages:list=[],remove_previous_ocr=False):
     merged_data = []
+
+    print(f"Run OCR with OCR method: {ocr_method} and OCR languages: {ocr_languages}")
 
     if ocr_method == 'tesseract':
         max_workers = 20 if parallel_preprocessing else 1
@@ -489,9 +493,9 @@ def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as inner_executor:
         if ocr_method == 'surya':
-            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, remove_previous_ocr, det_model, rec_model): file_path for file_path in file_paths}
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr, det_model, rec_model): file_path for file_path in file_paths}
         else:
-            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, remove_previous_ocr): file_path for file_path in file_paths}
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr): file_path for file_path in file_paths}
         
         for i, future in enumerate(futures.as_completed(future_to_file)):
             file_path = future_to_file[future]
@@ -657,23 +661,17 @@ def download():
 
 @input_processing.route("/", methods=['GET', 'POST'])
 def main():
-
     form = PreprocessUploadForm(method=session.get('mode', 'informationextraction'))
-
     if form.validate_on_submit():
-
         current_datetime = datetime.now()
         prefix = current_datetime.strftime("%Y%m%d%H%M")
-
         if current_app.config['MODE'] == 'anonymizer':
             job_id = f"{form.text_split.data}-{prefix}-" + secrets.token_urlsafe(8)
         else:
             job_id = f"{prefix}-" + secrets.token_urlsafe(8)
-
         temp_dir = tempfile.mkdtemp()
-
         session['text_split'] = form.text_split.data
-
+        
         # Save each uploaded file to the temporary directory
         file_paths = []
         for file in form.files.data:
@@ -681,10 +679,9 @@ def main():
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(temp_dir, filename)
                 file.save(file_path)
-                # print("File saved:", file_path)
                 file_paths.append(file_path)
-
-                # read excel and csv files only and check if they have id and report column
+                
+                # Check CSV/Excel files for required columns
                 if file.filename.endswith('.csv'):
                     df = pd.read_csv(file_path)
                     if 'id' not in df.columns or 'report' not in df.columns:
@@ -695,14 +692,25 @@ def main():
                     if 'id' not in df.columns or 'report' not in df.columns:
                         flash(f"ExcelFile {filename}: Missing 'id' or 'report' column! Are they in the first sheet? Are they without leading or trailing whitespace?", "danger")
                         return redirect(url_for('input_processing.main'))
-
-        update_progress(job_id=job_id, progress=(
-            0, len(form.files.data), True))
-
-        # For debugging purposes, run outside of executor
-        # preprocess_input(job_id=job_id, file_paths=file_paths)
-
-        # print("Start Executor")
+        
+        # Determine which language list to use based on selected OCR method
+        if form.ocr_method.data == 'tesseract':
+            ocr_languages = form.tesseract_languages.data
+            # Double-check that at least one language is selected
+            if not ocr_languages:
+                flash("At least one language must be selected for Tesseract OCR", "danger")
+                return redirect(url_for('input_processing.main'))
+        elif form.ocr_method.data == 'surya':
+            ocr_languages = form.surya_languages.data
+            # Double-check that at least one language is selected
+            if not ocr_languages:
+                flash("At least one language must be selected for Surya OCR", "danger")
+                return redirect(url_for('input_processing.main'))
+        else:
+            ocr_languages = ['eng']  # Default for other methods
+            
+        update_progress(job_id=job_id, progress=(0, len(form.files.data), True))
+        
         global jobs
         jobs[job_id] = executor.submit(
             preprocess_input,
@@ -711,12 +719,11 @@ def main():
             parallel_preprocessing=current_app.config['PARALLEL_PREPROCESSING'],
             force_ocr=form.force_ocr.data,
             ocr_method=form.ocr_method.data,
+            ocr_languages=ocr_languages,  # Pass the selected languages
             remove_previous_ocr=form.remove_previous_ocr.data,
         )
-
         flash('Upload Successful!', "success")
         return redirect(url_for('input_processing.main'))
-
+    
     global job_progress
-
     return render_template("index.html", title="LLM Anonymizer", form=form, progress=job_progress)

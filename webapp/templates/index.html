@@ -22,11 +22,80 @@
         color: #856404; /* Bootstrap warning text color */
     }
     
-    /* .callout-title {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 10px;
-    } */
+    .language-selection {
+        display: none;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .language-selection.active {
+        display: block;
+    }
+    
+    /* Custom multi-select styling */
+    .custom-multiselect {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .search-box {
+        padding: 0.5rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .options-container {
+        max-height: 200px;
+        overflow-y: auto;
+        border-top: 1px solid #ddd;
+        padding-top: 0.5rem;
+    }
+    
+    .select-all-option {
+        padding: 0.25rem 0;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .language-option {
+        padding: 0.25rem 0;
+    }
+    
+    .language-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .selected-options {
+        margin-top: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+    }
+    
+    .selected-option {
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        padding: 0.2rem 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        margin-right: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .remove-option {
+        margin-left: 0.3rem;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .is-invalid .custom-multiselect {
+        border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        display: block;
+    }
 </style>
 
 <div class="content-section">
@@ -84,7 +153,7 @@
                 <div class="col-md-3">
                     <div class="form-floating">
                         {% if form.ocr_method.errors %}
-                        {{ form.ocr_method(class="form-select is-invalid") }}
+                        {{ form.ocr_method(class="form-select is-invalid", id="ocr-method-select") }}
                         <label for="{{ form.ocr_method.id }}">OCR Method</label>
                         <div class="invalid-feedback">
                             {% for error in form.ocr_method.errors %}
@@ -92,12 +161,168 @@
                             {% endfor %}
                         </div>
                         {% else %}
-                        {{ form.ocr_method(class="form-select") }}
+                        {{ form.ocr_method(class="form-select", id="ocr-method-select") }}
                         <label for="{{ form.ocr_method.id }}">OCR Method</label>
                         {% endif %}
                     </div>
                 </div>
     
+                <div class="col-md-7">
+                    <!-- Tesseract Languages -->
+                    <div id="tesseract-languages" class="language-selection">
+                        <label for="tesseract-language-container" class="form-label">Tesseract Languages</label>
+                        
+                        {% if form.tesseract_languages.errors %}
+                        <div class="is-invalid">
+                            <div class="custom-multiselect" id="tesseract-language-container">
+                                <input type="text" class="form-control search-box" id="tesseract-search" placeholder="Search languages...">
+                                
+                                <div class="select-all-option">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="tesseract-select-all">
+                                        <label class="form-check-label" for="tesseract-select-all">
+                                            <strong>Select All / Deselect All</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="options-container" id="tesseract-options">
+                                    {% for value, label in form.tesseract_languages.choices %}
+                                    <div class="language-option">
+                                        <div class="form-check">
+                                            <input class="form-check-input tesseract-language-checkbox" type="checkbox" 
+                                                id="tesseract-{{ value }}" value="{{ value }}" 
+                                                name="tesseract_languages" {% if value in form.tesseract_languages.data %}checked{% endif %}
+                                                data-label="{{ label }}">
+                                            <label class="form-check-label" for="tesseract-{{ value }}">
+                                                {{ label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="selected-options" id="tesseract-selected"></div>
+                            </div>
+                            <div class="invalid-feedback">
+                                {% for error in form.tesseract_languages.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="custom-multiselect" id="tesseract-language-container">
+                            <input type="text" class="form-control search-box" id="tesseract-search" placeholder="Search languages...">
+                            
+                            <div class="select-all-option">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="tesseract-select-all">
+                                    <label class="form-check-label" for="tesseract-select-all">
+                                        <strong>Select All / Deselect All</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="options-container" id="tesseract-options">
+                                {% for value, label in form.tesseract_languages.choices %}
+                                <div class="language-option">
+                                    <div class="form-check">
+                                        <input class="form-check-input tesseract-language-checkbox" type="checkbox" 
+                                            id="tesseract-{{ value }}" value="{{ value }}" 
+                                            name="tesseract_languages" {% if value in form.tesseract_languages.data %}checked{% endif %}
+                                            data-label="{{ label }}">
+                                        <label class="form-check-label" for="tesseract-{{ value }}">
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="selected-options" id="tesseract-selected"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Surya Languages -->
+                    <div id="surya-languages" class="language-selection">
+                        <label for="surya-language-container" class="form-label">Surya Languages</label>
+                        
+                        {% if form.surya_languages.errors %}
+                        <div class="is-invalid">
+                            <div class="custom-multiselect" id="surya-language-container">
+                                <input type="text" class="form-control search-box" id="surya-search" placeholder="Search languages...">
+                                
+                                <div class="select-all-option">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="surya-select-all">
+                                        <label class="form-check-label" for="surya-select-all">
+                                            <strong>Select All / Deselect All</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="options-container" id="surya-options">
+                                    {% for value, label in form.surya_languages.choices %}
+                                    <div class="language-option">
+                                        <div class="form-check">
+                                            <input class="form-check-input surya-language-checkbox" type="checkbox" 
+                                                id="surya-{{ value }}" value="{{ value }}" 
+                                                name="surya_languages" {% if value in form.surya_languages.data %}checked{% endif %}
+                                                data-label="{{ label }}">
+                                            <label class="form-check-label" for="surya-{{ value }}">
+                                                {{ label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="selected-options" id="surya-selected"></div>
+                            </div>
+                            <div class="invalid-feedback">
+                                {% for error in form.surya_languages.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="custom-multiselect" id="surya-language-container">
+                            <input type="text" class="form-control search-box" id="surya-search" placeholder="Search languages...">
+                            
+                            <div class="select-all-option">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="surya-select-all">
+                                    <label class="form-check-label" for="surya-select-all">
+                                        <strong>Select All / Deselect All</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="options-container" id="surya-options">
+                                {% for value, label in form.surya_languages.choices %}
+                                <div class="language-option">
+                                    <div class="form-check">
+                                        <input class="form-check-input surya-language-checkbox" type="checkbox" 
+                                            id="surya-{{ value }}" value="{{ value }}" 
+                                            name="surya_languages" {% if value in form.surya_languages.data %}checked{% endif %}
+                                            data-label="{{ label }}">
+                                        <label class="form-check-label" for="surya-{{ value }}">
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="selected-options" id="surya-selected"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-3 mt-2">
                 <div class="col-md-2 d-flex align-items-center">
                     <div class="form-check">
                         {% if form.force_ocr.errors %}
@@ -153,6 +378,9 @@
                     <br>
                     <br>
                     If your file contains no machine-readable text (e.g. images or scanned PDFs), OCR (Optical Character Recognition) will be performed automatically. You can choose between <i><b>Tesseract</b></i> and <i><b>Surya-OCR</b></i>.
+                    <br>
+                    <br>
+                    For both OCR methods, you can select one or more languages to improve recognition accuracy. Make sure to select all languages that appear in your documents. <b>At least one language must be selected.</b>
                     <br>
                     <br>
                     It might happen that your PDF documents don't contain text but are still recognized as if they contain text. In this case, you can force OCR by checking the <i>Force OCR</i> checkbox.
@@ -218,15 +446,244 @@
             </p>
 
         </div>
-
-
 </div>
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
-<script>
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
 
+<script>
+    // Initialize socket.io
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle language selection visibility based on selected OCR method
+        const ocrMethodSelect = document.getElementById('ocr-method-select');
+        const tesseractLanguages = document.getElementById('tesseract-languages');
+        const suryaLanguages = document.getElementById('surya-languages');
+        
+        // Initial visibility based on selected OCR method
+        updateLanguageOptions();
+        
+        // Initialize selected pills for both multiselects
+        updateSelectedPills('tesseract');
+        updateSelectedPills('surya');
+        
+        // Update when selection changes
+        ocrMethodSelect.addEventListener('change', function() {
+            updateLanguageOptions();
+            ensureLanguageSelection();
+        });
+        
+        // Setup search functionality for Tesseract
+        const tesseractSearch = document.getElementById('tesseract-search');
+        tesseractSearch.addEventListener('input', function() {
+            filterOptions('tesseract', this.value);
+        });
+        
+        // Setup search functionality for Surya
+        const suryaSearch = document.getElementById('surya-search');
+        suryaSearch.addEventListener('input', function() {
+            filterOptions('surya', this.value);
+        });
+        
+        // Setup Select All for Tesseract
+        const tesseractSelectAll = document.getElementById('tesseract-select-all');
+        tesseractSelectAll.addEventListener('change', function() {
+            selectAllOptions('tesseract', this.checked);
+        });
+        
+        // Setup Select All for Surya
+        const suryaSelectAll = document.getElementById('surya-select-all');
+        suryaSelectAll.addEventListener('change', function() {
+            selectAllOptions('surya', this.checked);
+        });
+        
+        // Setup event listeners for all Tesseract checkboxes
+        const tesseractCheckboxes = document.querySelectorAll('.tesseract-language-checkbox');
+        tesseractCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                updateSelectedPills('tesseract');
+                updateSelectAllCheckbox('tesseract');
+                ensureAtLeastOneSelected('tesseract');
+            });
+        });
+        
+        // Setup event listeners for all Surya checkboxes
+        const suryaCheckboxes = document.querySelectorAll('.surya-language-checkbox');
+        suryaCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                updateSelectedPills('surya');
+                updateSelectAllCheckbox('surya');
+                ensureAtLeastOneSelected('surya');
+            });
+        });
+        
+        // Initialize select all checkboxes state
+        updateSelectAllCheckbox('tesseract');
+        updateSelectAllCheckbox('surya');
+        
+        // Form submission validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            const ocrMethod = document.getElementById('ocr-method-select').value;
+            let valid = true;
+            
+            if (ocrMethod === 'tesseract') {
+                const tesseractChecked = document.querySelectorAll('.tesseract-language-checkbox:checked');
+                if (tesseractChecked.length === 0) {
+                    event.preventDefault();
+                    valid = false;
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'invalid-feedback d-block';
+                    errorMsg.innerText = 'At least one language must be selected for Tesseract OCR';
+                    
+                    const container = document.getElementById('tesseract-language-container');
+                    container.classList.add('is-invalid');
+                    
+                    // Check if error message already exists
+                    const existingError = container.nextElementSibling;
+                    if (existingError && existingError.classList.contains('invalid-feedback')) {
+                        existingError.remove();
+                    }
+                    
+                    container.parentNode.insertBefore(errorMsg, container.nextSibling);
+                }
+            } else if (ocrMethod === 'surya') {
+                const suryaChecked = document.querySelectorAll('.surya-language-checkbox:checked');
+                if (suryaChecked.length === 0) {
+                    event.preventDefault();
+                    valid = false;
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'invalid-feedback d-block';
+                    errorMsg.innerText = 'At least one language must be selected for Surya OCR';
+                    
+                    const container = document.getElementById('surya-language-container');
+                    container.classList.add('is-invalid');
+                    
+                    // Check if error message already exists
+                    const existingError = container.nextElementSibling;
+                    if (existingError && existingError.classList.contains('invalid-feedback')) {
+                        existingError.remove();
+                    }
+                    
+                    container.parentNode.insertBefore(errorMsg, container.nextSibling);
+                }
+            }
+            
+            return valid;
+        });
+        
+        // Helper functions
+        function updateLanguageOptions() {
+            // Hide all language selections first
+            tesseractLanguages.classList.remove('active');
+            suryaLanguages.classList.remove('active');
+            
+            // Show the appropriate one based on selection
+            if (ocrMethodSelect.value === 'tesseract') {
+                tesseractLanguages.classList.add('active');
+            } else if (ocrMethodSelect.value === 'surya') {
+                suryaLanguages.classList.add('active');
+            }
+        }
+        
+        function ensureLanguageSelection() {
+            // Ensure at least one language is selected based on OCR method
+            if (ocrMethodSelect.value === 'tesseract') {
+                ensureAtLeastOneSelected('tesseract');
+            } else if (ocrMethodSelect.value === 'surya') {
+                ensureAtLeastOneSelected('surya');
+            }
+        }
+        
+        function filterOptions(type, query) {
+            query = query.toLowerCase();
+            const options = document.querySelectorAll(`.${type}-language-checkbox`);
+            
+            options.forEach(function(option) {
+                const label = option.getAttribute('data-label').toLowerCase();
+                const optionElement = option.closest('.language-option');
+                
+                if (label.includes(query)) {
+                    optionElement.style.display = '';
+                } else {
+                    optionElement.style.display = 'none';
+                }
+            });
+        }
+        
+        function selectAllOptions(type, checked) {
+            const checkboxes = document.querySelectorAll(`.${type}-language-checkbox`);
+            const visibleCheckboxes = Array.from(checkboxes).filter(function(checkbox) {
+                return checkbox.closest('.language-option').style.display !== 'none';
+            });
+            
+            visibleCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = checked;
+            });
+            
+            updateSelectedPills(type);
+            ensureAtLeastOneSelected(type);
+        }
+        
+        function updateSelectedPills(type) {
+            const selectedContainer = document.getElementById(`${type}-selected`);
+            selectedContainer.innerHTML = '';
+            
+            const checkboxes = document.querySelectorAll(`.${type}-language-checkbox:checked`);
+            
+            checkboxes.forEach(function(checkbox) {
+                const value = checkbox.value;
+                const label = checkbox.getAttribute('data-label');
+                
+                const pill = document.createElement('span');
+                pill.className = 'selected-option';
+                pill.innerHTML = `${label} <span class="remove-option" data-value="${value}" data-type="${type}">&times;</span>`;
+                selectedContainer.appendChild(pill);
+                
+                // Add click event to remove pill
+                const removeButton = pill.querySelector('.remove-option');
+                removeButton.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    const type = this.getAttribute('data-type');
+                    const checkbox = document.getElementById(`${type}-${value}`);
+                    
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        updateSelectedPills(type);
+                        updateSelectAllCheckbox(type);
+                        ensureAtLeastOneSelected(type);
+                    }
+                });
+            });
+        }
+        
+        function updateSelectAllCheckbox(type) {
+            const selectAllCheckbox = document.getElementById(`${type}-select-all`);
+            const allCheckboxes = document.querySelectorAll(`.${type}-language-checkbox`);
+            const checkedCheckboxes = document.querySelectorAll(`.${type}-language-checkbox:checked`);
+            
+            selectAllCheckbox.checked = allCheckboxes.length === checkedCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < allCheckboxes.length;
+        }
+        
+        function ensureAtLeastOneSelected(type) {
+            const checkboxes = document.querySelectorAll(`.${type}-language-checkbox:checked`);
+            
+            if (checkboxes.length === 0) {
+                // Select default language if none selected
+                if (type === 'tesseract') {
+                    document.getElementById('tesseract-eng').checked = true;
+                } else if (type === 'surya') {
+                    document.getElementById('surya-english').checked = true;
+                }
+                
+                updateSelectedPills(type);
+                updateSelectAllCheckbox(type);
+            }
+        }
+    });
+    
+    // Socket.io event handlers
     socket.on('progress_update', function(data) {
         var job_id = data.job_id;
         var progress = data.progress;
@@ -251,13 +708,12 @@
         downloadLink.href = '/download?job=' + job_id;
         downloadLink.classList.remove('btn-outline-secondary');
         downloadLink.classList.add('btn-outline-success');
-        downloadLink.innerHTML = 'Download';
+        downloadLink.innerHTML = '<i class="bi bi-download"></i> Download';
         downloadLink.classList.remove('disabled');
         downloadLink.removeAttribute('disabled');
     });
 
     socket.on('progress_failed', function(data) {
-
         var job_id = data.job_id;
         var progressBar = document.getElementById('progress-' + job_id);
          
@@ -270,11 +726,7 @@
         downloadLink.classList.add('disabled');
         downloadLink.setAttribute('disabled', 'disabled');
         downloadLink.className = 'btn btn-danger disabled';
-
     });
-
-
-
 </script>
 
 {% endblock content %}
