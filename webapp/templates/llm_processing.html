@@ -718,6 +718,13 @@
                     You can still instruct the model in the prompt what it should generate and give more instructions
                     per field. The grammar in the end ensures that the output is always in the correct format.
                     <br>
+                    <br>
+                    <b>Chat Mode:</b> Use the chat completion endpoint instead of the completion endpoint. You can use a system prompt here. A chat template will be applied by the underlying implementation.
+                    <br>
+                    <br>
+                    <b>JSON Schema:</b>
+                    Please use the <b>JSON Schema Builder</b>! External OpenAI-compatible APIs use a JSON Schema for structured output instead of a llama.cpp grammar. When using an API model you must provide a JSON Schema. Works similar to the Grammar / Grammar Builder.
+                    Please note that some features (e.g. the length of a string) are not supported by all APIs.
                 </p>
             </div>
         </fieldset>
