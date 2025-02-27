@@ -10,6 +10,7 @@ pandas
 pillow
 PyYAML
 seaborn
+requests
 thefuzz
 WTForms
 Flask-HTTPAuth
