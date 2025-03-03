@@ -186,8 +186,9 @@ if __name__ == "__main__":
         print("WARNING: Llama.cpp server executable not found in '"  + app.config["SERVER_PATH"] + "'. Did you specify --server_path correctly?")
 
     print("Start Webserver on http://" + args.host + ":" + str(args.port))
-    if args.host == "0.0.0.0":
-        print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")
+    print("Please note: If you run this application inside a Docker container, this might be different. Please review the docker-compose file!")
+    # if args.host == "0.0.0.0":
+    #     print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")
     if args.host != "localhost":
         print("Requires authentication")
 
