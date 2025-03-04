@@ -12,7 +12,7 @@ Llama.cpp is a LLM inference engine which runs on a variety of hardware (includi
 
 The prompt processing throughput (how many tokens of your prompt, including the documents) can be processed per second depends on the GPU architecture and its compute performance. The token generation throughput however almost linearly scales with the (GPU) memory bandwidth.
 
-For maximum performance your model should fit entirely into the GPU memory (can be 1 or multiple GPUs). The memory requirements can be estimated by taking the LLM weights (roughly the size of the downlaoded gguf file) plus some more space for the kv cache (depending on the type and size of it).
+For maximum performance your model should fit entirely into the GPU memory (can be 1 or multiple GPUs). The memory requirements can be estimated by taking the LLM weights (roughly the size of the downloaded gguf file) plus some more space for the kv cache (depending on the type and size of it).
 
 
 ### Example Configurations
