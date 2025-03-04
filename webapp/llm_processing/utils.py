@@ -41,7 +41,7 @@ def convert_personal_info_list(personal_info_list: str) -> list:
     from collections import OrderedDict
     
     # Clean the input string
-    personal_info_list = personal_info_list.replace("nan,", "").replace("'',", "").replace("nan", '')
+    personal_info_list = str(personal_info_list).replace("nan,", "").replace("'',", "").replace("nan", '')
     
     try:
         # Try to convert to list using ast.literal_eval
