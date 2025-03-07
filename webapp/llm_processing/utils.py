@@ -59,6 +59,9 @@ def convert_personal_info_list(personal_info_list: str) -> list:
     
     # Use OrderedDict to remove duplicates while preserving order
     personal_info_list = list(OrderedDict.fromkeys(personal_info_list))
+
+    # Cast all items to strings
+    personal_info_list = [str(item) for item in personal_info_list]
     
     # Use list comprehension to filter out empty strings, "nan", and None
     personal_info_list_output = [item for item in personal_info_list if not is_empty_string_nan_or_none(item)]
