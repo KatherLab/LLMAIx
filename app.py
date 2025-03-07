@@ -189,7 +189,10 @@ if __name__ == "__main__":
     print("Please note: If you run this application inside a Docker container, this might be different. Please review the docker-compose file!")
     # if args.host == "0.0.0.0":
     #     print("Please use http://localhost:" + str(args.port) + " to access the web app locally or the IP / hostname of your server to access the web app in your local network.")
-    if args.host != "localhost":
-        print("Requires authentication")
+    # if args.host != "localhost":
+    #     print("Requires authentication")
+
+    if args.password:
+        print("Password authentication is enabled. The username is llmaix")
 
     socketio.run(app, debug=args.debug, use_reloader=args.debug, port=args.port, host=args.host, allow_unsafe_werkzeug=True)
