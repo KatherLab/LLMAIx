@@ -19,7 +19,7 @@ For maximum performance your model should fit entirely into the GPU memory (can 
 
 | Model | Quantization | KV Cache Size | KV Cache Type | GPU Memory required |
 |-------|--------------|---------------|---------------|--------------------|
-| Llama 3.3 70B Instruct Q4_K_M | q4_k_m | 32768 | q8_0 | 48GB |
+| Llama 3.3 70B Instruct Q4_K_M | q4_k_m | 32768 (e.g. 2x 16384) | q8_0 | 48GB |
 
 > [!IMPORTANT]
 > Please note that using a quantization less than Q8_0 might lead to slightly decreased quality. Below Q4_K_M the quality might decrease a lot.
