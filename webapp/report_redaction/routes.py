@@ -170,7 +170,7 @@ def main():
 
         df = find_llm_output_csv(content_temp_dir)
         if df is None or len(df) == 0:
-            flash("No CSV file found in the uploaded file!", "danger")
+            flash("No CSV file found in the uploaded LLM output file!", "danger")
             return redirect(request.url)
 
         if "submit-viewer" in request.form:
@@ -358,11 +358,23 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
             report_dict = {}
             report_dict["id"] = row["id"]
 
+            if "personal_info_list" not in row:
+                print("No personal info list found for report, reconstruct from csv.", row["id"])
+                
+                # reconstruct personal info list from csv by making the row['personal_info_list'] a string with all of the relevant column values in a python list: ['value of first column', 'value of second column']
+                personal_info_list = "["
+                for column_name in df.columns:
+                    if column_name != "id" and column_name != "report" and column_name != "metadata" and column_name != "report_redacted" and column_name != "masked_report":
+                        personal_info_list += "'" + str(row[column_name]) + "', "
+                personal_info_list = personal_info_list[:-2] + "]"
+                row["personal_info_list"] = personal_info_list
+
             try:
                 report_dict["personal_info_list"] = convert_personal_info_list(
                     row["personal_info_list"]
                 )
-            except Exception:
+            except Exception as e:
+                print("Error converting personal info list: ", e)
                 breakpoint()
 
             try:
@@ -380,6 +392,9 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
                         personal_info_dict[column_name] = df[df["id"] == row["id"]][
                             column_name
                         ].item()
+                    
+                if "personal_info_list" not in personal_info_dict:
+                    personal_info_dict["personal_info_list"] = row["personal_info_list"]
 
                 # personal_info_list = df[df['id'] == report_id]['personal_info_list'].item()
             except Exception as e:
