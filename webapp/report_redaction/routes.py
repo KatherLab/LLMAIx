@@ -827,7 +827,16 @@ def report_redaction_viewer(report_id):
             ):
                 personal_info_dict[column_name] = df[df["id"] == report_id][
                     column_name
-                ].item()
+                ].item()            
+
+        if "personal_info_list" not in personal_info_dict:
+            print("Reconstructing personal info list from the relevant columns as python list in a string with the values: ['value1', 'value2']")
+            personal_info_list = "["
+            for column_name in df.columns:
+                if column_name != "id" and column_name != "report" and column_name != "metadata" and column_name != "report_redacted" and column_name != "masked_report":
+                    personal_info_list += "'" + str(df[df["id"] == report_id][column_name].item()) + "', "
+            personal_info_list = personal_info_list[:-2] + "]"
+            personal_info_dict["personal_info_list"] = personal_info_list
 
         # personal_info_list = df[df['id'] == report_id]['personal_info_list'].item()
     except Exception as e:
