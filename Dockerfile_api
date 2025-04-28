@@ -27,7 +27,7 @@ RUN apt-get update && \
     ca-certificates \
     curl \
     pngquant \
-    tesseract-ocr-deu \
+    tesseract-ocr-* \
     ocrmypdf \
     libjpeg-dev \
     libxml2 \
