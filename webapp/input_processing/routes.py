@@ -344,7 +344,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
                     remove_selectable_text_from_pdf(file_path)
                 if ocr_method == 'tesseract':
                     if not ocr_languages:
-                        ocr_languages = ['en']
+                        ocr_languages = ['eng+deu']
                     ocr_output_path = os.path.join(tempfile.mkdtemp(), f"ocr_{os.path.basename(file_path)}")
                     if shutil.which("tesseract") is not None:
                         if shutil.which("ocrmypdf") is not None:
