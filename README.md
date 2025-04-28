@@ -145,7 +145,6 @@ Run `docker compose build` inside of the repository.
 |---|---|---|
 |--model_path|Directory with downloaded model files which can be processed by llama.cpp|/path/to/models|
 |--server_path|Path of llama cpp executable (on Windows: server.exe).|/path/to/llamacpp/executable/server|
-|--n_gpu_layers|How many layers of the model to offload to the GPU. Adjust according to model and GPU memory. Default: 80|-1 for all, otherwise any number|
 |--host|Hostname of the server. Default: 0.0.0.0|0.0.0.0 or localhost|
 |--port|Port on which this web app should be started on. Default: 5001|5001|
 |--config_file|Custom path to the configuration file.|config.yml|
