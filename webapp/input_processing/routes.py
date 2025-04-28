@@ -333,6 +333,8 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
                     page = pdf_document.load_page(page_num)
                     if len(page.get_text()) > 0 and not is_empty_string_nan_or_none(page.get_text()):
                         contains_text = True
+                        print("Document already contains text. Usually no OCR needed. Skipping OCR.")
+                        print("WARNING: This might be a false positive, if only some text was added to your document. Use force_ocr to force OCR.")
                         break
 
 
@@ -405,6 +407,12 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
                         ocr_text += page.get_text()
 
             ocr_text = ocr_text.replace("'", "").replace('"', '')
+
+            if len(ocr_text) < 15:
+                if contains_text:
+                    print("The document already contained text. OCR was skipped, but the extracted text is very short. This might be a false positive. Please check the output!")
+                else:
+                    print("The OCR output is very short. This might be a false positive. Please check the output!")
 
             merged_data.append(pd.DataFrame({'report': [ocr_text], 'filepath': ocr_output_path, 'id': ''}))
 
