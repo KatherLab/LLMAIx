@@ -29,7 +29,7 @@ setup(
         "surya-ocr~=0.13.1",
         "scikit-learn~=1.6.1",
         "prometheus_client~=0.21.1",
-        "PyMuPDF~=1.25.5",
+        "PyMuPDF~=1.25.3",
         "aiohttp~=3.11.18",
         "openpyxl~=3.1.5",
         "openai~=1.76.2"
