@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 import shutil
 from flask import render_template, request, redirect, url_for, flash, send_file, session, current_app
 import os
@@ -243,28 +244,74 @@ def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dp
 def images_to_pdf(images, output_path):
     images[0].save(output_path, save_all=True, append_images=images[1:], resolution=100.0)
 
-def extract_text_from_images_surya(images, det_model, rec_model, langs):
-    from surya.ocr import run_ocr
-    from surya.model.recognition.processor import load_processor
-    from surya.model.detection.model import load_processor as load_det_processor
-
+def extract_text_from_images_surya(images, det_predictor, rec_predictor):
     predictions = []
 
     for image in images:
-        det_processor = load_det_processor()
-        rec_processor = load_processor()
 
-        predictions.append(run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor))
+        predictions.append(rec_predictor([image], det_predictor=det_predictor))
 
     return predictions
 
-def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model, ocr_languages):
+def pdf_to_images(
+    filename: Path | str,
+) -> list[Image.Image]:
+    """
+    Convert a PDF file to a list of PIL Image objects.
+
+    Args:
+        filename: Path to the PDF file, can be a string or Path object
+
+    Returns:
+        A list of PIL Image objects, one for each page in the PDF
+
+    Raises:
+        FileNotFoundError: If the specified PDF file doesn't exist
+        ValueError: If the file is not a valid PDF
+    """
+    # Convert to Path object if string is provided
+    file_path = Path(filename) if isinstance(filename, str) else filename
+
+    # Check if file exists
+    if not file_path.exists():
+        raise FileNotFoundError(f"PDF file not found: {file_path}")
+
+    # Check if file is a PDF
+    if file_path.suffix.lower() != ".pdf":
+        raise ValueError(f"File must be a PDF: {file_path}")
+
+    # Open the PDF file
+    try:
+        pdf_document = fitz.open(file_path)
+    except Exception as e:
+        raise ValueError(f"Failed to open PDF file: {e}")
+
+    images = []
+
+    # Iterate through each page
+    for page_num in range(len(pdf_document)):
+        # Get the page
+        page = pdf_document.load_page(page_num)
+
+        # Convert page to a pixmap (image)
+        pix = page.get_pixmap(alpha=False)
+
+        # Convert pixmap to PIL Image
+        img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+
+        # Add image to list
+        images.append(img)
+
+    # Close the PDF document
+    pdf_document.close()
+
+    return images
+
+
+def ocr_surya(file_path, ocr_file_output_path, detection_predictor, recognition_predictor, ocr_languages):
     from PIL import Image
 
     from surya.input.load import load_pdf
-
-
-    # langs = ["de", "en"] 
 
     if file_path.endswith('.pdf'):
         pass
@@ -286,12 +333,12 @@ def ocr_surya(file_path, ocr_file_output_path, det_model, rec_model, ocr_languag
     else:
         raise ValueError("Unsupported file type")
     
-    images, names = load_pdf(file_path)
-    ocr_output = extract_text_from_images_surya(images, det_model, rec_model, ocr_languages)
+    images = pdf_to_images(file_path)
+    ocr_output = extract_text_from_images_surya(images, detection_predictor, recognition_predictor)
     text = add_text_layer_to_pdf(file_path, ocr_output, ocr_file_output_path)
 
-    del rec_model
-    del det_model
+    del recognition_predictor
+    del detection_predictor
 
     return text
 
@@ -481,18 +528,19 @@ def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr
         max_workers = 20 if parallel_preprocessing else 1
     elif ocr_method == 'surya':
         max_workers = 2 if parallel_preprocessing else 1
-        from surya.model.detection.model import load_model as load_det_model
-        from surya.model.recognition.model import load_model
+        from surya.recognition import RecognitionPredictor
+        from surya.detection import DetectionPredictor
 
-        det_model = load_det_model()
-        rec_model = load_model()
+        recognition_predictor = RecognitionPredictor()
+        detection_predictor = DetectionPredictor()
+
     else:
         print("Set max workers to 1 for OCR method: ", ocr_method)
         max_workers = 1
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as inner_executor:
         if ocr_method == 'surya':
-            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr, det_model, rec_model): file_path for file_path in file_paths}
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr, detection_predictor, recognition_predictor): file_path for file_path in file_paths}
         else:
             future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr): file_path for file_path in file_paths}
         
