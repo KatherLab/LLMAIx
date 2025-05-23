@@ -433,7 +433,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
                         import surya
                     except Exception as e:
                         print(str(e))
-                        return "surya or torch pyhton library not found but required for surya OCR."
+                        return "surya or torch python library not found but required for surya OCR."
 
                     ocr_text = ocr_surya(file_path, ocr_output_path, det_model, rec_model, ocr_languages)
                     # ocr_output_path = file_path
@@ -528,8 +528,13 @@ def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr
         max_workers = 20 if parallel_preprocessing else 1
     elif ocr_method == 'surya':
         max_workers = 2 if parallel_preprocessing else 1
-        from surya.recognition import RecognitionPredictor
-        from surya.detection import DetectionPredictor
+        try:
+            from surya.recognition import RecognitionPredictor
+            from surya.detection import DetectionPredictor
+        except Exception as e:
+            failed_job(job_id)
+            print("Surya OCR could not be imported: ", str(e))
+            return "surya python library not found but required for surya OCR."
 
         recognition_predictor = RecognitionPredictor()
         detection_predictor = DetectionPredictor()
