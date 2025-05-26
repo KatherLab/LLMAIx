@@ -830,7 +830,6 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
             try:
                 info_dict_raw = json.loads(content)
             except Exception:
-                breakpoint()
                 try:
                     content = content.replace(" null,", '',).replace(' "null",', "")
 
