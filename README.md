@@ -77,7 +77,7 @@ models:
     file_name: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
     model_context_size: 128000 # Right now only informative.
     kv_cache_size: 16000 # Which size should the llama.cpp KV Cache have?
-    kv_cache_quants: "q8_0" # e.g. "q_8" or "q_4" - requires flash attention
+    kv_cache_quants: "q8_0" # e.g. "q8_0", "q4_0" or "f16" - requires flash attention
     flash_attention: true # does not work for some models
     mlock: true
     server_slots: 1 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!

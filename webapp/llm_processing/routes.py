@@ -257,7 +257,6 @@ class CancellableJob:
                     "schema": self.json_schema,
                     "strict": True
                 },
-                "strict": True
             }
 
         async def watch_cancellation():
@@ -1184,7 +1183,7 @@ def main():
             llamacpp_port=current_app.config["LLAMACPP_PORT"],
             debug=current_app.config["DEBUG"],
             model_name_name=model_name,
-            parallel_slots=model_config['server_slots'] if not api_model else 0,
+            parallel_slots=model_config['server_slots'] if not api_model else 90, # for api, send 90 requests (+10 buffer slots) in parallel
             verbose_llama=current_app.config['VERBOSE_LLAMA'],
             gpu=current_app.config['GPU'],
             flash_attention=model_config['flash_attention'] if not api_model else False,
