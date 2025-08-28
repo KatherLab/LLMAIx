@@ -3,9 +3,9 @@
 # LLM-AIx - Information Extraction & Anonymization
 
 > [!IMPORTANT]
-> Release of **llmaixlib** - a Python library which wraps the Preprocessing (including OCR) and Information Extraction.
+> Release of **LLMAIx-v2** - a new pipeline for managing your information extraction projects.
 >
-> [Check it out!](https://github.com/KatherLab/llmaixlib)
+> [Check it out!](https://github.com/KatherLab/llmaixweb)
 
 > [!CAUTION]
 > This tool is a prototype which is in active development and is still undergoing major changes. Please always check the results!
