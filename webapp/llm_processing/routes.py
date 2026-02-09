@@ -245,7 +245,7 @@ class CancellableJob:
                 }
             ],
             "temperature": self.temperature,
-            "max_tokens": self.n_predict
+            "max_completion_tokens": self.n_predict
         }
 
         # Add json_schema only if it's not empty
