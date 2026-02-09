@@ -67,9 +67,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     . .venv/bin/activate && \
     uv pip install wheel setuptools
 
-COPY requirements.txt .
-RUN . .venv/bin/activate && \
-    uv pip install -r requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN . .venv/bin/activate && uv sync
 
 COPY . .
 ENV LLAMA_ARG_HOST=0.0.0.0

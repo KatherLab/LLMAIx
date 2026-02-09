@@ -54,14 +54,14 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     . .venv/bin/activate && \
     /root/.local/bin/uv pip install wheel setuptools
 
-# Copy and install requirements
-COPY requirements_api.txt .
-RUN . .venv/bin/activate && \
-    /root/.local/bin/uv pip install \
-        --python-platform="$(cat /platform)-unknown-linux-gnu" \
-        -r requirements_api.txt
-
+# Copy source code
 COPY . .
+
+# Install dependencies
+RUN . .venv/bin/activate && \
+    /root/.local/bin/uv sync \
+        --python-platform="$(cat /platform)-unknown-linux-gnu" \
+        --no-dev
 
 HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
 EXPOSE 5000

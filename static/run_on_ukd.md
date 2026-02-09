@@ -8,9 +8,11 @@
 
 4. Run `YOURVENVNAME\Scripts\activate`
 
-6. - Before you install any requirements with pip, run these: `set HTTP_PROXY=http://ukd-proxy:80` and `set HTTPS_PROXY=http://ukd-proxy:80`
-
-5. Install requirements with `pip install -r requirements.txt --proxy=http://ukd-proxy:80`
+6. - Before you install any requirements, run these: `set HTTP_PROXY=http://ukd-proxy:80` and `set HTTPS_PROXY=http://ukd-proxy:80`
+5. Install uv and set up the environment:
+   - `curl -LsSf https://astral.sh/uv/install.sh | sh`
+   - `uv venv && source .venv/bin/activate`
+   - `uv sync`
 
 6. Every time you install anything with pip (or any other package), use the UKD Proxy!
 

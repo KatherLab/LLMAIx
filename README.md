@@ -10,6 +10,8 @@
 > [!CAUTION]
 > This tool is a prototype which is in active development and is still undergoing major changes. Please always check the results!
 > 
+> The containers including llama.cpp are outdated. Please use the api-only installation and use your own llama.cpp installation or any other OpenAI-compatible API!
+>
 > **Use for research purposes only!**
 
 ![Information Extraction](static/ie_front_image.png)
@@ -26,7 +28,7 @@ Web-based tool to extract structured information from medical reports, anonymize
 
 - Structured information extraction and comparison against a ground truth. 
 - Support for **JSON Schemas** as an alternative to llama.cpp grammars.
-- **NEW**: Support for OpenAI-compatible APIs (e.g. ChatGPT) instead of local models.
+- **NEW**: Support for OpenAI-compatible APIs (e.g. GPT-5) instead of local models.
 - Detailed metrics on label- and document-level.
 
 ![Label Annotation Report](static/image_labelannotation_report.png)
@@ -113,8 +115,9 @@ Update the docker image: `docker compose pull`
 
 1. Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
 2. Go to the repository directory: `cd LLMAIx`
-3. Edit `docker-compose-api.yml` with the `API_URL` and `API_KEY`. 
-4. Run the docker image: `docker compose -f docker-compose-api.yml up` (add `-d` to run in detached mode)
+3. Copy the example environment file: `cp .env.example .env`
+4. Edit `.env` and configure your `API_URL` and `API_KEY` for the OpenAI-compatible API.
+5. Run the docker image: `docker compose -f docker-compose-api.yml up` (add `-d` to run in detached mode)
 
 Update the docker image: `docker compose -f docker-compose-api.yml pull`
 
@@ -136,10 +139,10 @@ Run `docker compose build` inside of the repository.
 2. Download desired models (must be compatible with llama-cpp, in gguf format)
 3. Update the config.yml file with the downloaded models accordingly.
 4. If you intend to use OCR: Install [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#)
-5. Create a python venv or a conda environment (tested with *Python 3.12.1*) with requirements.txt:
-  - `python -m venv venv`
-  - `source venv/bin/activate`
-  - `pip install -r requirements.txt`
+5. Install uv and set up the environment:
+  - `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - `uv venv && source .venv/bin/activate`
+  - `uv sync`
 
 6. Run: `python app.py`
 
