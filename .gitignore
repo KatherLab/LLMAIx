@@ -8,3 +8,4 @@ test_*.py
 test_*
 .venv
 .env
+*.egg-info
