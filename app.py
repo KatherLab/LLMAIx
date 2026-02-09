@@ -4,7 +4,10 @@ import os
 from argparse import ArgumentParser
 
 import yaml
+from dotenv import load_dotenv
 from webapp import create_app, socketio, init_api
+
+load_dotenv()
 
 os.makedirs("logs", exist_ok=True)
 
