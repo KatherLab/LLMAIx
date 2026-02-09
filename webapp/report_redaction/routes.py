@@ -301,10 +301,22 @@ def main():
             prefix = current_datetime.strftime("%Y%m%d%H%M")
 
             import ast
+            import json
 
-            model_name = ast.literal_eval(df["metadata"].iloc[0])["llm_processing"][
-                "model_name"
-            ]
+            # Helper function to parse metadata - try JSON first, fallback to ast.literal_eval
+            def parse_metadata(metadata_str):
+                try:
+                    return json.loads(metadata_str)
+                except (json.JSONDecodeError, TypeError):
+                    try:
+                        return ast.literal_eval(metadata_str)
+                    except (ValueError, SyntaxError):
+                        return None
+
+            # breakpoint()
+
+            metadata = parse_metadata(df["metadata"].iloc[0])
+            model_name = metadata["llm_processing"]["model_name"]
 
             job_id = (
                 "reportredaction_"
@@ -480,10 +492,17 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
             failed_job(job_id)
 
         import ast
+        import json
 
         if "metadata" in df.columns:
-            metadata = df["metadata"].iloc[0]
-            metadata = ast.literal_eval(metadata)
+            metadata_str = df["metadata"].iloc[0]
+            try:
+                metadata = json.loads(metadata_str)
+            except (json.JSONDecodeError, TypeError):
+                try:
+                    metadata = ast.literal_eval(metadata_str)
+                except (ValueError, SyntaxError):
+                    metadata = None
         else:
             metadata = None
 
@@ -933,18 +952,22 @@ def report_redaction_viewer(report_id):
         fuzzy_matches_dict = {}
 
     import ast
+    import json
 
     # Check if metadata key exists in df[df['id'] == report_id]['metadata']
 
     if "metadata" not in df[df["id"] == report_id].columns:
         metadata = None
     else:
-        metadata = df[df["id"] == report_id]["metadata"].item()
+        metadata_str = df[df["id"] == report_id]["metadata"].item()
         try:
-            metadata = ast.literal_eval(metadata)
-        except Exception as e:
-            print("Error parsing Metadata from llm output file: " + str(e))
-            breakpoint()
+            metadata = json.loads(metadata_str)
+        except (json.JSONDecodeError, TypeError):
+            try:
+                metadata = ast.literal_eval(metadata_str)
+            except (ValueError, SyntaxError) as e:
+                print("Error parsing Metadata from llm output file: " + str(e))
+                breakpoint()
 
     return render_template(
         "report_redaction_viewer.html",
