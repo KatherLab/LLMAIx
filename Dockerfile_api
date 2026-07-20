@@ -63,7 +63,8 @@ RUN . .venv/bin/activate && \
         --python-platform="$(cat /platform)-unknown-linux-gnu" \
         --no-dev
 
-HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
+# API-only image runs no llama-server; health-check the LLMAIx web app.
+HEALTHCHECK CMD [ "curl", "-fsS", "http://localhost:5000/", "-o", "/dev/null" ]
 EXPOSE 5000
 
 CMD ["sh", "-c", ". .venv/bin/activate && .venv/bin/python app.py --only_api"]

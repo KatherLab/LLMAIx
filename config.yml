@@ -10,4 +10,21 @@ models:
     server_slots: 1 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
     seed: 42 # Random initialization
     n_gpu_layers: 200 # How many layers to offload to the GPU. You should always try to offload all! e.g. 33 for Llama 3.1 8B or 82 for Llama 3.1 70B. Can be set to e.g. 200 to make sure all layers are offloaded for (almost) all models.
-    
+
+  # Hugging Face model - downloaded automatically by llama-server, no manual download needed.
+  # Use hf_repo instead of file_name. Add one entry per quant you want to offer.
+  # - name: "gemma3_4b_it_q4km"
+  #   display_name: "Gemma 3 4B IT (HF, Q4_K_M)"
+  #   hf_repo: "ggml-org/gemma-3-4b-it-GGUF" # <user>/<model> on Hugging Face (must be a GGUF repo)
+  #   hf_quant: "Q4_K_M" # selects the quant -> repo:Q4_K_M (case-insensitive). Omit to let llama.cpp pick a default.
+  #   # hf_file: "gemma-3-4b-it-Q4_K_M.gguf" # optional: exact GGUF filename, overrides hf_quant
+  #   # hf_token: "hf_..." # optional: for gated/private repos. Prefer the HF_TOKEN env var instead of putting tokens here.
+  #   model_context_size: 128000
+  #   kv_cache_size: 16000
+  #   kv_cache_quants: "q8_0"
+  #   flash_attention: true
+  #   mlock: true
+  #   server_slots: 1
+  #   seed: 42
+  #   n_gpu_layers: 200
+

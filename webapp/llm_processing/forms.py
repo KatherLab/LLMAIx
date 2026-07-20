@@ -94,9 +94,11 @@ class LLMPipelineForm(FlaskForm):
         else:
             model_choices = []
 
-        # Extract model choices from config data
+        # Extract model choices from config data. Local models are keyed by
+        # their file_name (unchanged); Hugging Face models (hf_repo) have no
+        # local file, so they are keyed by their unique "name" instead.
         if not only_api:
-            model_choices.extend([(model["file_name"], model["display_name"])
+            model_choices.extend([(model.get("file_name") or model["name"], model["display_name"])
                                  for model in config_data["models"]])
 
         # Set choices for the model field

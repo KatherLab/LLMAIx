@@ -9,8 +9,6 @@
 
 > [!CAUTION]
 > This tool is a prototype which is in active development and is still undergoing major changes. Please always check the results!
-> 
-> The containers including llama.cpp are outdated. Please use the api-only installation and use your own llama.cpp installation or any other OpenAI-compatible API!
 >
 > **Use for research purposes only!**
 
@@ -87,12 +85,28 @@ models:
     n_gpu_layers: 200 # How many layers to offload to the GPU. You should always try to offload all! e.g. 33 for Llama 3.1 8B or 82 for Llama 3.1 70B. Can be set to e.g. 200 to make sure all layers are offloaded for (almost) all models.
 ```
 
-## Run with Docker (CUDA)
+## Docker images / supported hardware
 
-> [!IMPORTANT]
-> The docker images currently only support NVIDIA GPUs with compute level 8.6 or higher (Ampere generation). You can manually build the docker image for other architectures or use the manual setup. Llama.cpp which is used as a backend for LLM-AIx supports a huge variety of hardware (including NVIDIA, AMD, Apple, Intel GPUs and also CPUs).
+LLMAIx no longer compiles llama.cpp itself. The Docker images are built on top
+of the official prebuilt [llama.cpp](https://github.com/ggml-org/llama.cpp)
+server images (pinned to a tested build), special thanks to all contributors!
 
-This Docker image ships [llama.cpp](https://github.com/ggerganov/llama.cpp), special thanks to all contributors!
+| Image | Hardware | Platforms |
+|---|---|---|
+| `ghcr.io/katherlab/llmaix-cpu` | CPU only | `linux/amd64`, `linux/arm64` (incl. Docker Desktop on Apple Silicon) |
+| `ghcr.io/katherlab/llmaix-cuda` | NVIDIA GPU (NVIDIA Container Toolkit required) | `linux/amd64` |
+| `ghcr.io/katherlab/llmaix-api` | none (external OpenAI-compatible API only) | `linux/amd64`, `linux/arm64` |
+
+> [!NOTE]
+> On macOS, Docker Desktop runs a Linux VM, so it uses the **Linux ARM64 CPU
+> image** — there is **no Metal/GPU acceleration inside Docker**. To use Apple
+> Metal acceleration, run LLMAIx natively instead (see [Manual Setup](#manual-setup)).
+
+The `llama-server` binary lives at `/app/llama-server` inside the CPU and CUDA
+images and is started automatically by LLMAIx; llama.cpp stays internal to the
+container.
+
+## Run with Docker (CPU)
 
 1. Download the desired models (must be compatible with llama-cpp, in gguf format, e.g. from HuggingFace) into a new models directory!
 2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
@@ -103,6 +117,15 @@ This Docker image ships [llama.cpp](https://github.com/ggerganov/llama.cpp), spe
 Now access in your browser via `http://localhost:19999`
 
 Update the docker image: `docker compose pull`
+
+## Run with Docker (CUDA / NVIDIA GPU)
+
+Requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host.
+
+1. Follow steps 1-4 above, but edit `docker-compose-cuda.yml` instead.
+2. Run: `docker compose -f docker-compose-cuda.yml up` (add `-d` to run in detached mode)
+
+Now access in your browser via `http://localhost:19999`
 
 
 ## Run with Docker (API only)
@@ -123,19 +146,22 @@ Update the docker image: `docker compose -f docker-compose-api.yml pull`
 
 ## Build Docker Image
 
-Run `docker compose build` inside of the repository.
+Build the CPU image: `docker compose build`
 
-> [!Tip]
-> You can specify the compute level of your CUDA-capable GPU in the docker-compose file. 
->
-> Use `86` for compute level 8.6 (Ampere generation, except the server GPUs like A100 which need 8.0).
->
-> Look up here for your GPU: [GPU Compute Capabilites](https://developer.nvidia.com/cuda-gpus)
+Build the CUDA image: `docker compose -f docker-compose-cuda.yml build`
+
+The images are based on official prebuilt llama.cpp server images pinned via the
+`LLAMACPP_IMAGE` build arg in `Dockerfile_cpu` / `Dockerfile_cuda`. To test a
+newer llama.cpp build, bump that tag (find available `server-b*` / `server-cuda-b*`
+tags on the [llama.cpp package page](https://github.com/orgs/ggml-org/packages/container/package/llama.cpp)).
 
 
 ## Manual Setup
 
-1. Download and extract or build [llama-cpp](https://github.com/ggerganov/llama.cpp) for your operating system.
+Run LLMAIx directly on your host (no Docker). This is also the way to use **Apple
+Metal acceleration on macOS**, which is not available inside Docker.
+
+1. Download, extract, or build [llama.cpp](https://github.com/ggml-org/llama.cpp) for your operating system. On macOS, use a native Metal-enabled `llama-server` build (the official macOS builds are Metal-enabled).
 2. Download desired models (must be compatible with llama-cpp, in gguf format)
 3. Update the config.yml file with the downloaded models accordingly.
 4. If you intend to use OCR: Install [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#)
@@ -144,7 +170,9 @@ Run `docker compose build` inside of the repository.
   - `uv venv && source .venv/bin/activate`
   - `uv sync`
 
-6. Run: `python app.py`
+6. Point LLMAIx at your `llama-server` binary and run it, e.g.:
+  - `python app.py --server_path /path/to/llama-server`
+  - or set the `LLAMA_SERVER_PATH` (or `SERVER_PATH`) environment variable.
 
 
 ## LLMAIx Parameters
@@ -152,7 +180,7 @@ Run `docker compose build` inside of the repository.
 |Parameter|Description|Example|
 |---|---|---|
 |--model_path|Directory with downloaded model files which can be processed by llama.cpp|/path/to/models|
-|--server_path|Path of llama cpp executable (on Windows: server.exe).|/path/to/llamacpp/executable/server|
+|--server_path|Path of the llama-server executable. In the official Docker images this is `/app/llama-server`. Can also be set via the `LLAMA_SERVER_PATH` / `SERVER_PATH` environment variable.|/app/llama-server|
 |--host|Hostname of the server. Default: 0.0.0.0|0.0.0.0 or localhost|
 |--port|Port on which this web app should be started on. Default: 5001|5001|
 |--config_file|Custom path to the configuration file.|config.yml|

@@ -1,15 +1,18 @@
 # syntax=docker/dockerfile:1
 #
-# LLMAIx CUDA (NVIDIA GPU) image.
+# LLMAIx CPU image.
 #
-# Based on the official prebuilt llama.cpp CUDA server image instead of
-# compiling llama.cpp from source. Requires the NVIDIA Container Toolkit on the
-# host (run with `--gpus all`). The upstream image ships the server binary at
-# /app/llama-server.
+# Based on the official prebuilt llama.cpp server image (Ubuntu 24.04) instead
+# of compiling llama.cpp from source. The upstream image ships the server
+# binary at /app/llama-server and is published for linux/amd64 and linux/arm64,
+# so this image runs on x86-64 Linux servers and on Docker Desktop on Apple
+# Silicon (via the Linux ARM64 image). Note: this is a CPU image - there is no
+# Metal / GPU acceleration inside Docker. For Metal on macOS, run LLMAIx
+# natively (see README).
 #
 # Pin the upstream llama.cpp build. Bump this to re-test against a newer build.
 # Verify tags at: https://github.com/orgs/ggml-org/packages/container/package/llama.cpp
-ARG LLAMACPP_IMAGE=ghcr.io/ggml-org/llama.cpp:server-cuda-b10068
+ARG LLAMACPP_IMAGE=ghcr.io/ggml-org/llama.cpp:server-b10068
 
 FROM ${LLAMACPP_IMAGE}
 

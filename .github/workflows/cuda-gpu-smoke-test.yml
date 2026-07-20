@@ -1,0 +1,34 @@
+name: CUDA GPU Smoke Test
+
+# GitHub-hosted runners have no GPU, so this job is opt-in and requires a
+# self-hosted runner labelled [self-hosted, gpu] with the NVIDIA Container
+# Toolkit installed. Trigger it manually from the Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "CUDA image to test"
+        required: true
+        default: "ghcr.io/katherlab/llmaix-cuda:latest"
+
+jobs:
+  cuda-smoke:
+    runs-on: [self-hosted, gpu]
+    steps:
+      - name: Pull image
+        run: docker pull "${{ github.event.inputs.image }}"
+
+      - name: llama-server exists and reports version
+        run: |
+          docker run --rm --gpus all --entrypoint /app/llama-server \
+            "${{ github.event.inputs.image }}" --version
+
+      - name: Confirm CUDA is active (not silent CPU fallback)
+        run: |
+          # llama-server logs the detected CUDA devices during model load.
+          # Run --list-devices and assert a CUDA device is reported.
+          OUT=$(docker run --rm --gpus all --entrypoint /app/llama-server \
+            "${{ github.event.inputs.image }}" --list-devices 2>&1 || true)
+          echo "$OUT"
+          echo "$OUT" | grep -iE "CUDA|GPU" \
+            || (echo "ERROR: no CUDA device reported - possible CPU fallback" && exit 1)

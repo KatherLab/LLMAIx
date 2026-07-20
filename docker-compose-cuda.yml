@@ -2,10 +2,9 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile_cpu
-    # CPU image: runs on linux/amd64 and linux/arm64 (incl. Docker Desktop on
-    # Apple Silicon). For NVIDIA GPUs use docker-compose-cuda.yml instead.
-    image: ghcr.io/katherlab/llmaix-cpu:latest
+      dockerfile: Dockerfile_cuda
+    # CUDA image: Linux with NVIDIA GPU + NVIDIA Container Toolkit (linux/amd64).
+    image: ghcr.io/katherlab/llmaix-cuda:latest
     ports:
       - "19999:${PORT:-5000}"
     volumes:
@@ -31,3 +30,10 @@ services:
       - API_URL=${API_URL:-}
       - API_KEY=${API_KEY:-}
       - ONLY_API=${ONLY_API:-false} # if true, a local model config will not be checked
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]

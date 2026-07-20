@@ -72,20 +72,73 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build and push API-only Docker image
+      # ------------------------------------------------------------------
+      # Smoke test the CPU image (native amd64, loaded locally) before push.
+      # ------------------------------------------------------------------
+      - name: Build CPU image (amd64) for smoke tests
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile_api
+          file: ./Dockerfile_cpu
+          platforms: linux/amd64
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: llmaix-cpu:smoke
+
+      - name: Smoke test - llama-server binary exists and reports version
+        run: |
+          docker run --rm --entrypoint ls llmaix-cpu:smoke -l /app/llama-server
+          docker run --rm --entrypoint /app/llama-server llmaix-cpu:smoke --version
+
+      - name: Smoke test - Python imports succeed
+        run: |
+          docker run --rm --entrypoint /llmaix/.venv/bin/python llmaix-cpu:smoke \
+            -c "import flask, aiohttp, requests, pandas, yaml; print('python imports ok')"
+
+      - name: Smoke test - OCR tools installed
+        run: |
+          docker run --rm --entrypoint bash llmaix-cpu:smoke \
+            -c "command -v tesseract && command -v ocrmypdf && command -v pngquant"
+
+      - name: Smoke test - LLMAIx app starts without entrypoint conflict
+        run: |
+          docker run --rm --entrypoint /llmaix/.venv/bin/python llmaix-cpu:smoke app.py --help
+
+      - name: Smoke test - generated CLI flags validate against pinned llama-server --help
+        run: |
+          docker run --rm --entrypoint /llmaix/.venv/bin/python \
+            -e LLAMA_SERVER_PATH=/app/llama-server llmaix-cpu:smoke \
+            -m unittest webapp.llm_processing.tests.test_server_command -v
+
+      - name: Integration test - LLMAIx API produces a llama.cpp response
+        run: |
+          # Loads a tiny GGUF from Hugging Face via -hf, waits for readiness and
+          # calls the /v1/chat/completions path LLMAIx uses. Needs network access.
+          docker run --rm --entrypoint /llmaix/.venv/bin/python \
+            -e LLAMA_SERVER_PATH=/app/llama-server \
+            -e LLAMA_STARTUP_TIMEOUT=900 \
+            llmaix-cpu:smoke \
+            -m unittest webapp.llm_processing.tests.test_api_integration -v
+
+      # ------------------------------------------------------------------
+      # Build and push images.
+      # ------------------------------------------------------------------
+      - name: Build and push CPU image (amd64, arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile_cpu
           platforms: linux/amd64,linux/arm64
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cpu:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cpu:latest
 
-      - name: Build and push CUDA-enabled Docker image (AMD64 only)
+      - name: Build and push CUDA image (amd64)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -98,15 +151,15 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:${{ env.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cuda:latest
 
-      - name: Build and push Metal-enabled Docker image (ARM64 only)
+      - name: Build and push API-only image (amd64, arm64)
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile_metal
-          platforms: linux/arm64
+          file: ./Dockerfile_api
+          platforms: linux/amd64,linux/arm64
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-metal:${{ env.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-metal:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest

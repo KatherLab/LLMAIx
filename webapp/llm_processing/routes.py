@@ -22,6 +22,7 @@ import pandas as pd
 from pathlib import Path
 import subprocess
 import time
+import atexit
 import ast
 import re
 from dataclasses import dataclass, field
@@ -46,6 +47,23 @@ from .. import set_mode, get_openai_client
 server_connection: Optional[subprocess.Popen[Any]] = None
 current_model = None
 model_active = False
+
+
+def _shutdown_llama_server_on_exit() -> None:
+    """Cleanly stop the llama-server child process when LLMAIx exits."""
+    global server_connection
+    if server_connection is not None and server_connection.poll() is None:
+        try:
+            server_connection.terminate()
+            server_connection.wait(timeout=10)
+        except Exception:
+            try:
+                server_connection.kill()
+            except Exception:
+                pass
+
+
+atexit.register(_shutdown_llama_server_on_exit)
 
 JobID = str
 llm_jobs: dict[JobID, futures.Future] = {}
@@ -205,7 +223,17 @@ class CancellableJob:
     seed: int = 42
     top_k: int = 1
     top_p: float = 0
+    # Hugging Face model source (alternative to a local file). When hf_repo is
+    # set, llama-server downloads the model via -hf instead of loading a local
+    # --model file. hf_quant selects the quantization (repo:QUANT); hf_file
+    # overrides it with an exact GGUF filename (--hf-file).
+    hf_repo: str = ""
+    hf_quant: str = ""
+    hf_file: str = ""
+    hf_token: str = ""
+    server_startup_timeout: int = int(os.getenv("LLAMA_STARTUP_TIMEOUT", "600"))
     _canceled: bool = field(default=False, init=False)
+    _server_log: Any = field(default=None, init=False)
     results: Dict = field(default_factory=dict, init=False)
     skipped: int = field(default=0, init=False)
 
@@ -636,56 +664,175 @@ class CancellableJob:
             print("Process cancelled")
             raise
 
+    def build_server_command(self, model_path: Optional[Path] = None) -> list[str]:
+        """Build the llama-server CLI argument list.
+
+        Kept as a separate method so the generated arguments can be validated
+        in tests against the pinned llama-server ``--help`` output.
+
+        Loads the model either from a local file (``model_path``) or, when
+        ``hf_repo`` is set, directly from Hugging Face via ``-hf``.
+        """
+        command = [self.server_path]
+        if self.hf_repo:
+            repo = self.hf_repo
+            # Append the quant as repo:QUANT unless the repo already carries one.
+            if self.hf_quant and ":" not in repo:
+                repo = f"{repo}:{self.hf_quant}"
+            command += ["-hf", repo]
+            if self.hf_file:
+                command += ["-hff", self.hf_file]
+            if self.hf_token:
+                command += ["-hft", self.hf_token]
+        else:
+            command += ["--model", str(model_path)]
+        command += [
+            "--ctx-size", str(self.ctx_size),
+            "--n-gpu-layers", str(self.n_gpu_layers),
+            "--port", str(self.llamacpp_port),
+            "--metrics",
+            "-np", str(self.parallel_slots),
+            "-b", "2048",
+            "-ub", "512",
+            "-t", "8",
+            "--seed", str(self.seed),
+        ]
+        command += ["--verbose"] if self.verbose_llama else []
+        command += ["--mlock"] if self.mlock else []
+        command += ["-ctk", self.kv_cache_type, "-ctv", self.kv_cache_type] if self.kv_cache_type != "" else []
+        command += ["-sm", "none", "-mg", str(self.gpu)] if self.gpu not in ["all", "ALL", "mps", "", "row"] else []
+        command += ["-sm", "row"] if self.gpu == "row" else []
+        # llama.cpp b10068+ requires -fa/--flash-attn to take a value (on/off/auto);
+        # a bare "-fa" makes the server exit with "expected value for argument".
+        command += ["-fa", "on"] if self.flash_attention else []
+        return command
+
+    def _read_server_log(self, max_chars: int = 4000) -> str:
+        """Return the tail of the captured llama-server startup log, if any."""
+        log_file = getattr(self, "_server_log", None)
+        if log_file is None:
+            return ""
+        try:
+            log_file.flush()
+        except (ValueError, OSError):
+            pass
+        try:
+            with open(log_file.name, "r", errors="replace") as f:
+                return f.read()[-max_chars:]
+        except OSError:
+            return ""
+
+    @staticmethod
+    def _classify_startup_failure(log_text: str) -> str:
+        """Best-effort classification of why llama-server failed to start."""
+        lowered = log_text.lower()
+        if any(
+            marker in lowered
+            for marker in ("out of memory", "cudamalloc", "failed to allocate", "insufficient memory", "oom")
+        ):
+            return "out-of-memory"
+        if any(
+            marker in lowered
+            for marker in ("failed to load model", "error loading model", "no such file", "gguf")
+        ):
+            return "model-loading"
+        return "startup"
+
+    @staticmethod
+    def _shutdown_server(proc: subprocess.Popen, timeout: float = 10.0) -> None:
+        """Terminate a llama-server child cleanly, escalating to kill if needed."""
+        if proc.poll() is not None:
+            return
+        try:
+            proc.terminate()
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            try:
+                proc.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                pass
+
+    def _await_server_ready(self, proc: subprocess.Popen) -> None:
+        """Poll llama-server /health with a bounded timeout.
+
+        Does not treat a live process as "ready" - readiness requires the
+        health endpoint to report ``status == "ok"``. Raises RuntimeError with
+        the captured startup log when the server dies or times out.
+        """
+        health_url = f"http://localhost:{self.llamacpp_port}/health"
+        deadline = time.monotonic() + self.server_startup_timeout
+
+        while not self._canceled:
+            exit_code = proc.poll()
+            if exit_code is not None:
+                log_text = self._read_server_log()
+                failure = self._classify_startup_failure(log_text)
+                message = (
+                    f"llama-server exited during startup (exit code {exit_code}, "
+                    f"cause: {failure}).\nStartup log tail:\n{log_text}"
+                )
+                warning_job(job_id=self.job_id, message=message)
+                print(message)
+                raise RuntimeError(message)
+
+            if time.monotonic() > deadline:
+                log_text = self._read_server_log()
+                self._shutdown_server(proc)
+                message = (
+                    f"llama-server did not become ready within "
+                    f"{self.server_startup_timeout}s.\nStartup log tail:\n{log_text}"
+                )
+                warning_job(job_id=self.job_id, message=message)
+                print(message)
+                raise RuntimeError(message)
+
+            try:
+                response = requests.get(health_url, timeout=5)
+                # 503 while the model is still loading is expected; keep polling.
+                if response.status_code == 200 and response.json().get("status") == "ok":
+                    return
+            except requests.exceptions.ConnectionError:
+                pass  # server not listening yet
+            except requests.exceptions.RequestException as e:
+                print(f"Health check error: {e}, retrying ...")
+            time.sleep(2)
+
     def start_server(self) -> None:
         global new_model, server_connection, current_model, model_active
 
-        model_dir = Path(self.model_path)
-        model_path = model_dir / self.model_name
-        assert model_path.absolute().parent == model_dir
+        if self.hf_repo:
+            # Hugging Face model: llama-server downloads it via -hf, no local path.
+            model_path = None
+        else:
+            model_dir = Path(self.model_path)
+            model_path = model_dir / self.model_name
+            assert model_path.absolute().parent == model_dir
 
         print("Current model:", current_model, "Load new model:", new_model)
-        
+
         if current_model != self.model_name:
             if server_connection:
-                server_connection.kill()
+                self._shutdown_server(server_connection)
 
             print("Starting new server for model", self.model_name, "with seed", self.seed)
 
             new_model = True
-            server_connection = subprocess.Popen(
-                [
-                    self.server_path,
-                    "--model",
-                    str(model_path),
-                    "--ctx-size",
-                    str(self.ctx_size),
-                    "--n-gpu-layers",
-                    str(self.n_gpu_layers),
-                    "--port",
-                    str(self.llamacpp_port),
-                    "--metrics",
-                    "-np",
-                    str(self.parallel_slots),
-                    "-b",
-                    "2048",
-                    "-ub",
-                    "512",
-                    "-t",
-                    "8",
-                    "--seed",
-                    str(self.seed)
-                ] + 
-                (["--verbose"] if self.verbose_llama else []) +
-                (["--mlock"] if self.mlock else []) +
-                (["-ctk", self.kv_cache_type, "-ctv", self.kv_cache_type] if self.kv_cache_type != "" else []) +
-                (["-sm", "none", "-mg", str(self.gpu)] if self.gpu not in ["all", "ALL", "mps", "", "row"] else []) +
-                (["-sm", "row"] if self.gpu == "row" else []) +
-                (["-fa"] if self.flash_attention else []),
+
+            command = self.build_server_command(model_path)
+
+            # Capture startup logs so we can report them if model loading fails.
+            self._server_log = tempfile.NamedTemporaryFile(
+                mode="w+", prefix="llama_server_", suffix=".log", delete=False
             )
-            
+            server_connection = subprocess.Popen(
+                command,
+                stdout=self._server_log,
+                stderr=subprocess.STDOUT,
+            )
+
             current_model = self.model_name
             model_active = True
-            time.sleep(5)
 
             try:
                 os.environ.pop("HTTP_PROXY", None)
@@ -693,19 +840,15 @@ class CancellableJob:
             except KeyError:
                 print("No proxy set")
 
-            while not self._canceled:
-                try:
-                    response = requests.get(f"http://localhost:{self.llamacpp_port}/health")
-                    if response.status_code == 200 and response.json()["status"] == "ok":
-                        break
-                    time.sleep(2)
-                except requests.exceptions.ConnectionError:
-                    warning_job(
-                        job_id=self.job_id,
-                        message="Server connection error, will keep retrying ...",
-                    )
-                    print("Server connection error, will keep retrying ...")
-                    time.sleep(5)
+            try:
+                self._await_server_ready(server_connection)
+            except Exception:
+                # Reset state so a subsequent attempt re-launches the server
+                # instead of assuming the dead process is ready.
+                self._shutdown_server(server_connection)
+                current_model = None
+                model_active = False
+                raise
 
         else:
             model_active = True
@@ -974,7 +1117,8 @@ def get_model_config(model_dir, config_file, model_file_path):
         config_data = yaml.safe_load(file)
 
         for model_dict in config_data["models"]:
-            if model_dict["file_name"] == model_file_path:
+            # Local models are keyed by file_name; HF models by their name.
+            if (model_dict.get("file_name") or model_dict.get("name")) == model_file_path:
                 return model_dict
 
 @llm_processing.route("/llm", methods=["GET", "POST"])
@@ -1193,9 +1337,13 @@ def main():
             chat_endpoint=form.chat_endpoint.data,
             system_prompt=form.system_prompt.data,
             job_name=form.job_name.data,
-            seed=model_config['seed'] if not api_model else 0,  
+            seed=model_config['seed'] if not api_model else 0,
             top_k=form.top_k.data,
             top_p=form.top_p.data,
+            hf_repo=model_config.get('hf_repo', "") if not api_model else "",
+            hf_quant=model_config.get('hf_quant', "") if not api_model else "",
+            hf_file=model_config.get('hf_file', "") if not api_model else "",
+            hf_token=model_config.get('hf_token', "") if not api_model else "",
         )
 
         print(f"Started job {job_id} successfully!")

@@ -26,7 +26,7 @@ logging.debug("Starting LLM-AIx ...")
 def create_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Web app for llama-cpp')
     parser.add_argument("--model_path", type=str, default=os.getenv('MODEL_PATH', "models"), help="Path where the models are stored which llama cpp can load.")
-    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH', r""), help="Path to the llama server executable.")
+    parser.add_argument("--server_path", type=str, default=os.getenv('SERVER_PATH') or os.getenv('LLAMA_SERVER_PATH') or r"", help="Path to the llama server executable. In the official Docker images this is /app/llama-server. For native macOS (Metal) use, point this at your locally built llama-server via --server_path or the LLAMA_SERVER_PATH / SERVER_PATH environment variable.")
     parser.add_argument("--port", type=int, default=int(os.getenv('PORT', 5000)), help="On which port the Web App should be available.")
     parser.add_argument("--host", type=str, default=os.getenv('HOST', "localhost"))
     parser.add_argument("--config_file", type=str, default=os.getenv('CONFIG_FILE', "config.yml"))
@@ -100,12 +100,19 @@ def check_model_config(model_dir, model_config_file):
     #     n_gpu_layers: 33
 
     for model_dict in model_config['models']:
+        # A model is loaded either from a local file ('file_name') or directly
+        # from Hugging Face ('hf_repo', downloaded by llama-server via -hf).
+        is_hf_model = 'hf_repo' in model_dict and model_dict['hf_repo']
         if 'kv_cache_size' not in model_dict:
             raise ValueError(f"Model config for {model_dict['name']} is missing 'kv_cache_size'")
         if 'server_slots' not in model_dict:
             raise ValueError(f"Model config for {model_dict['name']} is missing 'server_slots'")
-        if 'file_name' not in model_dict:
-            raise ValueError(f"Model config for {model_dict['name']} is missing 'file_name'")
+        if not is_hf_model and 'file_name' not in model_dict:
+            raise ValueError(
+                f"Model config for {model_dict['name']} is missing 'file_name' (or 'hf_repo' for a Hugging Face model)")
+        if is_hf_model and '/' not in model_dict['hf_repo']:
+            raise ValueError(
+                f"Model config for {model_dict['name']} has an invalid 'hf_repo' - expected '<user>/<model>', e.g. 'ggml-org/gemma-3-4b-it-GGUF'")
         if 'n_gpu_layers' not in model_dict:
             raise ValueError(f"Model config for {model_dict['name']} is missing 'n_gpu_layers'")
         if 'flash_attention' not in model_dict:
@@ -137,6 +144,11 @@ def check_model_config(model_dir, model_config_file):
         if 'display_name' not in model_dict:
             print("Display name not found in model config, setting to file name")
             # model_dict['display_name'] = model_dict['file_name']
+
+        # HF models are downloaded on demand by llama-server, so there is no
+        # local file to check here.
+        if is_hf_model:
+            continue
 
         model_file = os.path.join(model_dir, model_dict['file_name'])
 
