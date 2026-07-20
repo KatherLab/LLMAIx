@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "LLMAIx"
-version = "0.3.40"
+version = "0.4.0"
 requires-python = ">= 3.11"
 description = "LLM-AIx - A pipeline for information extraction and anonymization of medical documents"
 readme = "README.md"
