@@ -52,12 +52,10 @@ class ReAnnotationForm(FlaskForm):
             # Validate Annotator fields based on the label type
             if label_type == 'multiclass':
                 if label_entry.annotator_categories.data not in dict(label_entry.annotator_categories.choices):
-                    breakpoint()
                     label_entry.annotator_categories.errors.append("Invalid choice for Annotator Categories")
                     return False
             elif label_type == 'boolean':
                 if label_entry.annotator_boolean.data not in [True, False]:
-                    breakpoint()
                     label_entry.annotator_boolean.errors.append("Invalid value for Annotator Boolean")
                     return False
             # Don't validate strings, can be empty

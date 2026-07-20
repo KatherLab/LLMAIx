@@ -818,7 +818,6 @@ def labelannotationmetrics():
             metadata = json.loads(df["metadata"].iloc[0])
         except Exception as e:
             flash(f"Error loading metadata from llm output file: {e}", "danger")
-            breakpoint()
             return redirect(url_for("labelannotation.main"))
 
         report_summary_dict["metadata"] = metadata
@@ -1046,7 +1045,6 @@ def labelannotationviewer():
                     report_dict = generate_report_dict(row, df_annotation, label_type_mapping)
                 except Exception as e:
                     flash(f"Error processing reports and annotations: {e}", "danger")
-                    breakpoint()
                     return redirect(url_for("labelannotation.main"))
                 break
     
@@ -1073,7 +1071,6 @@ def labelannotationcacheprovider(file_id):
     # Check if the file ID exists in the session's file cache
     if file_id not in file_cache:
         print("File ID not found in the cache variable")
-        breakpoint()
         abort(404)  # Return 404 if the file ID is not in the cache
 
     file_path = file_cache[file_id]  # Get the file path from the cache

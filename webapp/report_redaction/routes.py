@@ -387,7 +387,6 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
                 )
             except Exception as e:
                 print("Error converting personal info list: ", e)
-                breakpoint()
 
             try:
                 # Extract all column values for the current report ID, except column 'id', 'report', 'metadata' and 'report_redacted', put them in a dict with the column name as the key
@@ -411,7 +410,6 @@ def generate_report_list(df, job_id, pdf_file_zip, annotation_file, enable_fuzzy
                 # personal_info_list = df[df['id'] == report_id]['personal_info_list'].item()
             except Exception as e:
                 print("Error extracting personal info dict: ", e)
-                breakpoint()
 
             personal_info_dict = {
                 key: convert_personal_info_list(value)
@@ -566,7 +564,6 @@ def accumulate_metrics(report_list):
     for index, report_dict in enumerate(report_list):
         if "scores" not in report_dict:
             print("No scores in report ", index, ". Skip")
-            breakpoint()
             continue
         for label, score_tuple in report_dict["scores"].items():
             score_dict = score_tuple[0]
@@ -890,6 +887,7 @@ def report_redaction_viewer(report_id):
             threshold=session.get("threshold", 90),
             exclude_single_chars=session.get("exclude_single_chars", False),
             scorer=session.get("scorer", None),
+            apply_redaction=True,
         )
 
     if session.get("annotation_file", None):
@@ -916,6 +914,7 @@ def report_redaction_viewer(report_id):
                 exclude_single_chars=session.get("exclude_single_chars", False),
                 scorer=session.get("scorer", None),
                 text=sofastring,
+                apply_redaction=True,
             )
             # Calculate scores labelwise
 
@@ -967,7 +966,7 @@ def report_redaction_viewer(report_id):
                 metadata = ast.literal_eval(metadata_str)
             except (ValueError, SyntaxError) as e:
                 print("Error parsing Metadata from llm output file: " + str(e))
-                breakpoint()
+                metadata = None
 
     return render_template(
         "report_redaction_viewer.html",

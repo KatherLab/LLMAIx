@@ -558,14 +558,19 @@ class CancellableJob:
                                 )
 
                     if 'content' not in summary:
+                        error = summary.get('error')
+                        error_message = error.get('message', 'unknown error') if isinstance(error, dict) else 'unknown error'
                         warning_job(
                             job_id=self.job_id,
-                            message=f"Report {id}: An error occurred: {summary['error']['message']}",
+                            message=f"Report {id}: An error occurred, no content returned: {error_message}",
                         )
+                        # Leave this report without a "content" key; postprocessing
+                        # counts it as an error instead of failing the whole batch.
+                        continue
                     # self.results[id]["summary"] = summary
                     self.results[id]["content"] = summary['content']
 
-                    if summary['stop_type'] == "limit":
+                    if summary.get('stop_type') == "limit":
                         warning_job(
                             job_id=self.job_id,
                             message=f"Report {id}: Generation stopped after {summary['tokens_predicted']} tokens "
@@ -911,7 +916,7 @@ class CancellableJob:
             global model_active
             model_active = False
 
-            result_df, errors = postprocess_grammar(self.results, self.df, llm_metadata, self.debug)
+            result_df, errors = postprocess_grammar(self.results, self.df, llm_metadata, self.debug, mode=self.mode)
 
             if errors:
                 warning_job(
@@ -948,8 +953,11 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
         print(f"Processing report {i+1} of {len(result)}")
         # Get the first key in the dictionary (here assumed to be the relevant field)
 
-        # Extract the content of the first field
-        content = info["content"]
+        # Extract the content of the first field. A report whose LLM request
+        # failed (API error, timeout, missing content) never got a "content"
+        # key; treat it as an empty result so this one report is counted as an
+        # error instead of aborting postprocessing for the whole batch.
+        content = info.get("content", "")
 
         # Parse the content string into a dictionary
         try:
@@ -1008,9 +1016,14 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
 
         # get metadata from df by looking for row where id == id and get the column metadata
 
-        metadata = df[df["id"] == id]["metadata"].iloc[0]
-
-        metadata = ast.literal_eval(metadata)
+        metadata_rows = df[df["id"] == id]["metadata"]
+        try:
+            metadata = ast.literal_eval(metadata_rows.iloc[0])
+        except (ValueError, SyntaxError, IndexError) as e:
+            print(f"Report {id}: could not parse stored metadata ({e}); using empty metadata.", flush=True)
+            metadata = {}
+        if not isinstance(metadata, dict):
+            metadata = {}
         metadata["llm_processing"] = llm_metadata
 
         # Construct a dictionary containing the report and extracted information
@@ -1061,8 +1074,9 @@ def postprocess_grammar(result, df, llm_metadata, debug=False, mode="information
             axis=1,
         )
 
-        aggregated_df["masked_report"] = aggregated_df["report"].apply(
-            lambda x: replace_personal_info(x, aggregated_df["personal_info_list"][0], [])
+        aggregated_df["masked_report"] = aggregated_df.apply(
+            lambda row: replace_personal_info(row["report"], row["personal_info_list"], []),
+            axis=1,
         )
     else:
         aggregated_df = df

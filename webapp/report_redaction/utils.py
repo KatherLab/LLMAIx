@@ -118,8 +118,6 @@ class InceptionAnnotationParser:
 
                     if page_number is None:
                         print("Page not found for chunk")
-                        if self.debug:
-                            breakpoint()
                         assert("Page not found for chunk. The annotations do not seem to match the provided pdf.")
                         
                     bounding_box = (
@@ -277,11 +275,7 @@ def generate_confusion_matrix_from_matrix(confusion_matrix_list, filename, title
 
     # Normalize the confusion matrix
     # cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-    try:
-        row_sums = cm.sum(axis=1, keepdims=True)
-    except Exception as e:
-        print(e)
-        breakpoint()
+    row_sums = cm.sum(axis=1, keepdims=True)
 
     # Avoid division by zero by setting zero sums to one
     row_sums[row_sums == 0] = 1
