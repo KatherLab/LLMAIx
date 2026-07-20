@@ -64,6 +64,12 @@ ENV LLAMA_ARG_HOST=0.0.0.0
 # they persist across container restarts. Override with -e LLAMA_CACHE=... .
 ENV LLAMA_CACHE=/models/.llama_cache
 
+# surya-ocr (>= 0.22) runs its OCR model through a llama-server binary; point
+# it at the one bundled in this image. Its GGUF download goes through
+# huggingface_hub, so keep that cache in the /models volume as well.
+ENV LLAMA_CPP_BINARY=/app/llama-server
+ENV HF_HOME=/models/.hf_cache
+
 # LLMAIx web app port (llama.cpp stays internal to the container).
 EXPOSE 5000
 

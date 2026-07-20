@@ -64,18 +64,19 @@ Examples of doctoral reports in various formats as well as grammar examples and 
 
 ## LLM Models and Model Config
 
-LLM-AIx supports all models which are supported by llama-cpp at the time. Please download models in the **gguf** format. 
+LLM-AIx supports all models which are supported by llama-cpp at the time (**gguf** format).
 
-In addition, create a config.yml file inside of the model directoy and configure your downloaded models according to the following example.
+By default, models are loaded **directly from Hugging Face**: the repository ships a `config.yml` with [google/gemma-4-E4B-it-qat-q4_0-gguf](https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf) preconfigured, which llama-server downloads automatically on first use (~5 GB) — no manual model download needed.
 
-
-Example config.yml file:
+Default config.yml entry (Hugging Face model):
 ```yaml
 models:
-  - name: "llama3.1_8b_instruct_q5km"
-    display_name: "LLaMA 3.1 8B Instruct Q5_K_M"
-    file_name: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
-    model_context_size: 128000 # Right now only informative.
+  - name: "gemma4_e4b_it_qat_q4_0"
+    display_name: "Gemma 4 E4B IT QAT Q4_0"
+    hf_repo: "google/gemma-4-E4B-it-qat-q4_0-gguf" # <user>/<model> on Hugging Face (must be a GGUF repo)
+    # hf_quant: "Q4_K_M" # for repos with multiple quants: selects repo:Q4_K_M (case-insensitive)
+    # hf_file: "..." # optional: exact GGUF filename, overrides hf_quant
+    model_context_size: 131072 # Right now only informative.
     kv_cache_size: 16000 # Which size should the llama.cpp KV Cache have?
     kv_cache_quants: "q8_0" # e.g. "q8_0", "q4_0" or "f16" - requires flash attention
     flash_attention: true # does not work for some models
@@ -83,6 +84,17 @@ models:
     server_slots: 1 # How many requests should be processed in parallel. Please note: The size of each slot is kv_cache_size / server_slots!
     seed: 42 # Random initialization
     n_gpu_layers: 200 # How many layers to offload to the GPU. You should always try to offload all! e.g. 33 for Llama 3.1 8B or 82 for Llama 3.1 70B. Can be set to e.g. 200 to make sure all layers are offloaded for (almost) all models.
+```
+
+For gated or private Hugging Face repos, set the `HF_TOKEN` environment variable.
+
+Alternatively, you can still use **manually downloaded model files**: download the gguf files into a models directory, create a `config.yml` there, and use `file_name` instead of `hf_repo`:
+```yaml
+models:
+  - name: "llama3.1_8b_instruct_q5km"
+    display_name: "LLaMA 3.1 8B Instruct Q5_K_M"
+    file_name: "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf"
+    # ... same remaining options as above
 ```
 
 ## Docker images / supported hardware
@@ -108,21 +120,24 @@ container.
 
 ## Run with Docker (CPU)
 
-1. Download the desired models (must be compatible with llama-cpp, in gguf format, e.g. from HuggingFace) into a new models directory!
-2. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
-3. Go to the repository directory: `cd LLMAIx`
-4. Edit `docker-compose.yml` with the correct path to the models directory. Inside of this model path should be the _.gguf_ files as well as the adapted `config.yml` file.
-5. Run the docker image: `docker compose up` (add `-d` to run in detached mode)
+1. Download/Clone this repository: `git clone https://github.com/KatherLab/LLMAIx.git`
+2. Go to the repository directory: `cd LLMAIx`
+3. Run the docker image: `docker compose up` (add `-d` to run in detached mode)
+
+That's it — the default model (Gemma 4 E4B) is downloaded automatically from Hugging Face on first use (~5 GB) and cached in a Docker volume for subsequent runs.
 
 Now access in your browser via `http://localhost:19999`
 
 Update the docker image: `docker compose pull`
 
+> [!TIP]
+> To use your own (manually downloaded) models instead: put the _.gguf_ files and an adapted `config.yml` into a local models directory, then edit `docker-compose.yml` to bind-mount that directory to `/models` and set `CONFIG_FILE=/models/config.yml` (see the comments in the compose file).
+
 ## Run with Docker (CUDA / NVIDIA GPU)
 
 Requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host.
 
-1. Follow steps 1-4 above, but edit `docker-compose-cuda.yml` instead.
+1. Follow steps 1-2 above (for custom models, edit `docker-compose-cuda.yml` instead).
 2. Run: `docker compose -f docker-compose-cuda.yml up` (add `-d` to run in detached mode)
 
 Now access in your browser via `http://localhost:19999`
@@ -162,15 +177,14 @@ Run LLMAIx directly on your host (no Docker). This is also the way to use **Appl
 Metal acceleration on macOS**, which is not available inside Docker.
 
 1. Download, extract, or build [llama.cpp](https://github.com/ggml-org/llama.cpp) for your operating system. On macOS, use a native Metal-enabled `llama-server` build (the official macOS builds are Metal-enabled).
-2. Download desired models (must be compatible with llama-cpp, in gguf format)
-3. Update the config.yml file with the downloaded models accordingly.
-4. If you intend to use OCR: Install [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#)
-5. Install uv and set up the environment:
+2. The bundled `config.yml` already points at a Hugging Face model (Gemma 4 E4B) which llama-server downloads automatically on first use — nothing else to do. To use manually downloaded gguf files instead, put them into a models directory (passed via `--model_path`) and adapt `config.yml` accordingly (see [LLM Models and Model Config](#llm-models-and-model-config)).
+3. If you intend to use OCR: Install [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#)
+4. Install uv and set up the environment:
   - `curl -LsSf https://astral.sh/uv/install.sh | sh`
   - `uv venv && source .venv/bin/activate`
   - `uv sync`
 
-6. Point LLMAIx at your `llama-server` binary and run it, e.g.:
+5. Point LLMAIx at your `llama-server` binary and run it, e.g.:
   - `python app.py --server_path /path/to/llama-server`
   - or set the `LLAMA_SERVER_PATH` (or `SERVER_PATH`) environment variable.
 

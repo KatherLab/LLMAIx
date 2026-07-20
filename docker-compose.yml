@@ -9,15 +9,20 @@ services:
     ports:
       - "19999:${PORT:-5000}"
     volumes:
-      # Adjust: /path/to/your/local/model/dir:/models - don't modify the path after the colon!
-      - /PATH/TO/YOUR/LOCAL/MODEL/DIR:/models
+      # Default: named volume that persists Hugging Face model downloads
+      # (the bundled config.yml pulls its model from Hugging Face automatically).
+      # To use your own local model files + config instead, replace with a bind
+      # mount (- /path/to/your/local/model/dir:/models) and set
+      # CONFIG_FILE=/models/config.yml below.
+      - llmaix_models:/models
     environment:
       # Path to the llama-server binary inside the official image. Don't change.
       - SERVER_PATH=${SERVER_PATH:-/app/llama-server}
       - PORT=${PORT:-5000}
       - HOST=${HOST:-0.0.0.0}
-      # Adjust if your model config in your models directory has another name than config.yml
-      - CONFIG_FILE=${CONFIG_FILE:-/models/config.yml}
+      # Default: config.yml bundled with the image (Hugging Face model, auto-downloaded).
+      # Set to /models/config.yml to use your own config from a mounted models directory.
+      - CONFIG_FILE=${CONFIG_FILE:-/llmaix/config.yml}
       - GPU=${GPU:-ALL}
       # Hugging Face token for gated/private repos used via hf_repo in config.yml (optional).
       - HF_TOKEN=${HF_TOKEN:-}
@@ -31,3 +36,6 @@ services:
       - API_URL=${API_URL:-}
       - API_KEY=${API_KEY:-}
       - ONLY_API=${ONLY_API:-false} # if true, a local model config will not be checked
+
+volumes:
+  llmaix_models:

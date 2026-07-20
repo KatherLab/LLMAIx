@@ -1,0 +1,9 @@
+.git
+.venv
+.idea
+.vscode
+logs
+__pycache__
+**/__pycache__
+*.pyc
+LLMAIx.egg-info

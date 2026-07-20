@@ -1125,7 +1125,11 @@ def get_model_config(model_dir, config_file, model_file_path):
     import yaml
 
     if not is_path(config_file):
-        config_file = os.path.join(model_dir, config_file)
+        # Prefer a config in the model directory, fall back to the working
+        # directory (e.g. the config.yml bundled with the repository).
+        candidate = os.path.join(model_dir, config_file)
+        if os.path.isfile(candidate):
+            config_file = candidate
 
     with open(config_file, "r") as file:
         config_data = yaml.safe_load(file)
@@ -1145,7 +1149,11 @@ def main():
             config_file_path = current_app.config["CONFIG_FILE"]
 
             if not is_path(config_file_path):
-                config_file_path = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
+                # Prefer a config in the model directory, fall back to the
+                # working directory (e.g. the bundled config.yml).
+                candidate = os.path.join(current_app.config["MODEL_PATH"], config_file_path)
+                if os.path.isfile(candidate):
+                    config_file_path = candidate
 
             with open(config_file_path, 'r') as file:
                 _ = yaml.safe_load(file)

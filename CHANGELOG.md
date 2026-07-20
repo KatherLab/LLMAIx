@@ -4,46 +4,38 @@ All notable changes to LLMAIx are documented here.
 
 ## 0.4.0
 
-**LLMAIx no longer compiles llama.cpp.** Images are now built on the official
-prebuilt `ghcr.io/ggml-org/llama.cpp` server images, pinned to a tested build.
-The server binary lives at **`/app/llama-server`** and stays internal to the
-container.
+**LLMAIx no longer compiles llama.cpp** — Docker images are built on the
+official prebuilt `ghcr.io/ggml-org/llama.cpp` server images — and **models now
+load directly from Hugging Face by default**, so no models directory is needed
+to get started.
 
 ### Action required for admins
 
-- **Metal image is gone.** The `llmaix-metal` image and `Dockerfile_metal` no
-  longer exist. On macOS, Docker runs the **Linux ARM64 CPU image** — there is
-  **no Metal/GPU acceleration inside Docker**. For Metal, run LLMAIx natively
-  (see README, `--server_path` / `LLAMA_SERVER_PATH`).
-- **New image names:**
-  - `ghcr.io/katherlab/llmaix-cpu` — CPU, `linux/amd64` + `linux/arm64` (incl.
-    Docker Desktop on Apple Silicon)
-  - `ghcr.io/katherlab/llmaix-cuda` — NVIDIA GPU, `linux/amd64` (needs NVIDIA
-    Container Toolkit)
-  - `ghcr.io/katherlab/llmaix-api` — external OpenAI-compatible API only
-- **Compose files:** default `docker-compose.yml` now uses the **CPU** image.
-  For NVIDIA GPUs use the new **`docker-compose-cuda.yml`**
-  (`docker compose -f docker-compose-cuda.yml up`).
+- **New image names:** `ghcr.io/katherlab/llmaix-cpu` (`linux/amd64` +
+  `linux/arm64`), `ghcr.io/katherlab/llmaix-cuda` (NVIDIA, `linux/amd64`),
+  `ghcr.io/katherlab/llmaix-api` (external OpenAI-compatible API only). The
+  **Metal image is gone** — on macOS, Docker runs the Linux ARM64 CPU image
+  without GPU acceleration; for Metal, run LLMAIx natively (see README).
+- **Compose defaults changed to zero-setup mode:** `docker compose up` now uses
+  the bundled `config.yml` with `google/gemma-4-E4B-it-qat-q4_0-gguf` from
+  Hugging Face (~5 GB download on first use, cached in the new `llmaix_models`
+  volume). To keep using your own models directory, bind-mount it to `/models`
+  and set `CONFIG_FILE=/models/config.yml` (see comments in the compose files).
+  For NVIDIA GPUs use the new `docker-compose-cuda.yml`.
 - **`SERVER_PATH` default is now `/app/llama-server`** — update any custom
   overrides.
+- **Native (non-Docker) setups:** surya OCR now needs a llama.cpp
+  `llama-server` binary (`brew install llama.cpp` or set `LLAMA_CPP_BINARY`).
 
-### New configuration possibilities
+### Configuration
 
-- **Load models straight from Hugging Face** — in `config.yml`, use `hf_repo`
-  (+ optional `hf_quant` / `hf_file`) instead of a local `file_name`;
-  llama-server downloads on demand. Set **`HF_TOKEN`** for gated/private repos.
-  Downloads cache in `/models/.llama_cache` (override with `LLAMA_CACHE`).
-- **Pin/upgrade llama.cpp** via the `LLAMACPP_IMAGE` build arg in
-  `Dockerfile_cpu` / `Dockerfile_cuda` (bump the `server-b*` / `server-cuda-b*`
-  tag).
-- **Bounded, health-checked startup** — LLMAIx now polls `/health` with a
-  timeout (`LLAMA_STARTUP_TIMEOUT`, default 600s), reports the model-load log on
-  failure (OOM vs. model-loading vs. startup), and shuts the server down cleanly
-  on exit.
+- `config.yml` can load models from Hugging Face via `hf_repo` (+ optional
+  `hf_quant` / `hf_file`) instead of a local `file_name`; set `HF_TOKEN` for
+  gated/private repos.
 
-### Also in this release
+### Internal
 
 - All Python dependencies upgraded to latest (transformers 5, torch 2.13,
-  pandas 3, etc.); Pillow is held `<11` due to `surya-ocr`.
-- Expanded automated tests (Docker smoke tests, CLI-flag validation,
-  startup/API integration, anonymization & redaction-metric units).
+  pandas 3, surya-ocr 0.22 with reworked full-page OCR); bounded,
+  health-checked llama.cpp startup (`LLAMA_STARTUP_TIMEOUT`, default 600 s);
+  expanded automated tests; added `.dockerignore`.

@@ -69,16 +69,17 @@ def is_path(string):
     return False
 
 def check_model_config(model_dir, model_config_file):
-    if not os.path.exists(model_dir):
-        raise ValueError(f"Model directory {model_dir} does not exist")
     if is_path(model_config_file):
         if not os.path.isfile(model_config_file):
             raise ValueError(f"Model config file {model_config_file} does not exist")
     else:
-        if not os.path.isfile(os.path.join(model_dir, model_config_file)):
+        # Prefer a config in the model directory, fall back to the working
+        # directory (e.g. the config.yml bundled with the repository).
+        if os.path.isfile(os.path.join(model_dir, model_config_file)):
+            model_config_file = os.path.join(model_dir, model_config_file)
+        elif not os.path.isfile(model_config_file):
             raise ValueError(
-                f"Model config file {model_config_file} does not exist in model directory {model_dir}. Did you mount the model directory to the container?")
-        model_config_file = os.path.join(model_dir, model_config_file)
+                f"Model config file {model_config_file} found neither in model directory {model_dir} nor in the working directory. Did you mount the model directory to the container?")
 
     model_config = load_yaml_file(model_config_file)
     if model_config is None:
@@ -146,9 +147,12 @@ def check_model_config(model_dir, model_config_file):
             # model_dict['display_name'] = model_dict['file_name']
 
         # HF models are downloaded on demand by llama-server, so there is no
-        # local file to check here.
+        # local file (and no model directory) to check here.
         if is_hf_model:
             continue
+
+        if not os.path.exists(model_dir):
+            raise ValueError(f"Model directory {model_dir} does not exist")
 
         model_file = os.path.join(model_dir, model_dict['file_name'])
 

@@ -215,25 +215,63 @@ def estimate_font_size(bbox_width, text_length, char_width_to_height_ratio=0.5):
     return font_size
 
 
+def html_to_text_lines(html):
+    """Extract plain text lines from a surya block HTML fragment."""
+    from html.parser import HTMLParser
+
+    class _TextExtractor(HTMLParser):
+        _break_tags = {"br", "p", "div", "li", "tr", "table", "h1", "h2", "h3", "h4", "h5", "h6"}
+
+        def __init__(self):
+            super().__init__()
+            self.lines = [""]
+
+        def _newline(self):
+            if self.lines[-1].strip():
+                self.lines.append("")
+
+        def handle_starttag(self, tag, attrs):
+            if tag in self._break_tags:
+                self._newline()
+
+        def handle_endtag(self, tag):
+            if tag in self._break_tags:
+                self._newline()
+
+        def handle_data(self, data):
+            self.lines[-1] += data
+
+    extractor = _TextExtractor()
+    extractor.feed(html)
+    return [line.strip() for line in extractor.lines if line.strip()]
+
+
 def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dpi=72):
     pdf_document = fitz.open(pdf_path)
     full_text = ""
     for page_num, page_ocr in enumerate(ocr_results):
         page = pdf_document[page_num]
-        for line in page_ocr[0].text_lines:
-            bbox = scale_bbox(line.bbox, src_dpi, dst_dpi)
-            text = line.text
-            # print("Add text: ", text)
+        for block in page_ocr.blocks:
+            if block.skipped or block.error or not block.html:
+                continue
+            lines = html_to_text_lines(block.html)
+            if not lines:
+                continue
+            bbox = scale_bbox(block.bbox, src_dpi, dst_dpi)
             rect = fitz.Rect(bbox[0], bbox[1], bbox[2], bbox[3])
-            # print("Rect: ", rect)
-            # Estimate font size from bounding box height
-            font_size = estimate_font_size(rect.width, len(text))
-            # print("Estimated font size: ", font_size)
-            # Insert invisible but selectable text
-            page.insert_text(rect.bottom_left, text, fontsize=font_size+1, fontname="helv", render_mode=3)
-            # page.draw_rect(rect, color=(1, 0, 0), width=1) # for debugging
+            # Surya returns one bbox per layout block; distribute the block's
+            # text lines evenly over the block height so the invisible text
+            # roughly matches the rendered glyph positions (the anonymizer
+            # derives its redaction boxes from these positions).
+            line_height = rect.height / len(lines)
+            for i, text in enumerate(lines):
+                baseline = fitz.Point(rect.x0, rect.y0 + (i + 1) * line_height)
+                font_size = min(estimate_font_size(rect.width, len(text)), line_height)
+                # Insert invisible but selectable text
+                page.insert_text(baseline, text, fontsize=font_size+1, fontname="helv", render_mode=3)
+                # page.draw_rect(rect, color=(1, 0, 0), width=1) # for debugging
 
-            full_text += text
+                full_text += text + "\n"
     pdf_document.save(output_path)
     # print("Text added to PDF, saved to: ", output_path)
     pdf_document.close()
@@ -244,14 +282,10 @@ def add_text_layer_to_pdf(pdf_path, ocr_results, output_path, src_dpi=96, dst_dp
 def images_to_pdf(images, output_path):
     images[0].save(output_path, save_all=True, append_images=images[1:], resolution=100.0)
 
-def extract_text_from_images_surya(images, det_predictor, rec_predictor):
-    predictions = []
-
-    for image in images:
-
-        predictions.append(rec_predictor([image], det_predictor=det_predictor))
-
-    return predictions
+def extract_text_from_images_surya(images, rec_predictor):
+    # surya >= 0.22: full-page OCR (layout + text in one call per page), the
+    # separate detection predictor is no longer used.
+    return rec_predictor(images, full_page=True)
 
 def pdf_to_images(
     filename: Path | str,
@@ -308,10 +342,8 @@ def pdf_to_images(
     return images
 
 
-def ocr_surya(file_path, ocr_file_output_path, detection_predictor, recognition_predictor, ocr_languages):
+def ocr_surya(file_path, ocr_file_output_path, recognition_predictor, ocr_languages):
     from PIL import Image
-
-    from surya.input.load import load_pdf
 
     if file_path.endswith('.pdf'):
         pass
@@ -334,16 +366,15 @@ def ocr_surya(file_path, ocr_file_output_path, detection_predictor, recognition_
         raise ValueError("Unsupported file type")
     
     images = pdf_to_images(file_path)
-    ocr_output = extract_text_from_images_surya(images, detection_predictor, recognition_predictor)
+    ocr_output = extract_text_from_images_surya(images, recognition_predictor)
     text = add_text_layer_to_pdf(file_path, ocr_output, ocr_file_output_path)
 
     del recognition_predictor
-    del detection_predictor
 
     return text
 
 
-def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_languages:list=[], remove_previous_ocr=False, det_model=None, rec_model=None):
+def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_languages:list=[], remove_previous_ocr=False, rec_model=None):
     merged_data = []
     try:
         if file_path.endswith('.csv'):
@@ -435,7 +466,7 @@ def preprocess_file(file_path, force_ocr=False, ocr_method='tesseract', ocr_lang
                         print(str(e))
                         return "surya or torch python library not found but required for surya OCR."
 
-                    ocr_text = ocr_surya(file_path, ocr_output_path, det_model, rec_model, ocr_languages)
+                    ocr_text = ocr_surya(file_path, ocr_output_path, rec_model, ocr_languages)
                     # ocr_output_path = file_path
 
                 
@@ -530,14 +561,12 @@ def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr
         max_workers = 2 if parallel_preprocessing else 1
         try:
             from surya.recognition import RecognitionPredictor
-            from surya.detection import DetectionPredictor
         except Exception as e:
             failed_job(job_id)
             print("Surya OCR could not be imported: ", str(e))
             return "surya python library not found but required for surya OCR."
 
         recognition_predictor = RecognitionPredictor()
-        detection_predictor = DetectionPredictor()
 
     else:
         print("Set max workers to 1 for OCR method: ", ocr_method)
@@ -545,7 +574,7 @@ def preprocess_input(job_id, file_paths, parallel_preprocessing=False, force_ocr
 
     with futures.ThreadPoolExecutor(max_workers=max_workers) as inner_executor:
         if ocr_method == 'surya':
-            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr, detection_predictor, recognition_predictor): file_path for file_path in file_paths}
+            future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr, recognition_predictor): file_path for file_path in file_paths}
         else:
             future_to_file = {inner_executor.submit(preprocess_file, file_path, force_ocr, ocr_method, ocr_languages, remove_previous_ocr): file_path for file_path in file_paths}
         
