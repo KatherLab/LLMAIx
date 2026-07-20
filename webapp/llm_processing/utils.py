@@ -101,6 +101,12 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
     for page_number in range(len(pdf_document)):
         page = pdf_document.load_page(page_number)
 
+        # Collect all redaction annotations first, searching only on the
+        # unmodified page. apply_redactions() rewrites the page content stream,
+        # so calling it per-hit corrupts search_for() for values later in the
+        # list and can silently leave them unredacted. Batch, then apply once.
+        added_redaction = False
+
         # Search for the text to anonymize on the page
         if text_to_anonymize:
             for text in text_to_anonymize:
@@ -109,8 +115,7 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                 # Redact each instance of the text
                 for inst in text_instances:
                     page.add_redact_annot(inst, fill=(0, 0, 0))
-                    if apply_redaction:
-                        page.apply_redactions()
+                    added_redaction = True
 
         # Add the fuzzy matches
         if fuzzy_matches:
@@ -121,8 +126,11 @@ def anonymize_pdf(input_pdf: str | io.BytesIO, text_to_anonymize: list[str], out
                 # Redact each instance of the text
                 for inst in text_instances:
                     page.add_redact_annot(inst, fill=(0, 0, 0))
-                    if apply_redaction:
-                        page.apply_redactions()
+                    added_redaction = True
+
+        # Apply all collected redactions in a single pass per page
+        if apply_redaction and added_redaction:
+            page.apply_redactions()
 
     # Save the modified PDF or return as BytesIO
     if output_pdf_path is None:
