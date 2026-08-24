@@ -7,6 +7,14 @@
 >
 > [Check it out!](https://github.com/KatherLab/llmaixweb)
 
+
+
+> [!IMPORTANT]
+> Release of **deidentifer** - a simple tool for document redaction.
+>
+> [Check it out!](https://github.com/KatherLab/deidentifier)
+
+
 > [!CAUTION]
 > This tool is a prototype which is in active development and is still undergoing major changes. Please always check the results!
 >
